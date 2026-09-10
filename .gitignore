@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.venv/
+venv/
+.idea/
+.vscode/
+Jammers-simulator/JammersSimulatorData/
+figures/_preview_*.png
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
