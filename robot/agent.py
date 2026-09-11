@@ -79,10 +79,13 @@ def safe_lateral_site(site: Arr, bearing_deg: float, side: float = 1.0) -> Arr:
 
 class Q3Agent:
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
-               max_obs: int = 8) -> None:
+               max_obs: int = 8, schedule: str = "batch") -> None:
+    if schedule not in {"batch", "immediate"}:
+      raise ValueError("schedule must be batch or immediate")
     self.client = client
     self.err_deg = err_deg
     self.max_obs = max_obs
+    self.schedule = schedule
     self.tracks = {channel: ChannelTrack(channel) for channel in range(1, 21)}
     self.measures = 0
     self.clear_calls = 0
@@ -126,7 +129,10 @@ class Q3Agent:
       return
     if result != "direction":
       raise ApiError(f"expected positive detection on channel {track.channel}")
-    track.obs.append(Observation(site.copy(), float(body["svd_deg"])))
+    bearing = float(body["svd_deg"])
+    if not math.isfinite(bearing):
+      raise ApiError(f"invalid bearing on channel {track.channel}")
+    track.obs.append(Observation(site.copy(), bearing))
     track.status = "positively_detected" if len(track.obs) == 1 else "localizing"
 
   def _region(self, track: ChannelTrack) -> tuple[Arr, Arr, float]:
@@ -149,7 +155,15 @@ class Q3Agent:
     if len(track.obs) == 1:
       return safe_lateral_site(first.site, first.bearing_deg, 1.0)
     if radius <= 900.0:
-      return center
+      if not self._seen(track, center):
+        return center
+      # 圆心已测过时做小幅度绕行. step + radius < 1000, 仍保证有信号.
+      step = min(40.0, max((1000.0 - radius) / 4.0, 0.01))
+      for index in range(16):
+        angle = math.radians(first.bearing_deg + 137.5 * index)
+        candidate = center + step * np.array([math.cos(angle), math.sin(angle)])
+        if not self._seen(track, candidate):
+          return candidate
     if len(track.obs) == 2:
       return safe_lateral_site(first.site, first.bearing_deg, -1.0)
     track.status = "geometry_fault"
@@ -159,14 +173,9 @@ class Q3Agent:
   def _seen(track: ChannelTrack, site: Arr):
     return any(np.linalg.norm(obs.site - site) <= 1e-7 for obs in track.obs)
 
-  def _fallback(self, track: ChannelTrack, poly: Arr) -> None:
-    # 定位卡住了就按多边形铺 20 m 网格硬扫, 代价大但保证能碰到
-    track.status = "clear_fallback"
-    for site in polygon_clear_sites(poly):
-      if self._clear(site, track, certified=False):
-        return
+  def _lost_signal(self, track: ChannelTrack) -> None:
     track.status = "geometry_fault"
-    raise ApiError(f"fallback grid exhausted on channel {track.channel}")
+    raise ApiError(f"guaranteed follow-up lost signal on channel {track.channel}")
 
   def _finish_channel(self, track: ChannelTrack) -> None:
     # 单个频道最多测 max_obs 次, 半径收到 20 m 以内就清除
@@ -184,29 +193,76 @@ class Q3Agent:
           track.status = "clear_ready"
           self._clear(center, track)
           return
-        # 半径基本没再缩小, 说明再加观测也没用, 直接走兜底网格
-        if track.radii and radius >= 0.995 * track.radii[-1]:
-          self._fallback(track, poly)
-          return
         track.radii.append(radius)
       site = self._next_site(track, center, radius)
       if self._seen(track, site):
-        if last_poly is None:
-          raise ApiError(f"repeated site before localization on channel {track.channel}")
-        self._fallback(track, last_poly)
-        return
+        track.status = "geometry_fault"
+        raise ApiError(f"repeated localization site on channel {track.channel}")
       body = self._measure(site, track.channel)
       result = body.get("measure_result")
       if result == "no_signal":
-        track.status = "geometry_fault"
-        raise ApiError(f"guaranteed follow-up lost signal on channel {track.channel}")
+        self._lost_signal(track)
+        return
       self._record(track, site, body)
-    if len(track.obs) >= 2:
-      poly, _, _ = self._region(track)
-      self._fallback(track, poly)
-      return
     track.status = "geometry_fault"
-    raise ApiError(f"measurement cap reached before intersection on channel {track.channel}")
+    detail = "after intersection" if last_poly is not None else "before intersection"
+    raise ApiError(
+      f"measurement cap reached {detail} on channel {track.channel}")
+
+  def _scan_sites(self) -> Arr:
+    return q3_scan_sites()
+
+  def _known_count(self) -> int:
+    return sum(track.status != "unknown" for track in self.tracks.values())
+
+  def _channel_order(self) -> list[int]:
+    unknown = [
+      channel for channel, track in self.tracks.items()
+      if track.status == "unknown"
+    ]
+    return sorted(unknown, key=lambda channel: (channel - self.current_channel) % 20)
+
+  def _discover(self, immediate: bool) -> None:
+    # 每个扫描点只测 unknown 频道. batch 模式先入队, 不当场往返定位.
+    stop = False
+    for site in self._scan_sites():
+      for channel in self._channel_order():
+        track = self.tracks[channel]
+        body = self._measure(site, channel)
+        if body.get("measure_result") == "no_signal":
+          continue
+        self._record(track, site, body)
+        if immediate and track.status != "cleared":
+          self._finish_channel(track)
+        # 频道各不相同且源数最多 16, 达上界后其余频道可直接否定.
+        if self._known_count() >= 16:
+          stop = True
+          break
+      if stop:
+        break
+
+  def _finish_pending(self) -> None:
+    while True:
+      pending = [
+        track for track in self.tracks.values()
+        if track.status in {"positively_detected", "localizing"}
+      ]
+      if not pending:
+        return
+      # 每次选距当前位置最近的安全侧偏点, 做一步滚动路径优化.
+      def travel(track: ChannelTrack) -> float:
+        first = track.obs[0]
+        site = safe_lateral_site(first.site, first.bearing_deg)
+        return float(np.linalg.norm(site - self.pos))
+
+      track = min(pending, key=lambda item: (travel(item), item.channel))
+      self._finish_channel(track)
+
+  def _certify_unknown(self) -> None:
+    for track in self.tracks.values():
+      if track.status == "unknown":
+        track.status = "absent_certified"
+        self.absent_mask |= 1 << (track.channel - 1)
 
   def run(self, enter_body: dict[str, object] | None = None) -> MissionResult:
     """执行一轮 Q3 定位清除.
@@ -219,24 +275,11 @@ class Q3Agent:
       self.entered_here = True
     self.virtual_s = float(enter_body["virtual_time_s"])
     try:
-      # 第一轮: 7 个骨架点 x 20 个频道. 已经清掉的频道不用再测
-      for site in q3_scan_sites():
-        for channel in range(1, 21):
-          track = self.tracks[channel]
-          if track.status == "cleared":
-            continue
-          body = self._measure(site, channel)
-          result = body.get("measure_result")
-          if result == "no_signal":
-            continue
-          self._record(track, site, body)
-          if track.status != "cleared":
-            self._finish_channel(track)
-      # 扫完还是 unknown 的频道判定为不存在. 这一步成立的前提是接收半径不小于 1000 m
-      for track in self.tracks.values():
-        if track.status == "unknown":
-          track.status = "absent_certified"
-          self.absent_mask |= 1 << (track.channel - 1)
+      self._discover(immediate=self.schedule == "immediate")
+      if self.schedule == "batch":
+        self._finish_pending()
+      # 扫描集具有发现证书, 或者已达到 16 个异频源上界.
+      self._certify_unknown()
       # 20 个频道都拿到 cleared 或 absent_certified 才算完整, 否则不退出
       complete = self.cleared_mask | self.absent_mask == (1 << 20) - 1
       if not complete:

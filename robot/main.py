@@ -1,5 +1,5 @@
-# 问题三：机器狗自动定位与清除程序.
-# 按附件 1 要求, 程序自行记录指令序列与响应信息, 落在 code/outputs/q3_<时间戳>.jsonl.
+# 问题三与问题四的机器狗自动定位清除入口.
+# 指令日志保留动作与响应, 但会在写盘前移除队号.
 # 用法: python -X utf8 robot\main.py --team <参赛队号>
 from __future__ import annotations
 
@@ -16,9 +16,22 @@ sys.path.insert(0, str(root))
 
 from robot.agent import Q3Agent  # noqa: E402
 from robot.client import ApiClient, ApiError  # noqa: E402
+from robot.q4_agent import Q4Agent  # noqa: E402
 
 
 log_path: Path | None = None
+
+
+def redact_identity(value: object) -> object:
+  if isinstance(value, dict):
+    return {
+      key: "<redacted>" if key in {"robot_id", "team_no"}
+      else redact_identity(item)
+      for key, item in value.items()
+    }
+  if isinstance(value, list):
+    return [redact_identity(item) for item in value]
+  return value
 
 
 def log_call(path: str, payload: dict, status: int, body: dict,
@@ -29,8 +42,8 @@ def log_call(path: str, payload: dict, status: int, body: dict,
   try:
     with log_path.open("a", encoding="utf-8") as file:
       file.write(json.dumps({
-        "t": ms, "path": path, "request": payload,
-        "status": status, "response": body,
+        "t": ms, "path": path, "request": redact_identity(payload),
+        "status": status, "response": redact_identity(body),
       }, ensure_ascii=False) + "\n")
   except OSError:
     pass
@@ -49,12 +62,16 @@ def attach_logging(client: ApiClient) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(
-    description="问题三 机器狗自动定位与清除")
+    description="问题三/四 机器狗自动定位与清除")
   parser.add_argument(
     "--team", default=os.environ.get("CUMCM_TEAM_NO", ""),
     help="参赛队号, 需与模拟器当前登录账号一致")
   parser.add_argument("--base-url", default="http://127.0.0.1:2026",
                       help="模拟器接口地址")
+  parser.add_argument("--problem", type=int, choices=(3, 4), default=3,
+                      help="运行问题三或问题四策略")
+  parser.add_argument("--schedule", choices=("batch", "immediate"),
+                      default="batch", help="批处理或发现后立即定位")
   parser.add_argument("--wait-s", type=float, default=300.0,
                       help="等待接口开放的最长秒数")
   parser.add_argument("--max-obs", type=int, default=8,
@@ -75,7 +92,8 @@ def main(argv: list[str] | None = None) -> int:
 
   log_dir = Path(args.log_dir) if args.log_dir else root / "code" / "outputs"
   log_dir.mkdir(parents=True, exist_ok=True)
-  log_path = log_dir / f"q3_{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
+  log_path = log_dir / (
+    f"q{args.problem}_{time.strftime('%Y%m%d-%H%M%S')}.jsonl")
 
   client = ApiClient(args.base_url, args.team)
   attach_logging(client)
@@ -90,18 +108,17 @@ def main(argv: list[str] | None = None) -> int:
   remain = float(enter.get("remaining_real_duration_s", 0.0))
   print(f"已进入, 本局可用现实时间 {remain:.0f} 秒")
 
-  agent = Q3Agent(client, err_deg=args.err_deg, max_obs=args.max_obs)
+  agent_type = Q3Agent if args.problem == 3 else Q4Agent
+  agent = agent_type(
+    client, err_deg=args.err_deg, max_obs=args.max_obs,
+    schedule=args.schedule)
   error: str | None = None
   result = None
   try:
     result = agent.run(enter_body=enter)
-  except Exception as exc:  # noqa: BLE001 - 异常时也要退出本局
+  except Exception as exc:  # noqa: BLE001 - agent 已尝试退出本局
     error = f"{type(exc).__name__}: {exc}"
     print(f"运行中断: {error}")
-    try:
-      client.exit()
-    except ApiError:
-      pass
 
   elapsed = time.perf_counter() - started
   out: dict[str, object] = {
