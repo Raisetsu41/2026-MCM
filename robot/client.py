@@ -33,7 +33,8 @@ class ApiClient:
   ) -> None:
     if not robot_id or not 1 <= len(robot_id.encode("utf-8")) <= 64:
       raise ValueError("robot_id must contain 1 to 64 UTF-8 bytes")
-    if timeout_s <= 0 or max_retry < 0 or backoff_s < 0:
+    if (timeout_s <= 0 or max_retry < 0 or backoff_s < 0
+        or deadline_guard_s < 0):
       raise ValueError("invalid retry parameters")
     self.base_url = base_url.rstrip("/")
     self.robot_id = robot_id
@@ -72,6 +73,14 @@ class ApiClient:
     if time.monotonic() + self.deadline_guard_s >= self.deadline:
       raise ApiError("real-time deadline guard reached")
 
+  def _request_timeout(self, path: str) -> float:
+    if path == "/exit" or self.deadline is None:
+      return self.timeout_s
+    remaining = self.deadline - time.monotonic() - self.deadline_guard_s
+    if remaining <= 0.0:
+      raise ApiError("real-time deadline guard reached")
+    return min(self.timeout_s, max(remaining, 0.001))
+
   def _post_once(self, path: str, payload: Json) -> tuple[int, Json]:
     data = json.dumps(payload, ensure_ascii=False,
                       separators=(",", ":")).encode("utf-8")
@@ -79,7 +88,7 @@ class ApiClient:
       self.base_url + path, data=data,
       headers={"Content-Type": "application/json"}, method="POST")
     try:
-      with urlopen(req, timeout=self.timeout_s) as resp:
+      with urlopen(req, timeout=self._request_timeout(path)) as resp:
         status = int(resp.status)
         body = json.loads(resp.read().decode("utf-8"))
     except HTTPError as exc:
@@ -136,11 +145,14 @@ class ApiClient:
     self.deadline = time.monotonic() + remain
     return body
 
+  def enter(self) -> Json:
+    return self.enter_payload(self._base(self._new_id("enter")))
+
   def enter_when_open(self, wait_s: float = 300.0,
                       request_id: str = "enter-wait-000001") -> Json:
     """等接口开放再进去.
 
-    倒计时没走完、或者根本不在测试中, 模拟器会直接把连接掐掉, 所以只能一直试.
+    倒计时没走完, 或者根本不在测试中, 模拟器会直接把连接掐掉, 所以只能一直试.
     request_id 从头到尾用同一个: 万一某次其实已经进去了, 重试命中幂等缓存返回原
     响应, 不会变成第二次进入.
     """

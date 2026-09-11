@@ -16,6 +16,8 @@ root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
 from geometry_solver import (  # noqa: E402
+  continuous_two_site_error_bound,
+  detected_candidate_mask,
   error_propagation,
   localization_diameter_bounds,
   pareto_second_sites_cone,
@@ -116,9 +118,12 @@ def q2_result() -> dict[str, float | int | list[float]]:
   u = np.array([math.cos(t), math.sin(t)])
   v = np.array([-math.sin(t), math.cos(t)])
   cand = s1 + aa.ravel()[:, None] * u + bb.ravel()[:, None] * v
-  ok = robust_candidate_mask(
+  strict_ok = robust_candidate_mask(
     cand, s1, ang, ranges, err_deg=1.0,
     recv_rad=1000.0, time_limit_s=260.0)
+  ok = detected_candidate_mask(
+    cand, s1, ang, ranges, err_deg=1.0,
+    recv_min=1000.0, time_limit_s=260.0)
   p = cand[ok]
   if len(p) == 0:
     raise RuntimeError("candidate region is empty")
@@ -128,20 +133,26 @@ def q2_result() -> dict[str, float | int | list[float]]:
   ids = np.flatnonzero(res["pareto"])
   if len(ids) == 0:
     raise RuntimeError("pareto set is empty")
-  # 20 m 确定性门槛不可行时, 先最小化误差界, 再最小化耗时.
-  best_error = float(np.min(res["error_bound"][ids]))
-  accurate = ids[res["error_bound"][ids] <= best_error + 1e-9]
-  pick = accurate[int(np.argmin(res["time_s"][accurate]))]
+  # 有 20 m 可行点时先最短时间, 否则先最小化误差界再比耗时.
+  accurate = ids[res["sampled_error"][ids] <= 20.0]
+  if len(accurate):
+    pick = accurate[int(np.argmin(res["time_s"][accurate]))]
+  else:
+    best_error = float(np.min(res["sampled_error"][ids]))
+    best = ids[res["sampled_error"][ids] <= best_error + 1e-9]
+    pick = best[int(np.argmin(res["time_s"][best]))]
   rows: list[list[float | int | str]] = []
   for i in ids:
     rows.append([float(p[i, 0]), float(p[i, 1]), float(res["angle_cost"][i]),
                  float(res["gdop"][i]), float(res["time_s"][i]),
-                 float(res["coverage"][i]), float(res["error_bound"][i]),
+                 float(res["detection_coverage"][i]),
+                 float(res["coverage"][i]), float(res["sampled_error"][i]),
                  float(res["rms"][i]),
                  int(i == pick)])
   save_csv(res_dir / "q2_Pareto候选点.csv",
-           ["横坐标(米)", "纵坐标(米)", "角度代价", "GDOP(米每弧度)",
-            "第二次检测耗时(秒)", "接收覆盖率", "确定性误差界(米)",
+            ["横坐标(米)", "纵坐标(米)", "角度代价", "GDOP(米每弧度)",
+             "第二次检测耗时(秒)", "条件接收采样覆盖率",
+             "1000米采样覆盖率", "离散源采样最坏一阶误差(米)",
             "统计位置RMS(米)", "是否折中点"], rows)
 
   fig, ax = plt.subplots(1, 2, figsize=(10.8, 4.7))
@@ -157,14 +168,14 @@ def q2_result() -> dict[str, float | int | list[float]]:
   ax[0].axis("equal")
   ax[0].grid(alpha=0.2)
   ax[0].legend(frameon=False, fontsize=8)
-  ax[1].scatter(res["time_s"], res["error_bound"], s=5.0,
+  ax[1].scatter(res["time_s"], res["sampled_error"], s=5.0,
                 color="#4C78A8", alpha=0.35)
-  ax[1].scatter(res["time_s"][ids], res["error_bound"][ids], s=22.0,
+  ax[1].scatter(res["time_s"][ids], res["sampled_error"][ids], s=22.0,
                 color="#D62728", label="Pareto前沿")
-  ax[1].scatter([res["time_s"][pick]], [res["error_bound"][pick]], s=70.0,
+  ax[1].scatter([res["time_s"][pick]], [res["sampled_error"][pick]], s=70.0,
                 marker="*", color="#F2CF5B", edgecolor="#333333", label="折中点")
   ax[1].set_xlabel("第二次检测耗时 秒")
-  ax[1].set_ylabel("确定性最坏位置误差界 米")
+  ax[1].set_ylabel("离散源采样最坏一阶误差 米")
   ax[1].grid(alpha=0.2)
   ax[1].legend(frameon=False, fontsize=8)
   fig.tight_layout()
@@ -175,21 +186,35 @@ def q2_result() -> dict[str, float | int | list[float]]:
   full_src = source_cone_samples(s1, ang, ranges, 1.0, n_range=61, n_angle=31)
   worst = second_site_metrics_sources(
     p[pick:pick + 1], s1, full_src, quantile=1.0)
-  far = float(sector_max_distance(p[pick:pick + 1], s1, ang, ranges, 1.0)[0])
+  far_core = float(sector_max_distance(
+    p[pick:pick + 1], s1, ang, (5.0, 1000.0), 1.0)[0])
+  far_full = float(sector_max_distance(
+    p[pick:pick + 1], s1, ang, ranges, 1.0)[0])
+  certified_error = continuous_two_site_error_bound(
+    s1, p[pick], ang, ranges, err_deg=1.0, abs_tol_m=1e-3)
   return {
     "candidate_count": len(p),
+    "strict_core_count": int(np.sum(strict_ok)),
     "pareto_count": len(ids),
     "selected_site_m": p[pick].tolist(),
     "selected_angle_cost": float(res["angle_cost"][pick]),
     "selected_gdop_m_per_rad": float(res["gdop"][pick]),
     "selected_rms_m": float(res["rms"][pick]),
-    "selected_error_bound_m": float(res["error_bound"][pick]),
+    "selected_sampled_error_m": float(res["sampled_error"][pick]),
+    "selected_continuous_error_lower_m": float(certified_error["lower_m"]),
+    "selected_continuous_error_upper_m": float(certified_error["upper_m"]),
+    "selected_continuous_error_certified": bool(certified_error["certified"]),
+    "selected_continuous_error_interval_count": int(
+      certified_error["interval_count"]),
     "selected_time_s": float(res["time_s"][pick]),
-    "selected_coverage": float(res["coverage"][pick]),
-    "error_bound_20m_feasible": bool(np.any(res["error_bound"] <= 20.0)),
-    "guaranteed_max_distance_m": far,
+    "selected_detection_coverage": float(res["detection_coverage"][pick]),
+    "selected_strict_coverage": float(res["coverage"][pick]),
+    "sampled_error_20m_feasible": bool(np.any(
+      res["pareto"] & (res["sampled_error"] <= 20.0))),
+    "conditional_core_max_distance_m": far_core,
+    "strict_full_cone_max_distance_m": far_full,
     "sampled_worst_rms_m": float(worst["rms"][0]),
-    "sampled_worst_error_bound_m": float(worst["error_bound"][0]),
+    "sampled_worst_error_m": float(worst["sampled_error"][0]),
     "orthogonal_test_gdop": float(ortho["gdop"]),
     "orthogonal_test_rms_m": float(ortho["rms"]),
   }
