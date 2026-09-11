@@ -44,47 +44,6 @@ def q3_scan_sites(radius: float = 1200.0) -> Arr:
   return np.vstack((np.zeros(2), ring))
 
 
-def q4_scan_sites(step: float = 990.0, target_rad: float = 1800.0) -> Arr:
-  if step <= 0 or target_rad <= 0 or step > 1000.0:
-    raise ValueError("invalid triangular grid parameters")
-  e1 = np.array([step, 0.0])
-  e2 = np.array([step / 2.0, math.sqrt(3.0) * step / 2.0])
-  lim = int(math.ceil((target_rad + step) / (step * math.sqrt(3.0) / 2.0))) + 2
-  points = []
-  for i in range(-2 * lim, 2 * lim + 1):
-    for j in range(-lim, lim + 1):
-      point = i * e1 + j * e2
-      if np.linalg.norm(point) <= target_rad + step + 1e-9:
-        points.append(point)
-  return np.asarray(points)
-
-
-def fallback_clear_sites(
-    site: Arr, bearing_deg: float, err_deg: float = 1.01,
-    near_m: float = 5.0, far_m: float = 1500.0,
-    cover_rad: float = 20.0,
-) -> Arr:
-  if not 0 <= err_deg < 90 or not 0 <= near_m < far_m or cover_rad <= 0:
-    raise ValueError("invalid fallback parameters")
-  angle = math.radians(bearing_deg)
-  u = np.array([math.cos(angle), math.sin(angle)])
-  v = np.array([-math.sin(angle), math.cos(angle)])
-  err = math.radians(err_deg)
-  lo_a = near_m * math.cos(err)
-  hi_a = far_m
-  hi_b = far_m * math.sin(err)
-  step = cover_rad * math.sqrt(2.0)
-  n_a = max(1, int(math.ceil((hi_a - lo_a) / step)))
-  n_b = max(1, int(math.ceil(2.0 * hi_b / step)))
-  axis_a = np.linspace(lo_a, hi_a, n_a + 1)
-  axis_b = np.linspace(-hi_b, hi_b, n_b + 1)
-  points = []
-  for i, a in enumerate(axis_a):
-    row = axis_b if i % 2 == 0 else axis_b[::-1]
-    points.extend(site + a * u + b * v for b in row)
-  return np.asarray(points)
-
-
 def polygon_clear_sites(poly: Arr, cover_rad: float = 20.0) -> Arr:
   p = np.asarray(poly, dtype=float)
   if p.ndim != 2 or p.shape[1] != 2 or len(p) == 0 or cover_rad <= 0:

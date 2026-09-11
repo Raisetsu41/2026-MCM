@@ -1,11 +1,10 @@
 # 模拟器 HTTP 客户端.
-# 保证动作串行, 幂等重试, deadline 和本地 JSONL 审计.
+# 四个动作串行发送, 失败按同一 request_id 重试, 并守住现实时间预算.
 from __future__ import annotations
 
 import json
 import threading
 import time
-from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -29,7 +28,6 @@ class ApiError(RuntimeError):
 class ApiClient:
   def __init__(
       self, base_url: str, robot_id: str,
-      journal: str | Path | None = None,
       timeout_s: float = 3.0, max_retry: int = 5,
       backoff_s: float = 0.05, deadline_guard_s: float = 2.0,
   ) -> None:
@@ -43,7 +41,6 @@ class ApiClient:
     self.max_retry = max_retry
     self.backoff_s = backoff_s
     self.deadline_guard_s = deadline_guard_s
-    self.journal = Path(journal) if journal is not None else None
     self.seq = 0
     self.deadline: float | None = None
     self.lock = threading.Lock()
@@ -69,14 +66,6 @@ class ApiClient:
     out["channel"] = int(channel)
     return out
 
-  def _write(self, item: Json) -> None:
-    if self.journal is None:
-      return
-    self.journal.parent.mkdir(parents=True, exist_ok=True)
-    line = json.dumps(item, ensure_ascii=False, separators=(",", ":"))
-    with self.journal.open("a", encoding="utf-8") as file:
-      file.write(line + "\n")
-
   def _check_deadline(self, path: str) -> None:
     if path == "/exit" or self.deadline is None:
       return
@@ -84,7 +73,8 @@ class ApiClient:
       raise ApiError("real-time deadline guard reached")
 
   def _post_once(self, path: str, payload: Json) -> tuple[int, Json]:
-    data = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    data = json.dumps(payload, ensure_ascii=False,
+                      separators=(",", ":")).encode("utf-8")
     req = Request(
       self.base_url + path, data=data,
       headers={"Content-Type": "application/json"}, method="POST")
@@ -109,15 +99,10 @@ class ApiClient:
       saw_response = False
       last_status = 0
       for attempt in range(self.max_retry + 1):
-        started = time.time_ns() // 1_000_000
         try:
           status, body = self._post_once(path, payload)
           saw_response = True
           last_status = status
-          self._write({
-            "path": path, "payload": payload, "attempt": attempt,
-            "status": status, "response": body, "local_ms": started,
-          })
           if status == 200 and body.get("accepted") is True:
             return body
           if status not in (429, 500):
@@ -125,38 +110,25 @@ class ApiClient:
             extra = f", detail={detail}" if detail else ""
             hint = ""
             if path == "/enter" and status == 200:
-              hint = " (重复 /enter 会被拒绝: 本局已经进入过, 检查是否重复调用)"
+              hint = " (重复 /enter 会被拒绝, 每局只允许进入一次)"
             raise ApiError(
               f"{path} 被拒绝: status={status}, "
-              f"accepted={body.get('accepted')}{extra}{hint}"
-              f"; request_id={payload.get('request_id')}", rejected=True)
-        except (TimeoutError, ConnectionError, URLError, json.JSONDecodeError) as exc:
-          self._write({
-            "path": path, "payload": payload, "attempt": attempt,
-            "error": type(exc).__name__, "local_ms": started,
-          })
+              f"accepted={body.get('accepted')}{extra}{hint}", rejected=True)
+        except (TimeoutError, ConnectionError, URLError,
+                json.JSONDecodeError):
+          pass
         if attempt == self.max_retry:
           break
         self._check_deadline(path)
         time.sleep(min(self.backoff_s * 2 ** attempt, 1.0))
       if saw_response:
         raise ApiError(
-          f"{path} 重试 {self.max_retry + 1} 次仍被拒绝: "
-          f"status={last_status}; request_id={payload.get('request_id')}",
+          f"{path} 重试 {self.max_retry + 1} 次仍被拒绝: status={last_status}",
           rejected=True)
       raise ApiError(
-        f"{path} 连接失败(共 {self.max_retry + 1} 次): 接口可能未开放或已结束",
-        rejected=False)
-
-  def enter(self) -> Json:
-    payload = self._base(self._new_id("enter"))
-    body = self._post("/enter", payload)
-    remain = float(body["remaining_real_duration_s"])
-    self.deadline = time.monotonic() + remain
-    return body
+        f"{path} 连接失败(共 {self.max_retry + 1} 次): 接口可能未开放或已结束")
 
   def enter_payload(self, payload: Json) -> Json:
-    """按给定请求体调用 /enter 并登记现实时间截止时刻."""
     body = self._post("/enter", payload)
     remain = float(body["remaining_real_duration_s"])
     self.deadline = time.monotonic() + remain
@@ -166,9 +138,8 @@ class ApiClient:
                       request_id: str = "enter-wait-000001") -> Json:
     """等待接口开放后再进入.
 
-    模拟器在 5 秒倒计时期间与非测试期间会直接关闭连接且不返回 JSON, 因此
-    只能轮询. 全程复用同一个 request_id: 一旦某次已被接受, 后续重试会命中
-    模拟器的幂等缓存并原样返回同一响应, 不会重复进入或重复计时.
+    倒计时期间与非测试期间连接会被直接关闭, 因此只能轮询. 全程复用同一个
+    request_id: 一旦某次已被接受, 后续重试会命中幂等缓存并原样返回同一响应.
     """
     payload = self._base(request_id)
     end = time.monotonic() + wait_s
@@ -178,8 +149,6 @@ class ApiClient:
       try:
         return self.enter_payload(payload)
       except ApiError as exc:
-        # 只有"收到过响应却被业务拒绝"才说明接口是开的; 连接失败(接口未开放)
-        # 由 _post 耗尽重试后抛出 rejected=False 的 ApiError, 应当继续轮询.
         if exc.rejected:
           rejected = exc
           break
@@ -187,15 +156,12 @@ class ApiClient:
         pass
       if time.monotonic() + delay >= end:
         raise ApiError(
-          f"接口在 {wait_s:.0f} 秒内未开放 (连接一直失败): "
-          "请确认已在模拟器点击开始并等完 5 秒倒计时")
+          f"接口在 {wait_s:.0f} 秒内未开放, 请确认已开始测试并等完 5 秒倒计时")
       time.sleep(delay)
       delay = min(delay * 1.5, 2.0)
     raise ApiError(
-      f"/enter 被模拟器拒绝: {rejected}. 请检查: "
-      "① 同一时刻是否还有另一个机器狗程序在运行; "
-      "② 上一局是否已完全结束(界面显示完成); "
-      "③ 本局是否已经被进入过(每局只允许一次 /enter)")
+      f"/enter 被拒绝: {rejected}. 请检查本局是否已被进入过, "
+      "以及是否还有另一个程序在运行")
 
   def measure(self, x: float, y: float, channel: int) -> Json:
     payload = self._action(self._new_id("measure"), x, y, channel)

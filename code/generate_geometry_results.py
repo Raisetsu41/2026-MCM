@@ -1,5 +1,4 @@
-# 生成问题 1 和问题 2 的数值证据与图表.
-# 输出 CSV, JSON, PDF 和运行日志.
+# 生成问题 1 和问题 2 的数值结果与图表.
 from __future__ import annotations
 
 import csv
@@ -27,21 +26,12 @@ from geometry_solver import (  # noqa: E402
 )
 
 
-DEBUG = True
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["pdf.fonttype"] = 42
 
 fig_dir = root / "figures"
 res_dir = root / "results"
-out_dir = root / "code" / "outputs"
-logs: list[str] = []
-
-
-def dbg(s: str) -> None:
-  logs.append(s)
-  if DEBUG:
-    print("[debug] " + s)
 
 
 def save_csv(path: Path, head: list[str], rows: list[list[float | int | str]]) -> None:
@@ -103,7 +93,6 @@ def q1_result() -> dict[str, float | int]:
   fig.tight_layout()
   fig.savefig(fig_dir / "q1_荣格定理反例.pdf", bbox_inches="tight")
   plt.close(fig)
-  dbg(f"q1 顶点数 {len(p)} 直径 {d:.9f} 最大约束违反 {vio:.3e}")
   return {
     "vertex_count": len(p),
     "diameter_m": d,
@@ -187,9 +176,6 @@ def q2_result() -> dict[str, float | int | list[float]]:
   worst = second_site_metrics_sources(
     p[pick:pick + 1], s1, full_src, quantile=1.0)
   far = float(sector_max_distance(p[pick:pick + 1], s1, ang, ranges, 1.0)[0])
-  dbg(f"q2 候选数 {len(p)} Pareto数 {len(ids)} 折中点 {p[pick].tolist()}")
-  dbg(f"q2 保证最远距离 {far:.6f} 确定性误差界 {float(worst['error_bound'][0]):.6f}")
-  dbg(f"q2 正交解析例 GDOP {float(ortho['gdop']):.12f} RMS {float(ortho['rms']):.12f}")
   return {
     "candidate_count": len(p),
     "pareto_count": len(ids),
@@ -253,7 +239,6 @@ def sensitivity_result() -> dict[str, list[float | int]]:
   fig.tight_layout()
   fig.savefig(fig_dir / "问题1与问题2_敏感性.pdf", bbox_inches="tight")
   plt.close(fig)
-  dbg(f"敏感性 误差直径范围 {min(dia):.6f} 到 {max(dia):.6f}")
   return {
     "bearing_error_deg": err.tolist(),
     "diameter_m": [float(x) for x in dia],
@@ -267,7 +252,6 @@ def main() -> None:
   st = time.perf_counter()
   fig_dir.mkdir(parents=True, exist_ok=True)
   res_dir.mkdir(parents=True, exist_ok=True)
-  out_dir.mkdir(parents=True, exist_ok=True)
   out = {
     "problem1": q1_result(),
     "problem2": q2_result(),
@@ -276,9 +260,8 @@ def main() -> None:
   out["elapsed_s"] = time.perf_counter() - st
   (res_dir / "geometry_summary.json").write_text(
     json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-  dbg(f"全部结果无 NaN {int(np.all(np.isfinite([out['elapsed_s']])))}")
-  dbg(f"运行耗时 {out['elapsed_s']:.6f} 秒")
-  (out_dir / "geometry.log").write_text("\n".join(logs) + "\n", encoding="utf-8")
+  print(f"结果已写入 {res_dir / 'geometry_summary.json'}")
+  print(f"运行耗时 {out['elapsed_s']:.3f} 秒")
 
 
 if __name__ == "__main__":

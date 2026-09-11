@@ -2,13 +2,14 @@
 
 ## 1. 可复现实验
 
-使用 `C:\Users\Raisetsu41\anaconda3\python.exe` 执行：
+使用 `D:\Python3.13.12\python.exe`（Python 3.13.12, NumPy 2.4.3）执行：
 
 ```powershell
-C:\Users\Raisetsu41\anaconda3\python.exe -m pytest -q
-C:\Users\Raisetsu41\anaconda3\python.exe code\generate_geometry_results.py
-C:\Users\Raisetsu41\anaconda3\python.exe code\run_mock_q3.py
+cd D:\2026MCM
+D:\Python3.13.12\python.exe -X utf8 code\generate_geometry_results.py
 ```
+
+该脚本重新生成问题一、问题二的 CSV、JSON 与图。问题三的程序为 `robot\main.py`，需在模拟器接口开放时运行。
 
 ## 2. Q1 数值证据
 
@@ -31,26 +32,27 @@ C:\Users\Raisetsu41\anaconda3\python.exe code\run_mock_q3.py
 
 以上 Q2 点是固定验证场景的数值证据，不是对任意第一次测向都相同的常数答案。一般圆域截断使用根报告中的一维上包络边界。
 
-## 4. Q3 最小闭环结果
+## 4. Q3 在线闭环结果
 
-本地 Mock 严格复现动作耗时、频道切换、`/clear` 不换频、同地点固定误差、幂等 ID 和一次断连。5 个随机案例中每例含 10--16 个全向源：
+案例编码 `B5N5-2T4H-ASCH-HCJC`（局号 4384716521343032157），15 个全向干扰源：
 
-- 最低清除率：100%。
-- 5 例全部获得 20 频道 `cleared/absent_certified` 终止证书。
-- 平均虚拟总时间：6294.482020 s。
-- 单例最大本地程序时间：约 1.7 s。
+- 清除 **15/15，清除比例 100%**，`cleared + absent_certified = 20`，证书完整。
+- 定位清除总时间 **6839.781087 s**，**平均定位清除时间 455.985406 s/个**。
+- 程序运行时间 **1044 ms**（本机含网络等待的计时为 16.9 s，两者口径不同，表 1 用模拟器记录的官方值）。
+- 检测被接受 94 次，频道切换 69 次，清除失败 0 次，结束原因 `user_exit`。
+- 虚拟时间构成：移动约 6220 s、检测 94×5 s、换频 69 s、清除 15×5 s。移动占总时间九成以上，是后续优化的主要方向。
 
-这是完备性基线，不是最终时间最优策略。下一轮优化应减少“发现一个源后清除再返回扫描骨架”的往返距离，并对已发现源做滚动批处理。
+数据来源：`results/simulator-logs/practice-p3-4384716521343032157-B5N5-2T4H-ASCH-HCJC.jlog`。
 
-## 5. 自动检查
+## 6. 数值校验
 
-- 29 项单元与端到端测试全部通过。
-- 旋转卡壳与暴力最远点对交叉验证。
-- Jacobian 与有限差分、两站 GDOP 矩阵式与闭式交叉验证。
-- 同步平移目标、检测点和约束圆至 (2\times10^6) m 仍保持直径。
-- 远距离正交站点不再被绝对特征值阈值误判为奇异。
-- 旧 Q2 折中点被完整扇形 1000 m 保证测试正确拒绝。
-- 断线重试复用原 ID，Mock 虚拟时间只推进一次。
-- Q3 认证清除失败、空交集和保证跟踪点失信号均进入阻断故障。
+- 旋转卡壳结果与逐顶点对暴力枚举一致：算例直径 44.1447595094 m，两种算法完全相同。
+- 全部顶点回代全部测向半平面，最大约束违反量 $1.137\times10^{-13}$。
+- 内外接正 720 边形所得直径之差在 $2.5\times10^{-13}$ m 量级。
+- 方位 Jacobian 与中心有限差分一致；两站 GDOP 的矩阵式与闭式 $\sqrt{r_1^2+r_2^2}/|\sin\gamma|$ 一致，正交算例给出 5.000000000000 m/rad。
+- 检测点、目标与约束圆同步平移到 $2\times10^6$ m 后直径不变，说明几何计算不受坐标整体平移影响。
+- 问题二旧折中点（对 700–1100 m 名义区间选出的点）被完整先验的 1000 m 保证检验正确拒绝。
+- 问题三清理阶段：15 次 `/clear` 全部成功，无一次因未发现目标而空跑。
 
-机器可读结果位于 `results/geometry_summary.json`、`results/q3_mock_summary.json` 和 `results/q3_Mock演练统计.csv`；HTTP 审计日志位于 `code/outputs/*.jsonl`。
+机器可读结果位于 `results/geometry_summary.json`、`results/q1_定位多边形.csv`、
+`results/q2_Pareto候选点.csv`、`results/q2_候选区敏感性.csv`。
