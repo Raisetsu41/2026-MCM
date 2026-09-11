@@ -15,8 +15,15 @@ from geometry_solver import (
   gdop,
   halfplane_intersection,
   intersection_angle,
+  localization_diameter_bounds,
+  localization_polygon,
+  minimum_enclosing_circle,
   pareto_mask,
   polygon_diameter,
+  robust_candidate_mask,
+  sector_max_distance,
+  second_site_metrics_sources,
+  source_cone_samples,
   two_site_gdop,
 )
 
@@ -60,6 +67,43 @@ class GeometryTest(unittest.TestCase):
     self.assertAlmostEqual(rad, d / 2.0, places=12)
     self.assertAlmostEqual(far, math.sqrt(3.0) * d / 2.0, places=12)
 
+  def test_minimum_circle_equilateral(self) -> None:
+    d = 100.0
+    p = np.array([[0.0, 0.0], [d, 0.0], [d / 2.0, math.sqrt(3.0) * d / 2.0]])
+    cen, rad = minimum_enclosing_circle(p)
+    np.testing.assert_allclose(cen, [d / 2.0, d / (2.0 * math.sqrt(3.0))], atol=1e-10)
+    self.assertAlmostEqual(rad, d / math.sqrt(3.0), places=10)
+    off = np.array([2e6, -2e6])
+    moved_cen, moved_rad = minimum_enclosing_circle(p + off)
+    np.testing.assert_allclose(moved_cen, cen + off, atol=1e-8)
+    self.assertAlmostEqual(moved_rad, rad, places=8)
+
+  def test_empty_geometry_is_not_zero_diameter(self) -> None:
+    with self.assertRaises(ValueError):
+      polygon_diameter([])
+    with self.assertRaises(ValueError):
+      diameter_circle_coverage([], [[0, 0], [1, 0]])
+
+  def test_localization_translation_invariance(self) -> None:
+    g = np.array([500.0, 300.0])
+    s = np.array([[-300.0, -100.0], [900.0, -500.0], [-100.0, 1000.0]])
+    ang = np.degrees(np.arctan2(g[1] - s[:, 1], g[0] - s[:, 0])) % 360.0
+    base, _ = localization_polygon(s, ang)
+    d0, _ = polygon_diameter(base)
+    for shift in (1e3, 1e5, 1e6, 2e6):
+      off = np.array([shift, -shift])
+      moved, _ = localization_polygon(s + off, ang, center=off)
+      d1, _ = polygon_diameter(moved)
+      self.assertAlmostEqual(d1, d0, places=7)
+
+  def test_circle_discretization_brackets_diameter(self) -> None:
+    s = np.array([[-2000.0, 0.0], [0.0, -2000.0]])
+    g = np.array([1200.0, 1200.0])
+    ang = np.degrees(np.arctan2(g[1] - s[:, 1], g[0] - s[:, 0])) % 360.0
+    res = localization_diameter_bounds(s, ang, n_bound=180)
+    self.assertLessEqual(float(res["lower_m"]), float(res["upper_m"]))
+    self.assertGreater(len(res["outer_poly"]), 0)
+
   def test_jacobian_finite_difference(self) -> None:
     g = np.array([31.0, -17.0])
     s = np.array([[-8.0, 4.0], [40.0, 12.0], [5.0, -30.0]])
@@ -101,10 +145,20 @@ class GeometryTest(unittest.TestCase):
     np.testing.assert_allclose(res["gain"] @ res["h"], np.eye(2), atol=1e-12)
     np.testing.assert_allclose(res["cov"], res["cov"].T, atol=1e-12)
 
+  def test_deterministic_error_box_bound(self) -> None:
+    res = second_site_metrics_sources(
+      [[0.0, -4.0]], [-3.0, 0.0], [[0.0, 0.0]], quantile=1.0)
+    self.assertAlmostEqual(float(res["error_bound"][0]), 5.0 * math.radians(1.0), places=12)
+
   def test_singular_gdop(self) -> None:
     g = np.array([0.0, 0.0])
     s = np.array([[-3.0, 0.0], [4.0, 0.0]])
     self.assertTrue(math.isinf(gdop(g, s)))
+
+  def test_far_orthogonal_gdop_is_finite(self) -> None:
+    g = np.array([0.0, 0.0])
+    s = np.array([[-1e6, 0.0], [0.0, -1e6]])
+    self.assertAlmostEqual(gdop(g, s), math.sqrt(2.0) * 1e6, places=5)
 
   def test_candidate_boundary(self) -> None:
     rho = 900.0
@@ -114,6 +168,33 @@ class GeometryTest(unittest.TestCase):
     ok = candidate_region_mask(p, (0, 0), 0.0, (rho, rho), 20.0,
                                recv_rad=1000.0, time_limit_s=300.0)
     self.assertTrue(bool(ok[0]))
+
+  def test_sector_max_distance_matches_brute_force(self) -> None:
+    p = np.array([[1103.949, -285.169], [700.0, 500.0]])
+    exact = sector_max_distance(p, (0, 0), 25.0, (5.0, 1500.0), 1.0)
+    rho = np.linspace(5.0, 1500.0, 2001)
+    ang = np.radians(np.linspace(24.0, 26.0, 1001))
+    brute = []
+    for q in p:
+      far = 0.0
+      for a in ang:
+        src = np.column_stack((rho * np.cos(a), rho * np.sin(a)))
+        far = max(far, float(np.max(np.linalg.norm(src - q, axis=1))))
+      brute.append(far)
+    np.testing.assert_allclose(exact, brute, rtol=0, atol=1e-8)
+
+  def test_old_q2_point_fails_full_cone_guarantee(self) -> None:
+    p = np.array([[1103.949, -285.169]])
+    ok = robust_candidate_mask(p, (0, 0), 25.0, time_limit_s=260.0)
+    self.assertFalse(bool(ok[0]))
+    self.assertGreater(float(sector_max_distance(p, (0, 0), 25.0)[0]), 1100.0)
+
+  def test_cone_samples_obey_disk_and_angle(self) -> None:
+    p = source_cone_samples((0, 0), 359.5, n_range=11, n_angle=9)
+    self.assertTrue(np.all(np.linalg.norm(p, axis=1) <= 1800.0 + 1e-10))
+    angle = np.degrees(np.arctan2(p[:, 1], p[:, 0])) % 360.0
+    dev = np.abs((angle - 359.5 + 180.0) % 360.0 - 180.0)
+    self.assertLessEqual(float(dev.max()), 1.0 + 1e-10)
 
   def test_pareto_filter(self) -> None:
     x = np.array([[1, 4], [2, 3], [3, 2], [4, 1], [3, 4], [2, 3]], dtype=float)

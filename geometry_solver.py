@@ -36,10 +36,13 @@ def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
   p = np.unique(p, axis=0)
   p = p[np.lexsort((p[:, 1], p[:, 0]))]
 
+  span = max(float(np.ptp(p[:, 0])), float(np.ptp(p[:, 1])), 1.0)
+  area_tol = tol * span * span
+
   def build(a: Arr) -> list[Arr]:
     s: list[Arr] = []
     for q in a:
-      while len(s) >= 2 and cross(s[-1] - s[-2], q - s[-1]) <= tol:
+      while len(s) >= 2 and cross(s[-1] - s[-2], q - s[-1]) <= area_tol:
         s.pop()
       s.append(q)
     return s
@@ -82,11 +85,13 @@ def bearing_halfplanes(site: Sequence[float], bearing_deg: float,
 def _clean_poly(x: Arr, tol: float) -> Arr:
   if len(x) == 0:
     return np.empty((0, 2), dtype=float)
+  span = max(float(np.ptp(x[:, 0])), float(np.ptp(x[:, 1])), 1.0)
+  cut = tol * span
   out = [x[0]]
   for p in x[1:]:
-    if np.linalg.norm(p - out[-1]) > tol:
+    if np.linalg.norm(p - out[-1]) > cut:
       out.append(p)
-  if len(out) > 1 and np.linalg.norm(out[0] - out[-1]) <= tol:
+  if len(out) > 1 and np.linalg.norm(out[0] - out[-1]) <= cut:
     out.pop()
   return np.asarray(out, dtype=float)
 
@@ -95,23 +100,33 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
                    hp: Sequence[float] | Arr, tol: float = eps) -> Arr:
   p = _pts(poly)
   h = np.asarray(hp, dtype=float)
-  if h.shape != (3,) or np.linalg.norm(h[:2]) <= tol:
+  norm = float(np.linalg.norm(h[:2])) if h.shape == (3,) else 0.0
+  if h.shape != (3,) or norm <= np.finfo(float).tiny:
     raise ValueError("half-plane must be [a, b, c] with nonzero normal")
   if len(p) == 0:
     return p
+  # 在当前多边形质心附近计算残差, 避免大坐标相减损失精度.
+  org = p.mean(axis=0)
+  nrm = h[:2] / norm
+  cut = float((h[2] - h[:2] @ org) / norm)
+  q = p - org
+  span = max(float(np.ptp(q[:, 0])), float(np.ptp(q[:, 1])), 1.0)
+  cut_tol = tol * span
   out: list[Arr] = []
-  for i, a in enumerate(p):
-    b = p[(i + 1) % len(p)]
-    fa = float(h[:2] @ a - h[2])
-    fb = float(h[:2] @ b - h[2])
-    ina, inb = fa <= tol, fb <= tol
+  for i, a in enumerate(q):
+    b = q[(i + 1) % len(q)]
+    fa = float(nrm @ a - cut)
+    fb = float(nrm @ b - cut)
+    ina, inb = fa <= cut_tol, fb <= cut_tol
     if ina:
       out.append(a)
     if ina != inb:
       den = fa - fb
-      if abs(den) > tol:
+      if abs(den) > np.finfo(float).eps * span:
         out.append(a + fa / den * (b - a))
-  return _clean_poly(np.asarray(out, dtype=float), tol)
+  if not out:
+    return np.empty((0, 2), dtype=float)
+  return _clean_poly(np.asarray(out, dtype=float) + org, tol)
 
 
 def halfplane_intersection(hps: Sequence[Sequence[float]] | Arr,
@@ -133,14 +148,58 @@ def halfplane_intersection(hps: Sequence[Sequence[float]] | Arr,
 def localization_polygon(sites: Sequence[Sequence[float]] | Arr,
                          bearings_deg: Sequence[float] | Arr,
                          err_deg: float = 1.0, rad: float = 1800.0,
-                         n_bound: int = 720) -> tuple[Arr, Arr]:
+                         n_bound: int = 720,
+                         center: Sequence[float] = (0.0, 0.0),
+                         outer: bool = True) -> tuple[Arr, Arr]:
   s = _pts(sites)
   ang = np.asarray(bearings_deg, dtype=float)
   if ang.shape != (len(s),):
     raise ValueError("one bearing is required for each site")
-  h = np.vstack([bearing_halfplanes(p, a, err_deg) for p, a in zip(s, ang)])
-  p = halfplane_intersection(h, regular_bound(rad, n_bound))
-  return p, h
+  if len(s) == 0:
+    raise ValueError("at least one bearing is required")
+  c = np.asarray(center, dtype=float)
+  if c.shape != (2,) or not np.all(np.isfinite(c)):
+    raise ValueError("center must be a finite point")
+  local_sites = s - c
+  local_hps = np.vstack([
+    bearing_halfplanes(p, a, err_deg) for p, a in zip(local_sites, ang)
+  ])
+  local_poly = halfplane_intersection(
+    local_hps, regular_bound(rad, n_bound, outer=outer))
+  global_hps = np.vstack([
+    bearing_halfplanes(p, a, err_deg) for p, a in zip(s, ang)
+  ])
+  return local_poly + c, global_hps
+
+
+def localization_diameter_bounds(
+    sites: Sequence[Sequence[float]] | Arr,
+    bearings_deg: Sequence[float] | Arr,
+    err_deg: float = 1.0, rad: float = 1800.0,
+    n_bound: int = 720,
+    center: Sequence[float] = (0.0, 0.0),
+) -> dict[str, Arr | float]:
+  outer_poly, hps = localization_polygon(
+    sites, bearings_deg, err_deg, rad, n_bound, center, outer=True)
+  if len(outer_poly) == 0:
+    raise ValueError("bearing constraints have empty intersection")
+  inner_poly, _ = localization_polygon(
+    sites, bearings_deg, err_deg, rad, n_bound, center, outer=False)
+  upper, upper_pair = polygon_diameter(outer_poly)
+  if len(inner_poly):
+    lower, lower_pair = polygon_diameter(inner_poly)
+  else:
+    lower = 0.0
+    lower_pair = np.empty((0, 2), dtype=float)
+  return {
+    "inner_poly": inner_poly,
+    "outer_poly": outer_poly,
+    "halfplanes": hps,
+    "lower_m": lower,
+    "upper_m": upper,
+    "lower_pair": lower_pair,
+    "upper_pair": upper_pair,
+  }
 
 
 def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
@@ -148,7 +207,7 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
   p = convex_hull(x, tol)
   n = len(p)
   if n == 0:
-    return 0.0, np.empty((0, 2), dtype=float)
+    raise ValueError("diameter is undefined for an empty set")
   if n == 1:
     return 0.0, np.vstack((p[0], p[0]))
   if n == 2:
@@ -189,13 +248,67 @@ def diameter_circle_coverage(x: Sequence[Sequence[float]] | Arr,
                              pair: Sequence[Sequence[float]] | Arr,
                              tol: float = eps) -> tuple[bool, Arr, float, float]:
   p = _pts(x)
+  if len(p) == 0:
+    raise ValueError("coverage is undefined for an empty set")
   q = _pts(pair)
   if len(q) != 2:
     raise ValueError("pair must contain two points")
   c = q.mean(axis=0)
   r = float(np.linalg.norm(q[1] - q[0])) / 2.0
-  far = float(np.max(np.linalg.norm(p - c, axis=1))) if len(p) else 0.0
+  far = float(np.max(np.linalg.norm(p - c, axis=1)))
   return far <= r + tol, c, r, far
+
+
+def _circle3(a: Arr, b: Arr, c: Arr, tol: float) -> tuple[Arr, float] | None:
+  ab = b - a
+  ac = c - a
+  d = 2.0 * cross(ab, ac)
+  span = max(float(np.linalg.norm(ab)), float(np.linalg.norm(ac)), 1.0)
+  if abs(d) <= tol * span * span:
+    return None
+  ab2 = float(ab @ ab)
+  ac2 = float(ac @ ac)
+  off = np.array([
+    (ab2 * ac[1] - ac2 * ab[1]) / d,
+    (ab[0] * ac2 - ac[0] * ab2) / d,
+  ])
+  cen = a + off
+  return cen, float(np.linalg.norm(cen - a))
+
+
+def minimum_enclosing_circle(
+    x: Sequence[Sequence[float]] | Arr,
+    tol: float = eps,
+) -> tuple[Arr, float]:
+  p = _pts(x)
+  if len(p) == 0:
+    raise ValueError("minimum circle is undefined for an empty set")
+  order = np.random.default_rng(0).permutation(len(p))
+  q = p[order]
+  cen = q[0].copy()
+  rad = 0.0
+  for i in range(len(q)):
+    if np.linalg.norm(q[i] - cen) <= rad + tol * max(rad, 1.0):
+      continue
+    cen = q[i].copy()
+    rad = 0.0
+    for j in range(i):
+      if np.linalg.norm(q[j] - cen) <= rad + tol * max(rad, 1.0):
+        continue
+      cen = (q[i] + q[j]) / 2.0
+      rad = float(np.linalg.norm(q[i] - q[j])) / 2.0
+      for k in range(j):
+        if np.linalg.norm(q[k] - cen) <= rad + tol * max(rad, 1.0):
+          continue
+        cir = _circle3(q[i], q[j], q[k], tol)
+        if cir is None:
+          tri = np.vstack((q[i], q[j], q[k]))
+          _, pair = polygon_diameter(tri)
+          cen = pair.mean(axis=0)
+          rad = float(np.linalg.norm(pair[1] - pair[0])) / 2.0
+        else:
+          cen, rad = cir
+  return cen, rad
 
 
 def bearing_jacobian(target: Sequence[float],
@@ -204,7 +317,9 @@ def bearing_jacobian(target: Sequence[float],
   s = _pts(sites)
   d = g - s
   r2 = np.sum(d * d, axis=1)
-  if np.any(r2 <= eps):
+  scale = max(float(np.linalg.norm(g)), float(np.max(np.linalg.norm(s, axis=1))), 1.0)
+  zero = 32.0 * np.finfo(float).eps * scale
+  if np.any(r2 <= zero * zero):
     raise ValueError("target and site must be distinct")
   return np.column_stack((-d[:, 1] / r2, d[:, 0] / r2))
 
@@ -214,7 +329,7 @@ def gdop(target: Sequence[float], sites: Sequence[Sequence[float]] | Arr,
   h = bearing_jacobian(target, sites)
   info = h.T @ h
   val = np.linalg.eigvalsh(info)
-  if val[0] <= tol * max(val[-1], 1.0):
+  if val[-1] <= 0.0 or val[0] <= tol * val[-1]:
     return math.inf
   return math.sqrt(float(np.trace(np.linalg.inv(info))))
 
@@ -234,7 +349,7 @@ def error_propagation(target: Sequence[float],
   w = np.diag(1.0 / (sig * sig))
   info = h.T @ w @ h
   val = np.linalg.eigvalsh(info)
-  if val[0] <= tol * max(val[-1], 1.0):
+  if val[-1] <= 0.0 or val[0] <= tol * val[-1]:
     raise ValueError("bearing geometry is singular")
   cov = np.linalg.inv(info)
   gain = cov @ h.T @ w
@@ -307,7 +422,10 @@ def candidate_region_mask(cand: Sequence[Sequence[float]] | Arr,
                           recv_rad: float = 1000.0,
                           time_limit_s: float = math.inf,
                           switched: bool = False, near: float = 5.0,
-                          target_rad: float | None = None) -> Arr:
+                          target_rad: float | None = None,
+                          speed: float = 5.0,
+                          measure_s: float = 5.0,
+                          switch_s: float = 1.0) -> Arr:
   p = _pts(cand)
   s = np.asarray(site1, dtype=float)
   lo, hi = ranges
@@ -325,7 +443,10 @@ def candidate_region_mask(cand: Sequence[Sequence[float]] | Arr,
   q = np.clip(a, lo, hi)
   near2 = (a - q) ** 2 + b * b
   ok &= near2 > near * near + eps
-  t = np.linalg.norm(d, axis=1) / 5.0 + 5.0 + float(switched)
+  if speed <= 0 or measure_s < 0 or switch_s < 0:
+    raise ValueError("time parameters must be nonnegative and speed positive")
+  t = (np.linalg.norm(d, axis=1) / speed + measure_s
+       + switch_s * float(switched))
   ok &= t <= time_limit_s + eps
   if target_rad is not None:
     ok &= np.linalg.norm(p, axis=1) <= target_rad + eps
@@ -362,6 +483,145 @@ def second_site_metrics(cand: Sequence[Sequence[float]] | Arr,
   return {"angle_cost": acc, "gdop": gq, "time_s": tm, "coverage": cov}
 
 
+def source_cone_samples(
+    site: Sequence[float], bearing_deg: float,
+    ranges: tuple[float, float] = (5.0, 1500.0),
+    err_deg: float = 1.0, target_rad: float = 1800.0,
+    n_range: int = 41, n_angle: int = 21,
+) -> Arr:
+  s = np.asarray(site, dtype=float)
+  lo, hi = ranges
+  if s.shape != (2,) or not np.all(np.isfinite(s)):
+    raise ValueError("site must be a finite point")
+  if not 0 <= lo < hi or not 0 <= err_deg < 90:
+    raise ValueError("invalid cone ranges or angle error")
+  if target_rad <= 0 or n_range < 2 or n_angle < 2:
+    raise ValueError("invalid disk radius or sample counts")
+  rho = np.linspace(lo, hi, n_range)
+  ang = np.radians(bearing_deg + np.linspace(-err_deg, err_deg, n_angle))
+  rr, aa = np.meshgrid(rho, ang)
+  p = s + np.column_stack((
+    (rr * np.cos(aa)).ravel(),
+    (rr * np.sin(aa)).ravel(),
+  ))
+  return p[np.linalg.norm(p, axis=1) <= target_rad + eps]
+
+
+def sector_max_distance(
+    cand: Sequence[Sequence[float]] | Arr,
+    site: Sequence[float], bearing_deg: float,
+    ranges: tuple[float, float] = (5.0, 1500.0),
+    err_deg: float = 1.0,
+) -> Arr:
+  p = _pts(cand)
+  s = np.asarray(site, dtype=float)
+  lo, hi = ranges
+  if not 0 <= lo <= hi or not 0 <= err_deg < 90:
+    raise ValueError("invalid cone ranges or angle error")
+  ang = math.radians(bearing_deg)
+  u = np.array([math.cos(ang), math.sin(ang)])
+  v = np.array([-math.sin(ang), math.cos(ang)])
+  d = p - s
+  a, b = d @ u, d @ v
+  err = math.radians(err_deg)
+  end_min = np.minimum(
+    a * math.cos(err) + b * math.sin(err),
+    a * math.cos(err) - b * math.sin(err),
+  )
+  phase = np.arctan2(b, a)
+  opp = (phase + math.pi + math.pi) % (2.0 * math.pi) - math.pi
+  dot_min = np.where(np.abs(opp) <= err + eps, -np.hypot(a, b), end_min)
+  q_lo = np.sum(d * d, axis=1) + lo * lo - 2.0 * lo * dot_min
+  q_hi = np.sum(d * d, axis=1) + hi * hi - 2.0 * hi * dot_min
+  return np.sqrt(np.maximum(np.maximum(q_lo, q_hi), 0.0))
+
+
+def robust_candidate_mask(
+    cand: Sequence[Sequence[float]] | Arr,
+    site1: Sequence[float], bearing_deg: float,
+    ranges: tuple[float, float] = (5.0, 1500.0),
+    err_deg: float = 1.0, recv_rad: float = 1000.0,
+    time_limit_s: float = math.inf, speed: float = 5.0,
+    measure_s: float = 5.0, switched: bool = False,
+    switch_s: float = 1.0,
+) -> Arr:
+  p = _pts(cand)
+  s = np.asarray(site1, dtype=float)
+  if recv_rad <= 0 or speed <= 0 or measure_s < 0 or switch_s < 0:
+    raise ValueError("invalid reception or time parameters")
+  far = sector_max_distance(p, s, bearing_deg, ranges, err_deg)
+  t = (np.linalg.norm(p - s, axis=1) / speed + measure_s
+       + switch_s * float(switched))
+  return (far <= recv_rad + eps) & (t <= time_limit_s + eps)
+
+
+def second_site_metrics_sources(
+    cand: Sequence[Sequence[float]] | Arr,
+    site1: Sequence[float], sources: Sequence[Sequence[float]] | Arr,
+    sig_deg: float = 1.0 / math.sqrt(3.0),
+    err_deg: float = 1.0,
+    recv_rad: float = 1000.0, quantile: float = 1.0,
+    speed: float = 5.0, measure_s: float = 5.0,
+    switched: bool = False, switch_s: float = 1.0,
+) -> dict[str, Arr]:
+  p = _pts(cand)
+  g = _pts(sources)
+  s = np.asarray(site1, dtype=float)
+  if len(g) == 0 or not 0 <= quantile <= 1:
+    raise ValueError("sources must be nonempty and quantile valid")
+  first = s[None, :] - g
+  r1 = np.linalg.norm(first, axis=1)
+  second = p[:, None, :] - g[None, :, :]
+  r2 = np.linalg.norm(second, axis=2)
+  dot = np.sum(first[None, :, :] * second, axis=2)
+  den = r1[None, :] * r2
+  cos_val = np.abs(dot) / np.maximum(den, np.finfo(float).tiny)
+  cos_val = np.clip(cos_val, 0.0, 1.0)
+  sin_val = np.sqrt(np.maximum(1.0 - cos_val * cos_val, 0.0))
+  raw = np.sqrt(r1[None, :] ** 2 + r2 * r2) / np.maximum(sin_val, eps)
+  raw[(r1[None, :] <= eps) | (r2 <= eps)] = math.inf
+  h1x = first[:, 1] / np.maximum(r1 * r1, np.finfo(float).tiny)
+  h1y = -first[:, 0] / np.maximum(r1 * r1, np.finfo(float).tiny)
+  h2x = second[:, :, 1] / np.maximum(r2 * r2, np.finfo(float).tiny)
+  h2y = -second[:, :, 0] / np.maximum(r2 * r2, np.finfo(float).tiny)
+  det = h1x[None, :] * h2y - h1y[None, :] * h2x
+  safe_det = np.where(np.abs(det) > np.finfo(float).tiny, det, math.nan)
+  k1x = h2y / safe_det
+  k1y = -h2x / safe_det
+  k2x = -h1y[None, :] / safe_det
+  k2y = h1x[None, :] / safe_det
+  plus = np.hypot(k1x + k2x, k1y + k2y)
+  minus = np.hypot(k1x - k2x, k1y - k2y)
+  if sig_deg <= 0 or err_deg <= 0:
+    raise ValueError("angle scales must be positive")
+  bound = math.radians(err_deg) * np.maximum(plus, minus)
+  bound[~np.isfinite(bound)] = math.inf
+  if quantile == 1.0:
+    ang_cost = np.max(cos_val, axis=1)
+    gdop_val = np.max(raw, axis=1)
+    error_bound = np.max(bound, axis=1)
+  elif quantile == 0.0:
+    ang_cost = np.min(cos_val, axis=1)
+    gdop_val = np.min(raw, axis=1)
+    error_bound = np.min(bound, axis=1)
+  else:
+    ang_cost = np.quantile(cos_val, quantile, axis=1)
+    gdop_val = np.quantile(raw, quantile, axis=1)
+    error_bound = np.quantile(bound, quantile, axis=1)
+  rms = math.radians(sig_deg) * gdop_val
+  coverage = np.mean(r2 <= recv_rad + eps, axis=1)
+  time_s = (np.linalg.norm(p - s, axis=1) / speed + measure_s
+            + switch_s * float(switched))
+  return {
+    "angle_cost": ang_cost,
+    "gdop": gdop_val,
+    "rms": rms,
+    "error_bound": error_bound,
+    "time_s": time_s,
+    "coverage": coverage,
+  }
+
+
 def pareto_mask(vals: Sequence[Sequence[float]] | Arr,
                 tol: float = eps) -> Arr:
   x = np.asarray(vals, dtype=float)
@@ -390,4 +650,27 @@ def pareto_second_sites(cand: Sequence[Sequence[float]] | Arr,
   feas = res["coverage"] + eps >= min_coverage
   vals[~feas] = math.inf
   res["pareto"] = pareto_mask(vals)
+  return res
+
+
+def pareto_second_sites_cone(
+    cand: Sequence[Sequence[float]] | Arr,
+    site1: Sequence[float], bearing_deg: float,
+    ranges: tuple[float, float] = (5.0, 1500.0),
+    err_deg: float = 1.0, recv_rad: float = 1000.0,
+    quantile: float = 1.0, min_coverage: float = 1.0,
+    n_range: int = 41, n_angle: int = 21,
+    switched: bool = False,
+) -> dict[str, Arr]:
+  src = source_cone_samples(
+    site1, bearing_deg, ranges, err_deg, n_range=n_range, n_angle=n_angle)
+  res = second_site_metrics_sources(
+    cand, site1, src, recv_rad=recv_rad, quantile=quantile,
+    switched=switched)
+  # 确定性误差界同时保留交会夹角和站距效应.
+  vals = np.column_stack((res["error_bound"], res["time_s"]))
+  feasible = res["coverage"] + eps >= min_coverage
+  safe_vals = vals.copy()
+  safe_vals[~feasible] = math.inf
+  res["pareto"] = pareto_mask(safe_vals)
   return res
