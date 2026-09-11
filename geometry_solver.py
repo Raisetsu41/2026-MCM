@@ -1,5 +1,5 @@
-# 测向交会几何算法库.
-# 实现半平面交, 旋转卡壳, GDOP 和候选点筛选.
+# 测向交会几何库: 半平面交、旋转卡壳、最小覆盖圆, 还有 Q2 用的 GDOP 和候选点筛选.
+# 坐标单位一律是米, 角度一律是度.
 from __future__ import annotations
 
 import math
@@ -30,6 +30,7 @@ def cross(a: Sequence[float] | Arr, b: Sequence[float] | Arr) -> float:
 
 
 def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
+  # Andrew 单调链, 先按 x 再按 y 排序, 正反各扫一遍
   p = _pts(x)
   if len(p) <= 1:
     return p.copy()
@@ -42,6 +43,7 @@ def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
   def build(a: Arr) -> list[Arr]:
     s: list[Arr] = []
     for q in a:
+      # <= 而不是 <, 共线点直接丢掉, 免得后面卡壳卡在退化边上
       while len(s) >= 2 and cross(s[-1] - s[-2], q - s[-1]) <= area_tol:
         s.pop()
       s.append(q)
@@ -57,6 +59,7 @@ def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
 def regular_bound(rad: float = 1800.0, n: int = 720,
                   center: Sequence[float] = (0.0, 0.0),
                   outer: bool = True) -> Arr:
+  # outer=True 是圆的外接正 n 边形(结果偏大, 当上界用), False 是内接的(当下界用)
   if rad <= 0 or n < 3:
     raise ValueError("rad must be positive and n must be at least 3")
   c = np.asarray(center, dtype=float)
@@ -105,12 +108,13 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
     raise ValueError("half-plane must be [a, b, c] with nonzero normal")
   if len(p) == 0:
     return p
-  # 在当前多边形质心附近计算残差, 避免大坐标相减损失精度.
+  # 大坐标直接相减会掉精度, 所以先平移到多边形自己的平均位置再算残差
   org = p.mean(axis=0)
   nrm = h[:2] / norm
   cut = float((h[2] - h[:2] @ org) / norm)
   q = p - org
   span = max(float(np.ptp(q[:, 0])), float(np.ptp(q[:, 1])), 1.0)
+  # 容差按多边形跨度缩放, 不能用固定的绝对量, 否则平移一下结果就变了
   cut_tol = tol * span
   out: list[Arr] = []
   for i, a in enumerate(q):
@@ -121,6 +125,7 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
     if ina:
       out.append(a)
     if ina != inb:
+      # 跨越边界, 补一个交点; 两边残差几乎相等时说明是平行边, 跳过
       den = fa - fb
       if abs(den) > np.finfo(float).eps * span:
         out.append(a + fa / den * (b - a))
@@ -223,6 +228,7 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
       best = val
       pair = np.vstack((p[a], p[b]))
 
+  # 旋转卡壳: j 只会沿凸包单调往前走, 所以整个循环 j 总共绕一圈, 是线性的
   for i in range(n):
     ni = (i + 1) % n
     while True:
@@ -230,11 +236,12 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
       cur = abs(cross(p[ni] - p[i], p[j] - p[i]))
       nxt = abs(cross(p[ni] - p[i], p[nj] - p[i]))
       if nxt > cur + tol:
-        j = nj
+        j = nj            # 三角形面积还在变大, 对踵点继续往前挪
       else:
         break
     upd(i, j)
     upd(ni, j)
+    # 两条边平行时会出现两个对踵点, 都得试
     nj = (j + 1) % n
     cur = abs(cross(p[ni] - p[i], p[j] - p[i]))
     nxt = abs(cross(p[ni] - p[i], p[nj] - p[i]))
@@ -313,10 +320,12 @@ def minimum_enclosing_circle(
 
 def bearing_jacobian(target: Sequence[float],
                      sites: Sequence[Sequence[float]] | Arr) -> Arr:
+  # atan2 对位置的偏导, 第 i 行就是第 i 个测站那两列
   g = np.asarray(target, dtype=float)
   s = _pts(sites)
   d = g - s
   r2 = np.sum(d * d, axis=1)
+  # 判重合的阈值跟着坐标量级走. 之前写死 1e-10, 尺度小的算例会误报
   scale = max(float(np.linalg.norm(g)), float(np.max(np.linalg.norm(s, axis=1))), 1.0)
   zero = 32.0 * np.finfo(float).eps * scale
   if np.any(r2 <= zero * zero):
@@ -338,6 +347,7 @@ def error_propagation(target: Sequence[float],
                       sites: Sequence[Sequence[float]] | Arr,
                       sig_deg: float | Sequence[float] = 1.0 / math.sqrt(3.0),
                       tol: float = 1e-12) -> dict[str, Arr | float]:
+  # 加权最小二乘: 测角残差 e 到位置增量 dG 的映射 K = (H'WH)^-1 H'W, 维数 2×m
   h = bearing_jacobian(target, sites)
   sig = np.asarray(sig_deg, dtype=float)
   if sig.ndim == 0:
@@ -349,6 +359,7 @@ def error_propagation(target: Sequence[float],
   w = np.diag(1.0 / (sig * sig))
   info = h.T @ w @ h
   val = np.linalg.eigvalsh(info)
+  # 信息矩阵奇异说明两条视线共线, 这种情况直接报错, 不能硬算逆
   if val[-1] <= 0.0 or val[0] <= tol * val[-1]:
     raise ValueError("bearing geometry is singular")
   cov = np.linalg.inv(info)
@@ -489,6 +500,7 @@ def source_cone_samples(
     err_deg: float = 1.0, target_rad: float = 1800.0,
     n_range: int = 41, n_angle: int = 21,
 ) -> Arr:
+  # 首次测到方向后, 可能的目标位置就是这个扇形: 距离 5~1500 米, 角度 ±1°, 再和目标圆求交
   s = np.asarray(site, dtype=float)
   lo, hi = ranges
   if s.shape != (2,) or not np.all(np.isfinite(s)):
@@ -513,6 +525,7 @@ def sector_max_distance(
     ranges: tuple[float, float] = (5.0, 1500.0),
     err_deg: float = 1.0,
 ) -> Arr:
+  # 候选点到整个扇形的最远距离. 距离平方对 rho 是凸的, 最大值只可能在 rho 的两个端点取到
   p = _pts(cand)
   s = np.asarray(site, dtype=float)
   lo, hi = ranges
@@ -524,6 +537,7 @@ def sector_max_distance(
   d = p - s
   a, b = d @ u, d @ v
   err = math.radians(err_deg)
+  # 两个角度端点里取更近的那个; 另外如果正后方落在 ±err 内, 那一点更近
   end_min = np.minimum(
     a * math.cos(err) + b * math.sin(err),
     a * math.cos(err) - b * math.sin(err),
@@ -624,6 +638,7 @@ def second_site_metrics_sources(
 
 def pareto_mask(vals: Sequence[Sequence[float]] | Arr,
                 tol: float = eps) -> Arr:
+  # 两目标非支配筛选. 含 inf 的点直接出局, 剩下的两两比: 只要有人两项都不差且有一项更好, 就被支配
   x = np.asarray(vals, dtype=float)
   if x.ndim != 2 or len(x) == 0:
     raise ValueError("vals must have shape (n, m) with n positive")
@@ -662,12 +677,12 @@ def pareto_second_sites_cone(
     n_range: int = 41, n_angle: int = 21,
     switched: bool = False,
 ) -> dict[str, Arr]:
+  # Q2 主模型: 精度用确定性最坏误差界, 时间用移动+测向, 对完整先验求 Pareto
   src = source_cone_samples(
     site1, bearing_deg, ranges, err_deg, n_range=n_range, n_angle=n_angle)
   res = second_site_metrics_sources(
     cand, site1, src, recv_rad=recv_rad, quantile=quantile,
     switched=switched)
-  # 确定性误差界同时保留交会夹角和站距效应.
   vals = np.column_stack((res["error_bound"], res["time_s"]))
   feasible = res["coverage"] + eps >= min_coverage
   safe_vals = vals.copy()

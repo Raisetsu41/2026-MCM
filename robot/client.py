@@ -1,5 +1,5 @@
 # 模拟器 HTTP 客户端.
-# 四个动作串行发送, 失败按同一 request_id 重试, 并守住现实时间预算.
+# 一次只发一个动作, 断线了就用同一个 request_id 重发, 快到点的时候主动停手.
 from __future__ import annotations
 
 import json
@@ -94,6 +94,7 @@ class ApiClient:
     return status, body
 
   def _post(self, path: str, payload: Json) -> Json:
+    # payload 在外面生成好, 整个重试过程复用同一个 request_id, 否则模拟器会当成新动作重复执行
     with self.lock:
       self._check_deadline(path)
       saw_response = False
@@ -105,6 +106,7 @@ class ApiClient:
           last_status = status
           if status == 200 and body.get("accepted") is True:
             return body
+          # 429/500 值得重试; 其它状态码是请求本身有问题, 重发也没用
           if status not in (429, 500):
             detail = body.get("error") or body.get("message") or body.get("raw")
             extra = f", detail={detail}" if detail else ""
@@ -116,7 +118,7 @@ class ApiClient:
               f"accepted={body.get('accepted')}{extra}{hint}", rejected=True)
         except (TimeoutError, ConnectionError, URLError,
                 json.JSONDecodeError):
-          pass
+          pass          # 连不上就当接口没开, 退避后再来
         if attempt == self.max_retry:
           break
         self._check_deadline(path)
@@ -136,10 +138,11 @@ class ApiClient:
 
   def enter_when_open(self, wait_s: float = 300.0,
                       request_id: str = "enter-wait-000001") -> Json:
-    """等待接口开放后再进入.
+    """等接口开放再进去.
 
-    倒计时期间与非测试期间连接会被直接关闭, 因此只能轮询. 全程复用同一个
-    request_id: 一旦某次已被接受, 后续重试会命中幂等缓存并原样返回同一响应.
+    倒计时没走完、或者根本不在测试中, 模拟器会直接把连接掐掉, 所以只能一直试.
+    request_id 从头到尾用同一个: 万一某次其实已经进去了, 重试命中幂等缓存返回原
+    响应, 不会变成第二次进入.
     """
     payload = self._base(request_id)
     end = time.monotonic() + wait_s
@@ -150,6 +153,7 @@ class ApiClient:
         return self.enter_payload(payload)
       except ApiError as exc:
         if exc.rejected:
+          # 收到响应说明接口是开的, 是被业务拒绝, 再轮询下去没意义
           rejected = exc
           break
       except (TimeoutError, ConnectionError, URLError):
