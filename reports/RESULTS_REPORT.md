@@ -45,6 +45,7 @@
 | 基础版本演练局数 | 6 局，清除数全部等于真值 | `JammersSimulatorData/practice-statistics-queue.sqlite3` |
 | **提交版本演练** | **18 局，240/240 清除，空清除 12 次，平均 495.5 s/源（351.9–619.7）** | `fast_logs_v3/q4_*.jsonl` |
 | 提交版本认证核验 | 每局扫描点数 22，即 22 点连续域证书逐局通过 | 同上 |
+| **正式测试（三次）** | **39 个干扰源全部清除，空清除 2 次，平均 462.66 s/源（374.53–519.99），程序 1976–2426 ms** | `JammersSimulatorData/formal-statistics-queue.sqlite3`、`fast_logs_formal/q4_*.jsonl` |
 | 基础版本平均定位清除时间 | 均值 845.8 s，最好 660.7 s，最坏 1096.9 s | 同上 |
 | 检测次数与程序运行时间 | 229–391 次；2010–3955 ms | 同上 |
 | 三角格与覆盖核验 | 31 点扫描集；扇形清除格最大覆盖距离 19.8052 m | `results/mock_benchmark.json` |
