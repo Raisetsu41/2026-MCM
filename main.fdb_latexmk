@@ -1,18 +1,18 @@
 # Fdb version 4
-["bibtex main"] 1789226633.52616 "main.aux" "main.bbl" "main" 1789226633.84922 2
+["bibtex main"] 1789226704.33149 "main.aux" "main.bbl" "main" 1789226709.2292 0
   "./gbt7714-numerical.bst" 1789086921 38964 b468873a0d715b19033dd98fde01e8f1 ""
   "./ref.bib" 1789219170 2456 458c81876581c43021a77fe2bd59fabb ""
-  "main.aux" 1789226633 32 3985256e7290058c681f74d7a3565a19 "xelatex"
+  "main.aux" 1789226707 15954 89b540b93ee8e77b9b7e21c529b41ae5 "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1789226514.52606 "main.xdv" "main.pdf" "main" 1789226515.42186 0
-  "main.xdv" 1789226513 1468012 52ab87252662133842bbd965638a5b71 "xelatex"
+["xdvipdfmx"] 1789226708.3598 "main.xdv" "main.pdf" "main" 1789226709.2395 0
+  "main.xdv" 1789226707 1476664 a6543b21ecafd99552759a772286db65 "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1789226510.60735 "main.tex" "main.xdv" "main" 1789226515.41404 0
+["xelatex"] 1789226704.68087 "main.tex" "main.xdv" "main" 1789226709.22949 0
   "c:/Windows/Fonts/msyh.ttc" 1749310389 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1769737791 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2025/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1769739159 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
@@ -242,14 +242,13 @@
   "c:/texlive/2025/texmf-var/web2c/xetex/xelatex.fmt" 1769739336 5639796 2696abd85628a912c6ddec48c78a18ef ""
   "c:/texlive/2025/texmf.cnf" 1769739173 713 e69b156964470283e0530f5060668171 ""
   "cumcmthesis.cls" 1789086921 26932 88279c4920374487281ce12fb6265939 ""
-  "d:/2026MCM/main.tex" 1789221030 3416 67e3c9179acdef77d94deb1144c0c05a ""
   "figures/q1_定位区域与直径.pdf" 1789147828 16434 e74316e898db12dac32d0d3cd68bf05a ""
   "figures/q1_荣格定理反例.pdf" 1789147828 17469 dbf4e6541af48568ff5367f32cb1d991 ""
   "figures/q2_候选区域与Pareto前沿.pdf" 1789147828 181560 31480eb5284d97f395015916143ccb57 ""
   "geometry_solver.py" 1789224841 34026 0ac17a493f6dec2cb08b9adaa01236f3 ""
-  "main.aux" 1789226633 32 3985256e7290058c681f74d7a3565a19 "xelatex"
-  "main.bbl" 1789226633 0 d41d8cd98f00b204e9800998ecf8427e "bibtex main"
-  "main.out" 1789226514 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
+  "main.aux" 1789226707 15954 89b540b93ee8e77b9b7e21c529b41ae5 "xelatex"
+  "main.bbl" 1789226704 1798 6831d976fccca70691d1f758000f61ec "bibtex main"
+  "main.out" 1789226707 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
   "main.tex" 1789221030 3416 67e3c9179acdef77d94deb1144c0c05a ""
   "robot/client.py" 1789224841 6456 2e09c780453406fbd574071dfc00520f ""
   "robot/geometry_solver_fast.py" 1789224841 15247 d1484159e3d4c14bab43090d48d95d9d ""

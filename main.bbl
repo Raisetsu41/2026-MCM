@@ -1,0 +1,46 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax\else
+  \urlstyle{same}\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \DeclareUrlCommand\doi{\urlstyle{rm}}\else
+  \providecommand\doi[1]{\href{https://doi.org/#1}{\nolinkurl{#1}}}\fi
+
+\bibitem[王凯(2019)]{wang2019}
+王凯.
+\newblock
+  无线电测向定位方法在新型无线电干扰查找中的运用研究\allowbreak[D].
+\newblock [出版地不详]: 南昌大学, 2019.
+
+\bibitem[Sutherland et~al.(1974)Sutherland and Hodgman]{sutherland1974}
+SUTHERLAND~I~E, HODGMAN~G~W.
+\newblock Reentrant polygon clipping\allowbreak[J/OL].
+\newblock Communications of the ACM, 1974, 17\penalty0 (1):\penalty0 32-42.
+\newblock DOI: \doi{10.1145/360767.360802}.
+
+\bibitem[Toussaint(2014)]{toussaint2014}
+TOUSSAINT~G~T.
+\newblock Applications of the rotating calipers to geometric problems in two
+  and three dimensions\allowbreak[J/OL].
+\newblock International Journal of Digital Information and Wireless
+  Communications, 2014, 4\penalty0 (3):\penalty0 372-386.
+\newblock DOI: \doi{10.17781/P001290}.
+
+\bibitem[Jung(1901)]{jung1901}
+JUNG~H.
+\newblock Ueber die kleinste kugel, die eine räumliche figur
+  einschliesst\allowbreak[J/OL].
+\newblock Journal für die reine und angewandte Mathematik, 1901, 1901\penalty0
+  (123):\penalty0 241-257.
+\newblock DOI: \doi{10.1515/crll.1901.123.241}.
+
+\bibitem[Bishop et~al.(2010)Bishop, Fidan, Anderson, Doğançay, and
+  Pathirana]{bishop2010}
+BISHOP~A~N, FIDAN~B, ANDERSON~B~D~O, et~al.
+\newblock Optimality analysis of sensor-target localization
+  geometries\allowbreak[J/OL].
+\newblock Automatica, 2010, 46\penalty0 (3):\penalty0 479-492.
+\newblock DOI: \doi{10.1016/j.automatica.2009.12.003}.
+
+\end{thebibliography}

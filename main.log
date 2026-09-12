@@ -1,10 +1,9 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  12 SEP 2026 23:21
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  12 SEP 2026 23:25
 entering extended mode
  restricted \write18 enabled.
- file:line:error style messages enabled.
  %&-line parsing enabled.
-**d:/2026MCM/main
-(d:/2026MCM/main.tex
+**main.tex
+(./main.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (./cumcmthesis.cls
@@ -25,13 +24,18 @@ File: size12.clo 2024/06/29 v1.4n Standard LaTeX file (size option)
 \abovecaptionskip=\skip49
 \belowcaptionskip=\skip50
 \bibindent=\dimen141
-) (c:/texlive/2025/texmf-dist/tex/generic/iftex/ifxetex.sty
+)
+(c:/texlive/2025/texmf-dist/tex/generic/iftex/ifxetex.sty
 Package: ifxetex 2019/10/25 v0.7 ifxetex legacy package. Use iftex instead.
- (c:/texlive/2025/texmf-dist/tex/generic/iftex/iftex.sty
+
+(c:/texlive/2025/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2024/12/12 v1.0g TeX engine tests
-)) (c:/texlive/2025/texmf-dist/tex/latex/ctex/ctex.sty (c:/texlive/2025/texmf-dist/tex/latex/l3kernel/expl3.sty
+))
+(c:/texlive/2025/texmf-dist/tex/latex/ctex/ctex.sty
+(c:/texlive/2025/texmf-dist/tex/latex/l3kernel/expl3.sty
 Package: expl3 2025-01-18 L3 programming layer (loader) 
- (c:/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-xetex.def
+
+(c:/texlive/2025/texmf-dist/tex/latex/l3backend/l3backend-xetex.def
 File: l3backend-xetex.def 2024-05-08 L3 backend support: XeTeX
 \g__graphics_track_int=\count266
 \l__pdf_internal_box=\box52
@@ -39,13 +43,17 @@ File: l3backend-xetex.def 2024-05-08 L3 backend support: XeTeX
 \g__pdf_backend_link_int=\count268
 ))
 Package: ctex 2022/07/14 v2.5.10 Chinese adapter in LaTeX (CTEX)
- (c:/texlive/2025/texmf-dist/tex/latex/ctex/ctexhook.sty
+
+(c:/texlive/2025/texmf-dist/tex/latex/ctex/ctexhook.sty
 Package: ctexhook 2022/07/14 v2.5.10 Document and package hooks (CTEX)
-) (c:/texlive/2025/texmf-dist/tex/latex/ctex/ctexpatch.sty
+)
+(c:/texlive/2025/texmf-dist/tex/latex/ctex/ctexpatch.sty
 Package: ctexpatch 2022/07/14 v2.5.10 Patching commands (CTEX)
-) (c:/texlive/2025/texmf-dist/tex/latex/base/fix-cm.sty
+)
+(c:/texlive/2025/texmf-dist/tex/latex/base/fix-cm.sty
 Package: fix-cm 2020/11/24 v1.1t fixes to LaTeX
- (c:/texlive/2025/texmf-dist/tex/latex/base/ts1enc.def
+
+(c:/texlive/2025/texmf-dist/tex/latex/base/ts1enc.def
 File: ts1enc.def 2001/06/05 v3.0e (jk/car/fm) Standard LaTeX file
 LaTeX Font Info:    Redeclaring font encoding TS1 on input line 47.
 ))
@@ -54,13 +62,17 @@ LaTeX Font Info:    Redeclaring font encoding TS1 on input line 47.
 \l__ctex_tmp_dim=\dimen142
 \g__ctex_section_depth_int=\count270
 \g__ctex_font_size_int=\count271
- (c:/texlive/2025/texmf-dist/tex/latex/ctex/config/ctexopts.cfg
+
+(c:/texlive/2025/texmf-dist/tex/latex/ctex/config/ctexopts.cfg
 File: ctexopts.cfg 2022/07/14 v2.5.10 Option configuration file (CTEX)
-) (c:/texlive/2025/texmf-dist/tex/latex/ctex/engine/ctex-engine-xetex.def
+)
+(c:/texlive/2025/texmf-dist/tex/latex/ctex/engine/ctex-engine-xetex.def
 File: ctex-engine-xetex.def 2022/07/14 v2.5.10 XeLaTeX adapter (CTEX)
- (c:/texlive/2025/texmf-dist/tex/xelatex/xecjk/xeCJK.sty
+
+(c:/texlive/2025/texmf-dist/tex/xelatex/xecjk/xeCJK.sty
 Package: xeCJK 2022/08/05 v3.9.1 Typesetting CJK scripts with XeLaTeX
- (c:/texlive/2025/texmf-dist/tex/latex/l3packages/xtemplate/xtemplate.sty
+
+(c:/texlive/2025/texmf-dist/tex/latex/l3packages/xtemplate/xtemplate.sty
 Package: xtemplate 2024-08-16 L3 Experimental prototype document functions
 )
 \l__xeCJK_tmp_int=\count272
@@ -95,7 +107,8 @@ Package: xtemplate 2024-08-16 L3 Experimental prototype document functions
 \l__xeCJK_last_bound_dim=\dimen149
 \l__xeCJK_last_kern_dim=\dimen150
 \l__xeCJK_widow_penalty_int=\count279
-tuation' taking 0
+
+LaTeX template Info: Declaring template type 'xeCJK/punctuation' taking 0
 (template)           argument(s) on line 2396.
 
 \l__xeCJK_fixed_punct_width_dim=\dimen151
@@ -1214,31 +1227,40 @@ LaTeX Font Info:    Redeclaring math symbol \Omega on input line 48.
 LaTeX Font Info:    Redeclaring math symbol \mathdollar on input line 48.
 LaTeX Font Info:    Redeclaring symbol font `operators' on input line 48.
 LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
-(Font)              `operators' in the     `operators' in the math version `normal' on input line 48.
+(Font)              `operators' in the math version `normal' on input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  OT1/cmr/m/n --> TU/TimesNewRoman(0)/m/n on input line 4
+8.
 LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
 (Font)              `operators' in the math version `bold' on input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/m/n on input line 
+48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/m/n on 
+input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> TU/TimesNewRoman(0)/m/it on input line 48.
+(Font)                  OT1/cmr/m/it --> TU/TimesNewRoman(0)/m/it on input line
+ 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/b/n on input line 48.
+(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/b/n on input line 
+48.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
 (Font)                  OT1/cmss/m/n --> TU/Arial(0)/m/n on input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/m/n on input line 48.
+(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/m/n on 
+input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/b/n on input line 48.
+(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/b/n on 
+input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> TU/TimesNewRoman(0)/b/it on input line 48.
+(Font)                  OT1/cmr/bx/it --> TU/TimesNewRoman(0)/b/it on input lin
+e 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
 (Font)                  OT1/cmss/bx/n --> TU/Arial(0)/b/n on input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/b/n on input line 48.
+(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/b/n on 
+input line 48.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -1286,11 +1308,13 @@ Package hyperref Info: Link coloring ON on input line 48.
  (./sections/00-abstract.tex
 LaTeX Font Info:    Calculating math sizes for size <10.5> on input line 5.
 LaTeX Font Info:    Trying to load font information for U+msa on input line 5.
- (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
+
+(c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
 LaTeX Font Info:    Trying to load font information for U+msb on input line 5.
- (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
+
+(c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 
@@ -1301,7 +1325,8 @@ LaTeX Font Warning: Font shape `TU/SimSun(1)/b/n' undefined
 
 [1
 
-]) (./sections/01-problem-restatement.tex) (./sections/02-assumptions-and-notation.tex
+]) (./sections/01-problem-restatement.tex)
+(./sections/02-assumptions-and-notation.tex
 
 [2]) (./sections/03-problem1.tex
 
@@ -1325,7 +1350,9 @@ File: figures/q1_荣格定理反例.pdf Graphic file (type pdf)
 [9]
 File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 <use figures/q2_候选区域与Pareto前沿.pdf>
-) (./sections/05-problem3.tex) (./sections/06-problem4.tex) (./sections/07-validation-and-sensitivity.tex) (./sections/08-evaluation-and-improvement.tex
+) (./sections/05-problem3.tex) (./sections/06-problem4.tex)
+(./sections/07-validation-and-sensitivity.tex)
+(./sections/08-evaluation-and-improvement.tex
 
 [10]
 
@@ -1335,11 +1362,14 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 
 [13
 
-] (./sections/09-appendix.tex (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
+] (./sections/09-appendix.tex
+(c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2024/09/23 1.10c listings language file
 )
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 25.
- (./geometry_solver.py) (./geometry_solver.py
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
+nput line 25.
+
+(./geometry_solver.py) (./geometry_solver.py
 
 [14
 
@@ -1347,7 +1377,10 @@ Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on in
 
 [15])
 Overfull \hbox (15.93143pt too wide) in paragraph at lines 33--34
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 4 \TU/SimSun(0)/m/n/10.5 半 平 面 交 主 循 环 与 定 位 区 域 组 装  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 halfplane_intersection \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 localization_polygon\TU/SimSun(0)/m/n/10.5 ，|
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 4 \TU/SimS
+un(0)/m/n/10.5 半 平 面 交 主 循 环 与 定 位 区 域 组 装  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m
+/n/10.5 halfplane_intersection \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.
+11b.ttf(1)/m/n/10.5 localization_polygon\TU/SimSun(0)/m/n/10.5 ，|
  []
 
 (./geometry_solver.py) (./geometry_solver.py
@@ -1366,7 +1399,8 @@ Overfull \hbox (15.93143pt too wide) in paragraph at lines 33--34
 
 [22] (./geometry_solver.py) (./geometry_solver.py
 
-[23]) (./robot/q3_agent.py) (./robot/q3_agent.py) (./robot/q3_agent.py) (./robot/client.py
+[23]) (./robot/q3_agent.py) (./robot/q3_agent.py) (./robot/q3_agent.py)
+(./robot/client.py
 
 [24]) (./robot/client.py
 
@@ -1376,7 +1410,13 @@ Overfull \hbox (15.93143pt too wide) in paragraph at lines 33--34
 
 [27]) (./robot/q3_agent.py)
 Overfull \hbox (40.46303pt too wide) in paragraph at lines 89--90
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 23 \TU/SimSun(0)/m/n/10.5 联 合 选 路 的 精 确 解、| \TU/TimesNewRoman(0)/m/n/10.5 2-opt \TU/SimSun(0)/m/n/10.5 ／ \TU/TimesNewRoman(0)/m/n/10.5 Or-opt \TU/SimSun(0)/m/n/10.5 与 主 入 口  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 exact_open \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 improve_open \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 joint_route\TU/SimSun(0)/m/n/10.5 ，|
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 23 \TU/Sim
+Sun(0)/m/n/10.5 联 合 选 路 的 精 确 解、| \TU/TimesNewRoman(0)/m/n/10.5 2-opt \TU/SimSu
+n(0)/m/n/10.5 ／ \TU/TimesNewRoman(0)/m/n/10.5 Or-opt \TU/SimSun(0)/m/n/10.5 与 主
+ 入 口  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 exact_open \TU/FangSong(0)/m/n
+/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 improve_open \TU/FangSong(0)/m
+/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 joint_route\TU/SimSun(0)/m/n
+/10.5 ，|
  []
 
 (./robot/geometry_solver_fast.py
@@ -1385,7 +1425,10 @@ Overfull \hbox (40.46303pt too wide) in paragraph at lines 89--90
 
 [29] (./robot/geometry_solver_fast.py)
 Overfull \hbox (40.31009pt too wide) in paragraph at lines 94--95
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 24 \TU/SimSun(0)/m/n/10.5 阴 性 证 据 的 连 续 域 覆 盖 推 理  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 covered_by_negative_disks \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 unknown_negative_implied\TU/SimSun(0)/m/n/10.5 ，|
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 24 \TU/Sim
+Sun(0)/m/n/10.5 阴 性 证 据 的 连 续 域 覆 盖 推 理  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/
+10.5 covered_by_negative_disks \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.
+11b.ttf(1)/m/n/10.5 unknown_negative_implied\TU/SimSun(0)/m/n/10.5 ，|
  []
 
 (./robot/geometry_solver_fast.py
@@ -1394,12 +1437,19 @@ Overfull \hbox (40.31009pt too wide) in paragraph at lines 94--95
 
 [31])
 Overfull \hbox (2.04764pt too wide) in paragraph at lines 101--102
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/SimSun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
+Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
+)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf
+(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
  []
 
 (./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py)
 Overfull \hbox (16.38773pt too wide) in paragraph at lines 105--106
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 28 \TU/SimSun(0)/m/n/10.5 顺 路 收 获、|  站 内 排 程 与 联 合 选 路 入 口  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 _opportunity_jobs \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 _harvest\TU/FangSong(0)/m/n/10.5 、| \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 _scan_station
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 28 \TU/Sim
+Sun(0)/m/n/10.5 顺 路 收 获、|  站 内 排 程 与 联 合 选 路 入 口  |（\TU/YaHei.Consolas.1.11b.tt
+f(1)/m/n/10.5 _opportunity_jobs \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1
+.11b.ttf(1)/m/n/10.5 _harvest\TU/FangSong(0)/m/n/10.5 、| \TU/YaHei.Consolas.1.1
+1b.ttf(1)/m/n/10.5 _scan_station
  []
 
 (./robot/q3_agent_fast.py
@@ -1412,16 +1462,23 @@ Overfull \hbox (16.38773pt too wide) in paragraph at lines 105--106
 
 [35]) (./robot/q4_agent.py
 
-[36]) (./robot/q3_agent.py) (./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py
+[36]) (./robot/q3_agent.py) (./robot/geometry_solver_fast.py)
+(./robot/geometry_solver_fast.py
 
 [37])
 Overfull \hbox (2.04764pt too wide) in paragraph at lines 128--129
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/SimSun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
+Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
+)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf
+(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
  []
 
 (./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py)
 Overfull \hbox (0.18143pt too wide) in paragraph at lines 132--133
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 29 \TU/SimSun(0)/m/n/10.5 空 清 除 预 算、|  最 后 单 元 覆 盖 证 明 与 近 距 包 收 尾  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 Q4FastAgent._clear \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 _cover_fits
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 29 \TU/Sim
+Sun(0)/m/n/10.5 空 清 除 预 算、|  最 后 单 元 覆 盖 证 明 与 近 距 包 收 尾  |（\TU/YaHei.Consolas.
+1.11b.ttf(1)/m/n/10.5 Q4FastAgent._clear \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.C
+onsolas.1.11b.ttf(1)/m/n/10.5 _cover_fits
  []
 
 (./robot/q4_agent_fast.py
@@ -1443,55 +1500,12 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 64A3C6686D7334A35D2C9876B798B70F;6952.
  ) 
 Here is how much of TeX's memory you used:
- 36171 strings out of 473832
- 771767 string characters out of 5733158
+ 36170 strings out of 473832
+ 771736 string characters out of 5733158
  1934055 words of memory out of 5000000
  58418 multiletter control sequences out of 15000+600000
  575580 words of font info for 182 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 108i,13n,125p,474b,2038s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-Output written on main.pdf (40 pages).
-natbib Warning: There were undefined citations.
-
-
-
-[40] (./main.aux
-
-Package natbib Warning: Citation(s) may have changed.
-(natbib)                Rerun to get citations correct.
-
-)
- ***********
-LaTeX2e <2024-11-01> patch level 2
-L3 programming layer <2022/08/05>
- ***********
-
-
-LaTeX Font Warning: Some font shapes were not available, defaults substituted.
-
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  64A3C6686D7334A35D2C9876B798B70F;6952.
- ) 
-Here is how much of TeX's memory you used:
- 36157 strings out of 473832
- 771584 string characters out of 5733158
- 1933070 words of memory out of 5000000
- 58405 multiletter control sequences out of 15000+600000
- 575580 words of font info for 182 fonts, out of 8000000 for 9000
- 1348 hyphenation exceptions out of 8191
  108i,13n,125p,467b,2038s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.xdv (40 pages, 1468012 bytes).
+Output written on main.xdv (40 pages, 1476664 bytes).
