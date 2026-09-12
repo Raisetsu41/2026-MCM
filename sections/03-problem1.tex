@@ -1,530 +1,144 @@
-%问题一
-\section{问题一的模型建立与求解}
+% 问题一
+\section{问题一：交会区域、直径与圆覆盖}
 
-\subsection{模型准备}
-
-\subsubsection{示向锥与角度约束}
-
-方位角 $\phi$ 对应的单位方向向量定义为
-
+\subsection{测向锥与精确定位区域}
+定义度制方位角的单位方向向量
 \[
-d(\phi)=\left(\cos\frac{\pi\phi}{180},\ \sin\frac{\pi\phi}{180}\right)^{\mathsf T},
+d(\phi)=\left(\cos\frac{\pi\phi}{180},\ \sin\frac{\pi\phi}{180}\right)^{\mathsf T}.
 \]
-
-
-其中方位角 $\phi$ 以度为单位，进入三角函数前按上式换算为弧度。为简化记号，记
-
+在检测点 $S_i=(x_i,y_i)^{\mathsf T}$ 得到示向度 $\hat\theta_i$ 后，真实方向位于 $[\hat\theta_i-\delta,\hat\theta_i+\delta]$。令 $d_i^\pm=d(\hat\theta_i\pm\delta)$，二维叉积记为 $[a,b]=a_xb_y-a_yb_x$，则闭测向锥为
 \[
-c(\phi)=\cos\frac{\pi\phi}{180},\qquad s(\phi)=\sin\frac{\pi\phi}{180}.
+W_i=\{G:[d_i^-,G-S_i]\ge0,\ [d_i^+,G-S_i]\le0\}.
 \]
-
-第 $i$ 个检测点处测得的示向度为 $\hat\theta_i$，误差半角为 $\delta$。若把角度写成连续实数值，则真实方位角满足
-
+将叉积展开，可直接得到供半平面交使用的标准形式
 \[
-\theta_i\in[\hat\theta_i-\delta,\hat\theta_i+\delta].
+\begin{cases}
+\sin(\hat\theta_i-\delta)x-\cos(\hat\theta_i-\delta)y
+ \le \sin(\hat\theta_i-\delta)x_i-\cos(\hat\theta_i-\delta)y_i,\\
+-\sin(\hat\theta_i+\delta)x+\cos(\hat\theta_i+\delta)y
+ \le-\sin(\hat\theta_i+\delta)x_i+\cos(\hat\theta_i+\delta)y_i.
+\end{cases}
 \]
-
-当角度跨越 $0^\circ$ 时，只需把区间按 $360^\circ$ 取模；由于正弦、余弦函数的周期性，后面的方向向量判据不需要额外的分支判断。记 $\hat\theta_i^-=\hat\theta_i-\delta$，$\hat\theta_i^+=\hat\theta_i+\delta$，两条边界方向为
-
+正弦、余弦均按度制角换算为弧度后计算，故跨越 $0^\circ$ 不需另设分支。题目所称交会定位区域按测向锥与目标圆域定义为
 \[
-d_i^-=d(\hat\theta_i^-),\qquad d_i^+=d(\hat\theta_i^+).
+K=B_{R_0}\cap\bigcap_{i=1}^{m}W_i,\qquad
+B_{R_0}=\{G:\lVert G\rVert_2\le R_0\}.
 \]
+$K$ 是有界闭凸集；空集表示观测与先验不相容，单点和线段按退化凸集处理。正常示向度还附带 $5<\lVert G-S_i\rVert\le1500\,\mathrm m$，本问数值算例中这些距离约束不活跃；若将其作为定位区域的一部分，则外接圆盘仍保持凸性，而删除 $5\,\mathrm m$ 近距盘会产生非凸开集，应按问题二的闭包口径单独处理。
 
-令 $v_i=G-S_i$。由于两条边界方向的夹角为 $2\delta=2^\circ$，向量 $v_i$ 位于该扇形内，当且仅当它位于下边界方向的逆时针一侧，且上边界方向位于它的逆时针一侧。用二维叉积表示，这等价于
+\subsection{半平面交与直径算法}
 
+\subsubsection{圆域的双侧包围}
+圆弧边界不宜直接当作多边形顶点。取 $q=720$，以圆周等分点的凸包构成内接正多边形 $B_q^-$，以切向半平面
 \[
-[d_i^-,v_i]\ge0,\qquad [d_i^+,v_i]\le0.
+B_q^+=\bigcap_{k=0}^{q-1}\{G:(\cos\phi_k,\sin\phi_k)G\le R_0\},\qquad
+\phi_k=\frac{2k\pi}{q}
 \]
-
-第 $i$ 个示向锥因此可写为
-
+构成外接正多边形，并令
 \[
-W_i=\left\{G:[d_i^-,G-S_i]\ge0,\ [d_i^+,G-S_i]\le0\right\}.
+K_q^-=B_q^-\cap\bigcap_iW_i,\qquad
+K_q^+=B_q^+\cap\bigcap_iW_i.
 \]
-
-该表达式不依赖小角度近似，也不要求误差服从某种分布；它只使用题目给出的误差上界 $1^\circ$。当 $\delta=0$ 时，两条边界方向重合，上述半平面模型退化为一条方向直线；题设取 $\delta=1^\circ>0$，不经过这一退化情形。
-
-\subsubsection{目标圆域与精确定位区域}
-
-若共有 $m$ 个检测点，则在不考虑目标区域先验时，所有示向锥的公共部分为
-
-\[
-P_\infty=\bigcap_{i=1}^{m}W_i.
-\]
-
-每个 $W_i$ 都是凸集，因此 $P_\infty$ 始终为凸集；当约束使其有界时它是凸多边形，否则可能无界，测点较少时还可能退化。题目还给出干扰源位于半径 $R_0=1800\mathrm{m}$ 的目标圆域内，因此精确定位区域为
-
-\[
-P_{\mathrm{exact}}
-=
-P_\infty\cap
-\left\{G:\lVert G\rVert_2\le R_0\right\}.
-\]
-
-$P_{\mathrm{exact}}$ 是半平面与圆域的公共部分，因而为凸闭集，且由于圆域有界而始终有界。若 $P_\infty=\varnothing$，则不存在同时满足所有示向锥的干扰源位置；若 $P_\infty\ne\varnothing$ 但与目标圆域不相交，则 $P_{\mathrm{exact}}=\varnothing$。这两种情形都表示观测与先验不相容，应报告无可行解。若 $P_{\mathrm{exact}}$ 非空且具有非零面积，则其边界由若干直线段和可能出现的圆弧段组成。
-
-\subsubsection{直径与直径圆的定义}
-
-设 $P$ 为非空集合，其直径定义为其中任意两点距离的最大值：
-
-\[
-D(P)=\max_{X,Y\in P}\lVert X-Y\rVert_2.
-\]
-
-当 $P_{\mathrm{exact}}$ 非空时，它是紧集，上述最大值一定存在。若 $A,B\in P_{\mathrm{exact}}$ 满足 $\lVert A-B\rVert_2=D(P_{\mathrm{exact}})$，则称 $A,B$ 为一组最远点对或直径端点。以 $AB$ 为直径的圆定义为
-
-\[
-C_d=\frac{A+B}{2},\qquad R_d=\frac{\lVert A-B\rVert_2}{2}.
-\]
-
-题目所问的覆盖性，即是否有
-
-\[
-P_{\mathrm{exact}}\subseteq\left\{X:\lVert X-C_d\rVert_2\le R_d\right\}.
-\]
-
-\textbf{定理 1（直径圆覆盖的充要条件）}　设 $P$ 为非空紧集。任取 $P$ 的一组直径端点 $A,B$，以 $AB$ 为直径的圆能够覆盖 $P$，当且仅当
-
-\[
-R_{\mathrm{MEC}}(P)=\frac{D(P)}2.
-\]
-
-证明分为两步。必要性方面，任意覆盖 $P$ 的圆都必须包含距离为 $D(P)$ 的两点 $A,B$，故其半径至少为 $D(P)/2$，于是 $R_{\mathrm{MEC}}(P)\ge D(P)/2$。若某个直径圆覆盖 $P$，该圆半径为 $D(P)/2$，所以又有 $R_{\mathrm{MEC}}(P)\le D(P)/2$，两边只能相等。
-
-充分性方面，若 $R_{\mathrm{MEC}}(P)=D(P)/2$，取任意一组直径端点 $A,B$。最小覆盖圆包含距离等于其直径的 $A,B$，因此这两点必为该圆的一对对径点，圆心只能是 $(A+B)/2$，最小覆盖圆也就恰好等于以 $AB$ 为直径的圆。既然最小覆盖圆覆盖 $P$，该直径圆自然覆盖 $P$。
-
-因此只需取一组直径端点；但判据必须作用于精确区域 $P$。用外逼近端点构造的圆只能作为候选圆，不能代替精确区域的等号判定。
-
-\subsection{模型建立}
-
-\subsubsection{示向锥的半平面模型}
-
-记 $c_i^-=c(\hat\theta_i-\delta)$、$s_i^-=s(\hat\theta_i-\delta)$。将叉积展开，条件 $[d_i^-,v_i]\ge0$ 写为
-
-\[
-c_i^-(y-y_i)-s_i^-(x-x_i)\ge0.
-\]
-
-移项并两边乘以 $-1$，得
-
-\[
-s_i^-x-c_i^-y\le s_i^-x_i-c_i^-y_i.
-\]
-
-记 $c_i^+=c(\hat\theta_i+\delta)$、$s_i^+=s(\hat\theta_i+\delta)$。同理，条件 $[d_i^+,v_i]\le0$ 展开为
-
-\[
-c_i^+(y-y_i)-s_i^+(x-x_i)\le0.
-\]
-
 于是
-
 \[
--s_i^+x+c_i^+y\le -s_i^+x_i+c_i^+y_i.
+K_q^-\subseteq K\subseteq K_q^+,\qquad
+D(K_q^-)\le D(K)\le D(K_q^+).
 \]
-
-两式均为标准线性不等式 $ax+by\le r$。这里用 $r$ 表示约束右端，避免与余弦简写 $c(\phi)$ 重名。记它们对应的半平面分别为 $H_i^-$ 和 $H_i^+$，则 $W_i=H_i^-\cap H_i^+$。整理时不等号方向必须与原来的方向约束保持一致；若符号处理错误，得到的半平面交集可能变成示向锥的补集或对顶锥，定位区域随之完全改变。可以用一个简单的检查验证：取 $G=S_i+d(\hat\theta_i)$，即名义方向上的点，两条不等式都应严格成立；若某点明显偏离示向锥，则至少有一条不等式应被违反。
-
-\subsubsection{圆域约束与双侧离散}
-
-直接计算 $P_{\mathrm{exact}}$ 的直径需要处理圆弧边界。为统一使用凸多边形算法，本文对目标圆域作双侧逼近。取
-
+外接多边形的最大径向超差为
 \[
-q=720,\qquad \phi_k=\frac{2k\pi}{q},\qquad k=0,1,\ldots,q-1.
+\eta_q=R_0\!\left(\sec\frac{\pi}{q}-1\right),\qquad
+\eta_{720}<0.02\,\mathrm m.
 \]
+若内包为空而外包非空，只能判定可行性未决；圆弧短到未包含内接顶点时，单纯加密不能替代连续边界证明。本文同时报告上下界；当能证明 $K_q^+\subseteq B_{R_0}$ 时，有 $K=K_q^+$，外包结果可提升为精确结论。
 
-内接正多边形 $B_q^{\mathrm{in}}$ 取圆周上这 $q$ 个点的凸包，因此 $B_q^{\mathrm{in}}\subseteq\{G:\lVert G\rVert_2\le R_0\}$。外切正多边形 $B_q^{\mathrm{out}}$ 由 $q$ 条与圆相切的半平面组成：
-
+\subsubsection{逐半平面裁剪}
+对当前凸多边形边 $XY$ 和单位化约束 $a^{\mathsf T}Z\le r$，记残差 $g_X=a^{\mathsf T}X-r$、$g_Y=a^{\mathsf T}Y-r$。若两端分居边界两侧，则交点为
 \[
-B_q^{\mathrm{out}}
-=
-\bigcap_{k=0}^{q-1}
-\left\{
-G:
-(\cos\phi_k,\sin\phi_k)G\le R_0
-\right\}.
+Z=X-\frac{g_X}{g_Y-g_X}(Y-X).
 \]
-
-每条切线的切点到原点距离为 $R_0$；外切正多边形 $B_q^{\mathrm{out}}$ 的顶点到原点距离为
-
+按 Sutherland--Hodgman 规则逐边保留内侧点并插入交点，依次施加全部 $2m$ 个测向半平面\cite{sutherland1974}。初始多边形有 $q$ 个顶点，第 $k$ 次裁剪后顶点数至多为 $q+k$，故时间复杂度为
 \[
-\frac{R_0}{\cos(\pi/q)},
+O\!\left(\sum_{k=1}^{2m}(q+k)\right)=O(mq+m^2),
 \]
+空间复杂度为 $O(q+m)$。实现中先单位化法向量，并以多边形局部中心计算残差，使容差具有长度量纲且避免大坐标消减；裁剪为空时返回不可行状态，而不是静默返回直径零。
 
-因此 $B_q^{\mathrm{out}}$ 包含目标圆域。定义
-
-\[
-P_{\mathrm{in}}=P_\infty\cap B_q^{\mathrm{in}},
-\qquad
-P_{\mathrm{out}}=P_\infty\cap B_q^{\mathrm{out}},
-\]
-
-则有包含关系
-
-\[
-P_{\mathrm{in}}\subseteq P_{\mathrm{exact}}\subseteq P_{\mathrm{out}}.
-\]
-
-若 $P_{\mathrm{in}}\ne\varnothing$，则
-
-\[
-D(P_{\mathrm{in}})\le D(P_{\mathrm{exact}})\le D(P_{\mathrm{out}}),
-\]
-
-其中下界来自内近似，上界来自外近似。若 $P_{\mathrm{in}}=\varnothing$ 而 $P_{\mathrm{out}}\ne\varnothing$，则只能保证外逼近上界，既不能判定精确区域为空，也不能判定其非空；此时可以继续加密以提高数值分辨率，但若圆弧上的切点、短弧或退化交集未被任何内接顶点捕获，单纯增大 $q$ 可能一直无法闭合区间。需要精确结论时，应保留圆域边界的圆弧段，按有限个线段与圆弧边界元素求极值，而不是把节点加密当作严格判定。外切正多边形的最大径向超差为
-
-\[
-\eta_q=R_0\left(\sec\frac{\pi}{q}-1\right).
-\]
-
-当 $q=720$ 时，
-
-\[
-\eta_{720}
-=
-1800\left(\sec\frac{\pi}{720}-1\right)
-<0.02\mathrm{m}.
-\]
-
-一般情形下若要使直径计算完全精确，可先把 $P_{\mathrm{exact}}$ 的边界写成有限个线段和圆弧段：线段之间的距离最大值在端点取得；对点与圆弧，只需检查圆弧端点以及可能出现的径向驻点；对同一圆上的两段圆弧，若其角度区间在模 $2\pi$ 意义下存在一对相差 $\pi$ 的角，则最大距离为 $2R_0$，否则只需检查两段圆弧的端点。由此可设计后续的圆弧边界精确算法。本文当前计算流程仍以内、外接正多边形给出可认证的上下界；圆弧候选法作为一般情形的理论精确化路线，不代替本文实际报告的包围区间。
-
-在当前数值算例中，外逼近定位多边形的全部顶点到原点的距离不超过约 $599.01\mathrm{m}<1800\mathrm{m}$。由于 $P_{\mathrm{out}}$ 是凸多边形，其全部顶点都在目标圆域内意味着 $P_{\mathrm{out}}$ 整体位于目标圆域内；结合
-
-\[
-P_{\mathrm{exact}}
-=
-P_\infty\cap\{G:\lVert G\rVert_2\le R_0\}
-\subseteq
-P_\infty\cap B_q^{\mathrm{out}}
-=
-P_{\mathrm{out}},
-\]
-
-可得 $P_{\mathrm{exact}}=P_{\mathrm{out}}$。这一等式使后续基于 $P_{\mathrm{out}}$ 的直径与覆盖结论可以直接回答精确区域的问题，而不只是外近似的结论。
-
-\subsubsection{半平面交的凸多边形算法}
-
-给定一个初始凸多边形，本文取 $B_q^{\mathrm{out}}$ 或 $B_q^{\mathrm{in}}$，依次用每条半平面 $ax+by\le r$ 对其进行裁剪，采用 Sutherland–Hodgman 逐边裁剪法\cite{sutherland1974}。对当前多边形的一条边 $X_jX_{j+1}$，计算两端点的约束残差
-
-\[
-g_j=aX_{j,x}+bX_{j,y}-r,
-\qquad
-g_{j+1}=aX_{j+1,x}+bX_{j+1,y}-r.
-\]
-
-若 $g_j\le0$，则保留端点 $X_j$；若 $g_j$ 与 $g_{j+1}$ 异号，则边与裁剪边界相交，交点为
-
-\[
-X_{\mathrm{new}}
-=
-X_j+
-\frac{-g_j}{g_{j+1}-g_j}
-\left(X_{j+1}-X_j\right).
-\]
-
-对当前多边形的所有边处理完毕后，得到新的凸多边形；重复上述过程，直至处理完所有 $2m$ 条半平面约束。算法的退化情形按以下规则处理：若裁剪结果为空，则定位问题不可行，应输出无可行区域，不能返回直径 $0$；若结果退化为一个点，则直径定义为 $0$；若退化为一条线段，则直径等于该线段长度；对因浮点误差产生的重复点或近似共线点，应使用与多边形跨度成比例的容差进行合并，避免产生伪边。
-
-设初始多边形有 $q$ 个顶点，第 $k$ 次裁剪后顶点数不超过 $q+k$，总的时间复杂度为
-
-\[
-O\left(\sum_{k=1}^{2m}\left(q+k\right)\right)
-=
-O\left(mq+m^2\right),
-\]
-
-空间复杂度为 $O(q+m)$。当检测点数 $m$ 较小时，计算量主要由 $q=720$ 的圆域离散控制；若 $m$ 很大，可改用按极角排序加双端队列的半平面交算法，将复杂度降至 $O(m\log m)$。实现中还需要注意两点：一是把所有半平面法向量单位化，避免不同量纲造成容差失真；二是在计算残差前把当前多边形平移至其平均位置附近，避免大坐标相减造成有效位损失，题目附录给出的接口约束允许坐标分量绝对值达到 $2\times10^6\mathrm{m}$。
-
-\subsubsection{凸包与旋转卡壳求直径}
-
-半平面裁剪得到的是凸多边形，但为了处理一般点集并剔除可能存在的重复点与共线点，本文仍先对顶点集求凸包。取凸多边形
-
-\[
-P=\operatorname{conv}\{V_1,V_2,\ldots,V_n\},
-\]
-
-其直径为
-
-\[
-D(P)=\max_{X,Y\in P}\lVert X-Y\rVert_2.
-\]
-
-固定其中一点 $Y$ 时，$\lVert X-Y\rVert_2$ 是 $X$ 的凸函数；凸函数在紧凸集上的最大值必可在某个顶点取得。因此，$P$ 的直径必等于其凸包顶点之间的某一对距离。本文用 Andrew 单调链算法构造逆时针凸包，再用旋转卡壳算法求直径\cite{toussaint2014}。
-
-设凸包顶点按逆时针顺序为 $V_0,V_1,\ldots,V_{h-1}$。对每一条凸包边 $V_iV_{i+1}$，寻找使三角形面积
-
-\[
-\mathcal A(i,i+1,j)
-=
-\left|
-\left[V_{i+1}-V_i,\ V_j-V_i\right]
-\right|
-\]
-
-最大的顶点 $V_j$。随着边沿凸包逆时针移动，对应的最远顶点也单调前进，因此可用双指针在 $O(h)$ 时间内完成全部扫描。每移动一次，更新候选点对 $(V_i,V_j)$ 与 $(V_{i+1},V_j)$ 的平方距离；若相邻面积相等，说明存在平行边造成的并列对踵点，应同时检查 $(V_i,V_{j+1})$ 与 $(V_{i+1},V_{j+1})$，以覆盖多组最远点对的情形。最终取最大平方距离的平方根，并返回对应端点。凸包构造耗时 $O(n\log n)$，空间 $O(n)$；旋转卡壳耗时 $O(h)$，附加空间 $O(1)$；直径计算阶段总计 $O(n\log n)$ 时间、$O(n)$ 空间。若输入已经按边界顺序给出严格凸多边形，可跳过凸包，时间降为 $O(n)$。
-
-在数值实现中，直接比较平方距离、只在最终输出阶段开平方，可以减少舍入误差。对顶点数较少的情形，本文同时保留所有顶点对的 $O(n^2)$ 暴力枚举作为正确性基线；若两种方法结果不一致，应优先检查凸包方向、并列对踵点和容差设置。若定位区域为空，直径函数应抛出不可行状态，而不是返回 $0$。
-
-\subsubsection{直径圆覆盖判据}
-
-设已经由旋转卡壳求得一组最远点对 $A,B$。以 $AB$ 为直径的圆心与半径分别为
-
-\[
-C_d=\frac{A+B}{2},\qquad R_d=\frac{\lVert A-B\rVert_2}{2}.
-\]
-
-由恒等式
-
-\[
-\lVert X-C_d\rVert_2^2-R_d^2=(X-A)\cdot(X-B),
-\]
-
-点 $X$ 位于该圆内当且仅当
-
-\[
-(X-A)\cdot(X-B)\le0.
-\]
-
-因此，对精确集合 $P$ 的覆盖判定等价于
-
-\[
-\max_{X\in P}(X-A)\cdot(X-B)\le0.
-\]
-
-若待检区域是凸多边形 $P_{\mathrm{out}}$，函数 $(X-A)\cdot(X-B)$ 为凸函数，其最大值必在某个顶点取得。因此只需检查所有顶点：
-
-\[
-\max_{1\le j\le n}(V_j-A)\cdot(V_j-B)\le0
-\]
-
-即等价于对该多边形的覆盖成立。若已经证明 $P_{\mathrm{exact}}=P_{\mathrm{out}}$，则顶点检验直接给出精确区域的覆盖结论。
-
-若目标圆域约束有效，$P_{\mathrm{exact}}$ 的边界可能含有圆弧。此时不能只检查多边形顶点。设一段圆弧为
-
-\[
-X(t)=R_0(\cos t,\sin t)^{\mathsf T},\qquad t\in[t_1,t_2],
-\]
-
-并记 $C_d=(A+B)/2$，其中 $C_d$ 正是直径圆的圆心。沿该圆弧有
-
-\[
-f(t)=(X(t)-A)\cdot(X(t)-B)
-=R_0^2-2R_0C_d\cdot(\cos t,\sin t)^{\mathsf T}+\lVert C_d\rVert_2^2-R_d^2.
-\]
-
-其导数为
-
-\[
-f'(t)=2R_0(C_{d,x}\sin t-C_{d,y}\cos t).
-\]
-
-令 $f'(t)=0$，可得该驻点方向与 $C_d$ 共线。当 $C_d\ne0$ 时，内部最大值只可能出现在圆弧上朝向 $-C_d$ 的方向，即距离 $C_d$ 最远的弧点；当 $C_d=0$ 时，圆弧上 $f(t)$ 为常数。因此，若进一步实现圆弧边界算法，每段圆弧只需检查两个端点及该驻点；合并所有直线边界顶点和圆弧候选点的判别值后，可对精确定位区域作连续、非采样式的覆盖判定。
-
-在数值实现中，内外多边形分别用于对同一个固定候选圆作两侧认证，必须区分判据对象。设 $A,B$ 来自外逼近多边形 $P_{\mathrm{out}}$ 的一组直径端点，$\Gamma_{\mathrm{out}}$ 是以 $AB$ 为直径的候选圆。若 $\Gamma_{\mathrm{out}}$ 覆盖 $P_{\mathrm{out}}$，则由 $P_{\mathrm{exact}}\subseteq P_{\mathrm{out}}$ 可知 $\Gamma_{\mathrm{out}}$ 也覆盖 $P_{\mathrm{exact}}$，这是一个充分的覆盖证书；若内逼近 $P_{\mathrm{in}}$ 中某点落在 $\Gamma_{\mathrm{out}}$ 外，则 $\Gamma_{\mathrm{out}}$ 不覆盖 $P_{\mathrm{exact}}$，这是一个充分的非覆盖证书。这两种认证都只针对 $\Gamma_{\mathrm{out}}$，不能单独证明或否定精确区域自身的直径圆，也不能替代 $R_{\mathrm{MEC}}(P_{\mathrm{exact}})=D(P_{\mathrm{exact}})/2$。只有已知 $P_{\mathrm{exact}}=P_{\mathrm{out}}$，或另行计算精确区域的直径与最小覆盖圆后，近似结果才可提升为精确结论。本文数值算例满足 $P_{\mathrm{exact}}=P_{\mathrm{out}}$，因此有限顶点检验即可得到精确结论。
-
-综合上述各步，求解定位区域直径并回答覆盖性问题的可认证算法如下。
-
-\textbf{算法 1　定位区域直径与直径圆覆盖性检验}
-
-输入：各检测点坐标 $S_i$、示向度 $\hat\theta_i$（$i=1,\ldots,m$）、误差半角 $\delta$、目标圆域半径 $R_0$。
-
+\subsubsection{凸包与旋转卡壳}
+凸函数 $X\mapsto\lVert X-Y\rVert_2$ 在紧凸集上的最大值可在顶点取得，故凸多边形直径必由一对凸包顶点实现。先用 Andrew 单调链去重并生成逆时针凸包 $V_0,\ldots,V_{h-1}$，再执行下列旋转卡壳步骤\cite{toussaint2014}：
 \begin{enumerate}
-\item 按前文给出的两条不等式把每个示向度转化为两条半平面约束 $ax+by\le r$，并将法向量单位化；
-\item 构造外切正 $q$ 边形 $B_q^{\mathrm{out}}$，同时构造内接正 $q$ 边形 $B_q^{\mathrm{in}}$ 以给出直径下界；
-\item 用 Sutherland–Hodgman 裁剪依次施加全部 $2m$ 条半平面约束，得到 $P_{\mathrm{out}}$ 与 $P_{\mathrm{in}}$；
-\item 若 $P_{\mathrm{out}}=\varnothing$，输出无可行解；若 $P_{\mathrm{in}}=\varnothing$ 而 $P_{\mathrm{out}}\ne\varnothing$，把精确区域的可行性标记为未定，继续收紧认证区间，或另行按圆弧边界算法计算，不能仅凭加密节点强制判定；
-\item 分别对外、内逼近多边形求凸包和直径，得到直径的认证上下界；若需要圆弧边界下的精确值，则按前述理论路线另行计算，否则明确输出认证区间；对顶点数较少的外逼近多边形，用全部顶点对枚举校验旋转卡壳结果，并取一组最远点对 $A,B$ 作为候选直径端点；
-\item 以 $AB$ 为直径构造候选圆 $\Gamma_{\mathrm{out}}$：若已证明 $P_{\mathrm{exact}}=P_{\mathrm{out}}$，检查全部顶点即得精确结论；否则 $\Gamma_{\mathrm{out}}$ 的顶点通过或内逼近反例只分别给出充分覆盖或充分非覆盖证书，精确命题仍需在保留圆弧后，检验精确区域自身直径端点对应的圆，或计算 $R_{\mathrm{MEC}}(P_{\mathrm{exact}})$ 与 $D(P_{\mathrm{exact}})/2$ 是否相等。
+  \item 对每条边 $V_iV_{i+1}$，保持指针 $j$ 指向使 $|[V_{i+1}-V_i,V_j-V_i]|$ 最大的对踵点；
+  \item 只要 $j+1$ 对应面积继续增大便前移 $j$，并更新 $(V_i,V_j)$、$(V_{i+1},V_j)$ 的平方距离；
+  \item 面积相等时同时检查 $j$ 与 $j+1$，防止平行边造成并列最远点对遗漏；扫描全部边后对最大平方距离开方。
 \end{enumerate}
+对踵点随边界单调前进，卡壳阶段为 $O(h)$ 时间、$O(1)$ 附加空间；含凸包构造时总复杂度为 $O(n\log n)$ 时间、$O(n)$ 空间，输入已是严格凸边界时降为 $O(n)$。小规模多边形另以 $O(n^2)$ 全点对枚举校验。
 
-输出：精确直径或尚未夹紧的认证区间、候选圆 $\Gamma_{\mathrm{out}}$、以及“精确结论/仅候选圆充分证书/尚未判定”的状态标记。
-
-\subsubsection{一般情形下直径圆不能覆盖定位区域}
-
-下面给出一个与题设误差模型相容的反例，说明直径圆覆盖不是普遍命题。
-
-取边长为 $D$ 的等边三角形 $T=\operatorname{conv}\{A,B,C\}$。$T$ 的直径为 $D$，且每一组最远点对都是一条边。以边 $AB$ 为直径作圆，圆心 $M$ 为 $AB$ 的中点，半径 $R_d=D/2$；第三个顶点 $C$ 到 $M$ 的距离为
-
+\subsection{直径圆的覆盖性}
+设 $A,B$ 是紧集 $K$ 的一组直径端点，$C_d=(A+B)/2$、$R_d=D(K)/2$。恒等式
 \[
-\lVert C-M\rVert_2=\frac{\sqrt3}{2}D>\frac{D}{2},
+\lVert X-C_d\rVert_2^2-R_d^2=(X-A)\cdot(X-B)
 \]
+说明点 $X$ 位于直径圆内当且仅当右端不大于零。对凸多边形，只需检查所有顶点；边界含圆弧时，还须检查弧端点以及圆弧上背向 $C_d$ 的驻点。
 
-故 $C$ 落在直径圆之外，该圆不能覆盖 $T$。
-
-上述三角形可以作为示向锥模型的合法定位区域出现。下面用参数化构造给出证明。取 $D_0=20\mathrm{m}$，即 $D=D_0$，并取 $L=800\mathrm{m}$；在局部坐标中令
-
+\textbf{定理 1（直径圆覆盖的充要条件）：}非空紧集 $K$ 的直径圆覆盖 $K$，当且仅当
 \[
-A=(0,0),\quad B=(D_0,0),\quad C=\left(\frac{D_0}{2},\frac{\sqrt3D_0}{2}\right),
+R_{\rm MEC}(K)=\frac{D(K)}2.
 \]
+任意覆盖圆必须包含距离为 $D(K)$ 的两点，故半径至少为 $D(K)/2$；若直径圆覆盖便取得等号。反之，若最小覆盖圆半径为 $D(K)/2$，任一对直径端点都只能是该圆的对径点，其圆心唯一为 $(A+B)/2$，故相应直径圆就是最小覆盖圆。
 
-并定义三条有向边单位向量
-
+该等式并非恒成立。取边长 $D_0=20\,\mathrm m$ 的等边三角形 $T=\operatorname{conv}\{A,B,C\}$，以边 $AB$ 为直径的圆半径为 $D_0/2$，而第三点到边中点的距离为 $\sqrt3D_0/2>D_0/2$。为证明反例与题设相容，沿三条有向边的反向各延长 $L=800\,\mathrm m$ 设置检测点，并将示向锥的一条边界与相应支撑边重合、标称方向向内旋转 $1^\circ$。每个检测点所见三角形的最大角跨度为
 \[
-w_1=(1,0),\qquad
-w_2=\left(-\frac12,\frac{\sqrt3}{2}\right),\qquad
-w_3=\left(-\frac12,-\frac{\sqrt3}{2}\right),
+\alpha=\frac{180}{\pi}\arctan\frac{10\sqrt3}{810}\approx1.23^\circ<2^\circ,
 \]
-
-其中 $w_1,w_2,w_3$ 分别沿 $AB,BC,CA$，且三角形内部均在这些方向的逆时针一侧。把检测点取为
-
+故三角形完整落入三个测向锥，而三个支撑半平面的交集恰为 $T$；任一站到 $T$ 的距离不超过 $L+D_0=820\,\mathrm m<1000\,\mathrm m$。把三角形外心平移到原点后仍满足 $R_0=1800\,\mathrm m$，因此这是严格的题内反例。Jung 定理进一步给出平面有界集的普适上界
 \[
-S_1=A-Lw_1,\qquad S_2=B-Lw_2,\qquad S_3=C-Lw_3,
+R_{\rm MEC}(K)\le\frac{D(K)}{\sqrt3},
 \]
+等边三角形取等号；因 $1/\sqrt3>1/2$，仅知直径不能保证半径 $D/2$ 的圆覆盖\cite{jung1901}。
 
-并把三个标称示向度分别取为 $w_1,w_2,w_3$ 向三角形内部旋转 $1^\circ$ 后的方向。于是每个示向锥的两条边界与该有向边的夹角分别为 $0^\circ$ 和 $2^\circ$，且其中一条边界就是该边的支撑直线。
-
-由等边三角形的对称性，三个检测点看到三角形的最大角跨度相同，均为
-
+\subsection{数值求解与验证}
+取名义源 $G_0=(500,300)\,\mathrm m$，三个检测点为
 \[
-\alpha=\frac{180}{\pi}\arctan\frac{\sqrt3D_0/2}{L+D_0/2}
-=\frac{180}{\pi}\arctan\frac{10\sqrt3}{810}
-\approx1.23^\circ<2^\circ.
+S_1=(-300,-100),\quad S_2=(900,-500),\quad S_3=(-100,1000)\quad(\mathrm m),
 \]
+对应名义示向度为 $26.57^\circ,116.57^\circ,310.60^\circ$，站源距离分别为 $894.43,894.43,921.95\,\mathrm m$。三者均小于接收半径下限，且 $\lVert G_0\rVert=583.10\,\mathrm m<R_0$。
 
-因此 $T$ 完整落在三个示向锥内。每个示向锥又都完全位于对应边朝 $T$ 一侧的支撑半平面内，而三条支撑半平面的交集恰为 $T$，所以三个示向锥的公共部分至多为 $T$。结合 $T$ 被三个示向锥包含，三者的公共部分等于 $T$。每个检测点到 $T$ 内任意点的最大距离不超过
-
-\[
-\max_{X\in T}\lVert S_i-X\rVert_2\le L+D_0
-=820\mathrm{m}<1000\mathrm{m},\qquad i=1,2,3,
-\]
-
-满足有效接收距离。最后将整个构型平移，使 $T$ 的外心与原点重合。$T$ 的外接圆半径为 $D_0/\sqrt3\approx11.55\mathrm{m}<1800\mathrm{m}$，故 $T$ 位于目标圆域内；相应的站源距离上界仍为 $820\mathrm{m}<1000\mathrm{m}$。于是 $T$ 是一个满足全部题设的合法定位区域，而其直径圆覆盖失败。图~\ref{fig:q1_counterexample}为便于观察，仅放大绘制三角形；正文反例仍按 $D_0=20\mathrm{m}$、$L=800\mathrm{m}$ 构造并核验接收距离。覆盖失败取决于三角形形状，不随显示比例改变。
-
-更一般地，Jung 定理指出，平面上任意直径为 $D$ 的有界集合都可以被某个半径不超过
-
-\[
-R_J=\frac{D}{\sqrt3}
-\]
-
-的圆覆盖，而等边三角形使该上界达到等号\cite{jung1901}。由于
-
-\[
-\frac{1}{\sqrt3}>\frac12,
-\]
-
-仅凭直径信息不能保证半径 $D/2$ 的圆覆盖整个集合。若工程上要求对任意定位区域都保证覆盖，应使用最小覆盖圆而不是直径圆；对于凸多边形，最小覆盖圆可由顶点或边的候选组合确定，也可以使用随机增量算法求解。需要强调的是，本章的数值算例中直径圆恰好覆盖定位区域，这只是该算例的性质，不能推广为一般结论。
-
-\subsection{模型求解与结果分析}
-
-\subsubsection{数值验证算例}
-
-题面未给出具体检测点坐标和示向度，以下算例用于验证模型与算法，不构成题目的唯一数值答案。取干扰源的名义位置和三个检测点分别为
-
-\[
-G_0=(500,300),
-\]
-
-\[
-S_1=(-300,-100),\qquad
-S_2=(900,-500),\qquad
-S_3=(-100,1000),
-\]
-
-坐标单位为米。由各检测点指向 $G_0$ 的真实方向生成标称示向度，取误差半角 $\delta=1^\circ$。表~\ref{tab:q1_observations}给出各检测点的标称示向度及其到 $G_0$ 的距离。
-
-
-\begin{table}[H]
+\begin{table}[htbp]
 \centering
-\caption{标称示向度与检测点到干扰源的距离}
-\label{tab:q1_observations}
-\begin{tabular}{llrr}
+\small
+\caption{问题一数值结果及独立校验}
+\label{tab:q1_results}
+\begin{tabularx}{0.92\textwidth}{L R}
 \toprule
-检测点 & 坐标 $(\mathrm{m})$ & 标称示向度 $(^\circ)$ & 到 $G_0$ 的距离 $(\mathrm{m})$ \\
+指标 & 结果 \\
 \midrule
-$S_1$ & $(-300,-100)$ & $26.57$ & $894.43$ \\
-$S_2$ & $(900,-500)$ & $116.57$ & $894.43$ \\
-$S_3$ & $(-100,1000)$ & $310.60$ & $921.95$ \\
+定位区域顶点数、面积 & $6$，$940.41\,\mathrm{m^2}$ \\
+直径端点（显示值） & $(520.82,292.65)$，$(478.94,306.61)\,\mathrm m$ \\
+旋转卡壳直径 & $44.1447595094\,\mathrm m$ \\
+最小覆盖圆半径与 $D/2$ & 均为 $22.0723797547\,\mathrm m$ \\
+最大半平面违反量 & $7.82\times10^{-14}\,\mathrm m$ \\
+外包顶点最大原点距离 & $599.01\,\mathrm m<R_0$ \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-三个距离都小于 $1000\mathrm{m}$，因此无论该干扰源的有效接收半径在 $1000\mathrm{m}$ 至 $1500\mathrm{m}$ 之间取何值，三个检测点都处于有效接收范围内，所得示向度都是有效观测。干扰源名义位置 $G_0$ 到原点的距离为 $\sqrt{500^2+300^2}\approx583.10\mathrm{m}<1800\mathrm{m}$，满足目标圆域先验。
+外包多边形所有顶点均在目标圆域内；由凸性知 $K_q^+\subseteq B_{R_0}$，结合 $K\subseteq K_q^+$ 得 $K=K_q^+$，故表中直径是本例精确区域的结果，不依赖圆域离散误差。旋转卡壳与全部 15 个顶点对枚举一致；将顶点回代约束得到表中残差。逐顶点点积判据均不大于零，独立最小覆盖圆也满足 $R_{\rm MEC}=D/2$，所以本例直径圆恰能覆盖，但一般反例仍然成立。误差半角由 $0.5^\circ$ 增至 $1.0^\circ$、$1.5^\circ$ 时，直径依次约为 $22.08,44.14,66.20\,\mathrm m$，说明本构型在小误差范围内近似线性放大。
 
-\subsubsection{定位区域与直径}
-
-取 $q=720$，对目标圆域作内外双侧离散，并依次用六个半平面约束裁剪，得到外逼近定位多边形 $P_{\mathrm{out}}$ 的六个顶点，如表~\ref{tab:q1_vertices}所示。使用未舍入存储坐标计算时，其面积约为 $940.41\mathrm{m}^2$；若直接以表中两位小数坐标复算，会因展示舍入得到约 $940.32\mathrm{m}^2$。后续直径与覆盖计算均使用未舍入坐标。
-
-
-\begin{table}[H]
+\begin{figure}[htbp]
 \centering
-\caption{外逼近定位多边形的顶点坐标}
-\label{tab:q1_vertices}
-\begin{tabular}{rrr}
-\toprule
-顶点编号 & 横坐标 $(\mathrm{m})$ & 纵坐标 $(\mathrm{m})$ \\
-\midrule
-1 & $504.02$ & $319.71$ \\
-2 & $478.94$ & $306.61$ \\
-3 & $487.99$ & $289.28$ \\
-4 & $495.29$ & $280.45$ \\
-5 & $520.82$ & $292.65$ \\
-6 & $512.38$ & $310.29$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-对外逼近多边形的六个顶点，旋转卡壳算法和全部 $15$ 个顶点对的暴力枚举给出一致的最远点对
-
-\[
-A=(520.82,\ 292.65),\qquad
-B=(478.94,\ 306.61).
-\]
-
-对应的数值直径为
-
-\[
-D(P_{\mathrm{out}})\approx44.14\mathrm{m}.
-\]
-
-为避免把双精度末位差异误写成模型结论，本文不以内、外逼近直径的末位比较作为精确性依据。该算例中外逼近多边形的所有顶点到原点距离最大约为 $599.01\mathrm{m}<1800\mathrm{m}$；由于外逼近多边形为凸集，整个 $P_{\mathrm{out}}$ 都位于目标圆域内。结合 $P_{\mathrm{exact}}\subseteq P_{\mathrm{out}}$，可得 $P_{\mathrm{exact}}=P_{\mathrm{out}}$。因此，计算所得外逼近直径 $44.14\mathrm{m}$ 可由集合等式提升为精确区域直径。
-
-将六个顶点回代全部六条半平面约束，最大约束违反量约为 $7.82\times10^{-14}\mathrm{m}<10^{-13}\mathrm{m}$，说明所得多边形顶点满足全部示向锥约束，偏差处于浮点舍入量级。图~\ref{fig:q1_localization}给出定位区域及其一组最远点对的局部几何。
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/q1_定位区域与直径.pdf}
-\caption{数值验证算例的定位区域与最远点对}
-\label{fig:q1_localization}
+\begin{subfigure}[t]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/q1_定位区域与直径.pdf}
+  \caption{数值算例的定位区域与最远点对}
+  \label{fig:q1_localization}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{figures/q1_荣格定理反例.pdf}
+  \caption{等边三角形反例（按相似比例放大显示）}
+  \label{fig:q1_counterexample}
+\end{subfigure}
+\caption{问题一的实例计算与一般性反例}
+\label{fig:q1_geometry}
 \end{figure}
 
-\subsubsection{直径圆覆盖性检验}
-
-以 $A$、$B$ 为直径构造圆，圆心和半径分别为
-
-\[
-\begin{gathered}
-C_d=(499.88,\ 299.63),\\
-R_d=22.07\mathrm{m}.
-\end{gathered}
-\]
-
-对六个顶点逐一计算 $(V_j-A)\cdot(V_j-B)$：$A$、$B$ 两点的值为 $0$，其余四个顶点均为负值（约 $-2.4\times10^{2}\mathrm{m}^2$ 至 $-6.7\times10^{1}\mathrm{m}^2$）。按点积判据，全部顶点都落在该圆内，因此直径圆覆盖 $P_{\mathrm{out}}$。又因本算例中 $P_{\mathrm{exact}}=P_{\mathrm{out}}$，该结论对精确定位区域同样成立。
-
-对同一组六个顶点独立计算最小覆盖圆，得到
-
-\[
-R_{\mathrm{MEC}}(P_{\mathrm{out}})=22.07\mathrm{m},
-\qquad
-\frac{D(P_{\mathrm{out}})}2=22.07\mathrm{m}.
-\]
-
-未舍入计算的对应值相等，二者均显示为 $22.07\mathrm{m}$。因此定理 1 的充要条件在本算例中成立，直径圆与最小覆盖圆重合。点积检验与最小覆盖圆结果相互印证，也说明本算例覆盖成功的根本原因是区域恰好满足等号条件，而不是直径圆在一般情况下天然具有覆盖性。
-
-
-\subsubsection{算法验证}
-
-为核验上述模型与算法，本文进行以下独立检查：
-
-\begin{enumerate}
-\item 直径算法一致性：对外逼近六边形，旋转卡壳与全部 $15$ 个顶点对的暴力枚举结果一致。
-\item 约束可行性：六个顶点回代全部半平面约束，最大违反量约为 $7.82\times10^{-14}\mathrm{m}$，处于浮点舍入量级。
-\item 圆域与接收约束：最大顶点半径约为 $599.01\mathrm{m}<1800\mathrm{m}$，故 $P_{\mathrm{exact}}=P_{\mathrm{out}}$；三个检测点到 $P_{\mathrm{out}}$ 的最大距离约为 $941.15\mathrm{m}<1000\mathrm{m}$，接收半径下限不会进一步截断区域。
-\item 退化情形：空集、单点、线段以及并列最远点对均按前述规则处理。
-\item 一般反例：等边三角形构造满足角跨度、接收距离和示向锥约束，且其任一直径圆均不能覆盖三角形。
-\end{enumerate}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.85\textwidth]{figures/q1_荣格定理反例.pdf}
-\caption{直径圆不能覆盖定位区域的一般反例}
-\label{fig:q1_counterexample}
-\end{figure}
+图~\ref{fig:q1_counterexample}为便于辨认按边长 $100\,\mathrm m$ 绘制相似构型；严格反例及其角跨度、接收距离证明仍取 $D_0=20\,\mathrm m$、$L=800\,\mathrm m$，覆盖失败不受相似缩放影响。
