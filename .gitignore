@@ -1,3 +1,33 @@
+# LaTeX 构建产物
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.fdb_latexmk
+*.fls
+*.glg
+*.glo
+*.gls
+*.idx
+*.ilg
+*.ind
+*.ist
+*.log
+*.lof
+*.lot
+*.nlo
+*.nls
+*.out
+*.run.xml
+*.synctex
+*.synctex.gz
+*.toc
+*.xdv
+
+# 模板目录下的 PDF 不提交；workspace 下的图表与论文 PDF 需要提交
+materials/templates/**/*.pdf
+
+
 __pycache__/
 *.py[cod]
 .pytest_cache/

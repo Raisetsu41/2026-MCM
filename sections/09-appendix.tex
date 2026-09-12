@@ -1,23 +1,26 @@
+%附录
+\AtBeginEnvironment{appendices}{
+    \renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+}
 \begin{appendices}
 
 \section{支撑材料文件清单}
+本文支撑材料按用途分为三部分，目录结构如下：
+\begin{verbatim}
+支撑材料/
+├── 行为日志/            六份正式测试行为日志及其元数据
+├── 程序代码/            robot 程序包与几何库
+└── 结果数据/            正式与演练动作日志、各问数值结果
+\end{verbatim}
 
-\section{图表说明}
+%\section{图表说明}
 
-\subsection{问题一图表}
+%\subsection{问题一图表}
 
 \section{程序代码}
-
-以下代码仅保留各脚本的\textbf{核心计算部分}（绘图代码略），完整代码见
-\texttt{code/} 目录（支撑材料）。每段标注\textbf{对应题目}与\textbf{用途}。
-
-\subsection{数据预处理}
-\label{clean_data}
-
-\subsection{问题一代码}
-
+\subsection{问题一代码}:对应论文
 \subsection{问题二代码}
-
 \subsection{问题三代码}
+\subsection{问题四代码}
 
 \end{appendices}
