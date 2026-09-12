@@ -376,12 +376,6 @@ INPUT ./sections/00-abstract.tex
 INPUT ./sections/00-abstract.tex
 INPUT ./sections/00-abstract.tex
 INPUT sections/00-abstract.tex
-OUTPUT main.xdv
-INPUT ./sections/01-problem-restatement.tex
-INPUT ./sections/01-problem-restatement.tex
-INPUT ./sections/01-problem-restatement.tex
-INPUT ./sections/01-problem-restatement.tex
-INPUT sections/01-problem-restatement.tex
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi7.tfm
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi5.tfm
@@ -415,6 +409,12 @@ INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr7.tfm
 INPUT c:/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr5.tfm
+OUTPUT main.xdv
+INPUT ./sections/01-problem-restatement.tex
+INPUT ./sections/01-problem-restatement.tex
+INPUT ./sections/01-problem-restatement.tex
+INPUT ./sections/01-problem-restatement.tex
+INPUT sections/01-problem-restatement.tex
 INPUT ./sections/02-assumptions-and-notation.tex
 INPUT ./sections/02-assumptions-and-notation.tex
 INPUT ./sections/02-assumptions-and-notation.tex

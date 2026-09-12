@@ -1,18 +1,18 @@
 # Fdb version 4
-["bibtex main"] 1789223604.319 "main.aux" "main.bbl" "main" 1789223607.47754 0
+["bibtex main"] 1789223895.65672 "main.aux" "main.bbl" "main" 1789223899.12819 0
   "./gbt7714-numerical.bst" 1789086921 38964 b468873a0d715b19033dd98fde01e8f1 ""
   "./ref.bib" 1789219170 2456 458c81876581c43021a77fe2bd59fabb ""
-  "main.aux" 1789223605 9881 bbaad4c2b138c38dc02b1b9382175165 "xelatex"
+  "main.aux" 1789223897 9881 bbaad4c2b138c38dc02b1b9382175165 "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1789223606.73112 "main.xdv" "main.pdf" "main" 1789223607.48576 0
-  "main.xdv" 1789223605 182264 83d519c90851fd00bd911c8a0f0752a9 "xelatex"
+["xdvipdfmx"] 1789223898.35125 "main.xdv" "main.pdf" "main" 1789223899.13702 0
+  "main.xdv" 1789223897 201904 bbbfc55419489972676b1aca32896640 "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1789223604.62102 "main.tex" "main.xdv" "main" 1789223607.47773 0
+["xelatex"] 1789223896.01871 "main.tex" "main.xdv" "main" 1789223899.12841 0
   "c:/Windows/Fonts/msyh.ttc" 1749310389 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1769737791 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2025/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1769739159 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
@@ -244,12 +244,12 @@
   "figures/q1_定位区域与直径.pdf" 1789147828 16434 e74316e898db12dac32d0d3cd68bf05a ""
   "figures/q1_荣格定理反例.pdf" 1789147828 17469 dbf4e6541af48568ff5367f32cb1d991 ""
   "figures/q2_候选区域与Pareto前沿.pdf" 1789147828 181560 31480eb5284d97f395015916143ccb57 ""
-  "main.aux" 1789223605 9881 bbaad4c2b138c38dc02b1b9382175165 "xelatex"
-  "main.bbl" 1789223604 1798 6831d976fccca70691d1f758000f61ec "bibtex main"
-  "main.out" 1789223605 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
+  "main.aux" 1789223897 9881 bbaad4c2b138c38dc02b1b9382175165 "xelatex"
+  "main.bbl" 1789223896 1798 6831d976fccca70691d1f758000f61ec "bibtex main"
+  "main.out" 1789223897 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
   "main.tex" 1789221030 3416 67e3c9179acdef77d94deb1144c0c05a ""
-  "sections/00-abstract.tex" 1789086921 248 6cb4462ddb73948a060362d432f49cd2 ""
-  "sections/01-problem-restatement.tex" 1789221049 2745 c1bb3d4b3f68a3c85e4bd47b2e32f49c ""
+  "sections/00-abstract.tex" 1789223804 3531 436386f47aeca5f90fb6df8acd05fa1b ""
+  "sections/01-problem-restatement.tex" 1789223892 2764 c1bb3d4b3f68a3c85e4bd47b2e32f49c ""
   "sections/02-assumptions-and-notation.tex" 1789223590 5631 ead4d55af5a6dbd3a6a05bcdde228ecc ""
   "sections/03-problem1.tex" 1789223590 8538 aed18fb6e21a0e37ed51c2e97f0431b3 ""
   "sections/04-problem2.tex" 1789223590 10245 204add48fa3079b28421c86ff30a6003 ""
