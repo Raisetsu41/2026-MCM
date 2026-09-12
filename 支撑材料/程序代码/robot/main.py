@@ -1,6 +1,3 @@
-# 问题三与问题四的机器狗自动定位清除入口.
-# 指令日志保留动作与响应, 但会在写盘前移除队号.
-# 用法: python -X utf8 robot\main.py --team <参赛队号>
 from __future__ import annotations
 
 import argparse
@@ -10,17 +7,14 @@ import sys
 import time
 from pathlib import Path
 
-
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from robot.agent import Q3Agent  # noqa: E402
-from robot.client import ApiClient, ApiError  # noqa: E402
-from robot.q4_agent import Q4Agent  # noqa: E402
-
+from robot.agent import Q3Agent
+from robot.client import ApiClient, ApiError
+from robot.q4_agent import Q4Agent
 
 log_path: Path | None = None
-
 
 def redact_identity(value: object) -> object:
   if isinstance(value, dict):
@@ -33,10 +27,8 @@ def redact_identity(value: object) -> object:
     return [redact_identity(item) for item in value]
   return value
 
-
 def log_call(path: str, payload: dict, status: int, body: dict,
              ms: int) -> None:
-  """记录一次 HTTP 往返; 写日志失败不影响测试进程."""
   if log_path is None:
     return
   try:
@@ -48,7 +40,6 @@ def log_call(path: str, payload: dict, status: int, body: dict,
   except OSError:
     pass
 
-
 def attach_logging(client: ApiClient) -> None:
   original = client._post_once
 
@@ -57,8 +48,7 @@ def attach_logging(client: ApiClient) -> None:
     log_call(path, payload, status, body, time.time_ns() // 1_000_000)
     return status, body
 
-  client._post_once = wrapped  # type: ignore[method-assign]
-
+  client._post_once = wrapped
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(
@@ -81,7 +71,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
   parser.add_argument("--log-dir", default=None,
                       help="指令日志目录, 默认 code/outputs")
   return parser.parse_args(argv)
-
 
 def main(argv: list[str] | None = None) -> int:
   global log_path
@@ -116,7 +105,7 @@ def main(argv: list[str] | None = None) -> int:
   result = None
   try:
     result = agent.run(enter_body=enter)
-  except Exception as exc:  # noqa: BLE001 - agent 已尝试退出本局
+  except Exception as exc:
     error = f"{type(exc).__name__}: {exc}"
     print(f"运行中断: {error}")
 
@@ -139,7 +128,6 @@ def main(argv: list[str] | None = None) -> int:
     })
   print(json.dumps(out, ensure_ascii=False, indent=2))
   return 0 if (result is not None and result.complete) else 1
-
 
 if __name__ == "__main__":
   raise SystemExit(main())

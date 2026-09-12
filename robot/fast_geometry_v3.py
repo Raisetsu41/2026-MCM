@@ -1,4 +1,3 @@
-# v3 几何工具: 原 fast_geometry 与 fast_geometry_v2 的全部函数合并到此单文件.
 from __future__ import annotations
 
 import math
@@ -8,19 +7,10 @@ import numpy as np
 from geometry_solver import (bearing_halfplanes, convex_hull,
                              minimum_enclosing_circle, regular_bound)
 
-
-# 快速版的保守几何和路径辅助, 所有定位多边形都保持外包围.
-
-
-
-
-
 Arr = np.ndarray
 guard = 1e-6
 
-
 def cut(poly: Arr, normal: Arr, limit: float) -> Arr:
-  """裁剪 n.x <= limit, 向外放宽后再求交, 避免边界分类不一致."""
   if len(poly) == 0:
     return poly.copy()
   normal = np.asarray(normal, dtype=float)
@@ -49,16 +39,13 @@ def cut(poly: Arr, normal: Arr, limit: float) -> Arr:
       out.append(a + t * (local[j] - a) + origin)
   return np.asarray(out, dtype=float).reshape(-1, 2)
 
-
 def cut_bearing(poly: Arr, site: Arr, angle: float, err: float) -> Arr:
   out = poly
   for hp in bearing_halfplanes(site, angle, err):
     out = cut(out, hp[:2], float(hp[2]))
   return out
 
-
 def cut_disk(poly: Arr, center: Arr, radius: float) -> Arr:
-  """用圆的支撑半平面裁剪, 绝不用内接多边形缩小真实可行集."""
   out = poly
   for angle in np.arange(128) * (2 * math.pi / 128):
     n = np.array([math.cos(angle), math.sin(angle)])
@@ -67,21 +54,17 @@ def cut_disk(poly: Arr, center: Arr, radius: float) -> Arr:
       break
   return out
 
-
 def enclosing(poly: Arr) -> tuple[Arr, float]:
   if len(poly) == 0 or not np.all(np.isfinite(poly)):
     raise ValueError("empty or nonfinite localization region")
   center, _ = minimum_enclosing_circle(poly)
-  # 复算全部顶点, 不把 MEC 内部容差直接带入清除证书.
   radius = float(np.max(np.linalg.norm(poly - center, axis=1))) + guard
   if not np.all(np.isfinite(center)) or not math.isfinite(radius):
     raise ValueError("nonfinite enclosing circle")
   return center, radius
 
-
 def forecast(poly: Arr, center: Arr, radius: float,
              site: Arr, err: float) -> float:
-  """名义测量仅给调度评分, 不能用来更新证据或认证清除."""
   delta = center - site
   if np.linalg.norm(delta) <= max(5.0, radius * 0.15):
     return max(2.5, radius * 0.55)
@@ -92,16 +75,13 @@ def forecast(poly: Arr, center: Arr, radius: float,
   _, value = enclosing(pred)
   return min(radius, value)
 
-
 def path_length(points: Arr, start: Arr) -> float:
   if len(points) == 0:
     return 0.0
   p = np.vstack((start, points))
   return float(np.linalg.norm(np.diff(p, axis=0), axis=1).sum())
 
-
 def route_order(points: Arr, start: Arr) -> list[int]:
-  """开放路径的最近邻加 2-opt, 首点也允许改变."""
   if len(points) == 0:
     return []
   left = set(range(len(points)))
@@ -131,7 +111,6 @@ def route_order(points: Arr, start: Arr) -> list[int]:
       break
   return order
 
-
 def insertion(center: Arr, start: Arr, remaining: Arr) -> tuple[int, float]:
   if len(remaining) == 0:
     return 0, float(np.linalg.norm(center - start))
@@ -144,9 +123,7 @@ def insertion(center: Arr, start: Arr, remaining: Arr) -> tuple[int, float]:
   i = min(range(len(costs)), key=lambda j: (costs[j], j))
   return i, costs[i]
 
-
 def cover_cells(poly: Arr, radius: float, angle: float) -> list[Arr]:
-  """沿首测方向二分外包围, 每个叶子都有半径证书."""
   u = np.array([math.cos(angle), math.sin(angle)])
   v = np.array([-u[1], u[0]])
   stack = [poly.copy()]
@@ -168,9 +145,7 @@ def cover_cells(poly: Arr, radius: float, angle: float) -> list[Arr]:
     stack.extend((right, left))
   return leaves
 
-
 def definitely_disjoint(first: Arr, second: Arr) -> bool:
-  """只在存在严格分离轴时丢弃覆盖单元, 退化线段宁可保留."""
   if len(first) == 0 or len(second) == 0:
     return True
   axes = [np.array([1.0, 0.0]), np.array([0.0, 1.0])]
@@ -187,12 +162,6 @@ def definitely_disjoint(first: Arr, second: Arr) -> bool:
       return True
   return False
 
-# v2: 连续域方向覆盖认证, 阴性证据推理, 固定节点集上的开放路径优化.
-
-
-
-
-
 def inside_hull(hull: Arr, points: Arr) -> bool:
   if len(hull) < 3:
     return False
@@ -205,9 +174,7 @@ def inside_hull(hull: Arr, points: Arr) -> bool:
             - edges[None, :, 1] * offset[:, :, 0]) / lengths[None, :]
   return bool(np.all(signed >= 1e-6))
 
-
 def direction_certificate(sites: Arr) -> tuple[bool, int]:
-  """认证包含目标圆的外接多边形, 未解决的单元一律拒绝发证书."""
   boundary = regular_bound(1800.0, 72, outer=True)
   stack = [(np.vstack((np.zeros(2), boundary[i], boundary[(i + 1) % 72])), 0)
            for i in range(72)]
@@ -220,8 +187,6 @@ def direction_certificate(sites: Arr) -> tuple[bool, int]:
     if len(eligible) >= 3:
       hull = convex_hull(eligible, tol=0.0)
       if inside_hull(hull, cell):
-        # 距离的凸性保证整个三角单元距 eligible 中每个点都 < 995 m.
-        # 单元顶点都在该凸包内部, 所以整个单元满足方向完备条件.
         continue
     if depth >= 22 or count >= 60000:
       return False, count
@@ -233,19 +198,15 @@ def direction_certificate(sites: Arr) -> tuple[bool, int]:
     stack.append((np.vstack((middle, cell[j], cell[k])), depth + 1))
   return True, count
 
-
 def compact_q4_sites() -> Arr:
   inner_r, outer_r = 975.0, 1850.0
   a = np.arange(7) * (2 * math.pi / 7)
   b = np.arange(14) * (2 * math.pi / 14)
   inner = inner_r * np.column_stack((np.cos(a), np.sin(a)))
   outer = outer_r * np.column_stack((np.cos(b), np.sin(b)))
-  # I_6 与 O_12 同向, 接续距离为 875 m. 两环都不用闭环返回.
   return np.vstack((np.zeros(2), inner, outer[np.r_[12, 13, np.arange(12)]]))
 
-
 def covered_by_negative_disks(poly: Arr, negatives: Arr) -> bool:
-  """只能证明覆盖才返回 True, 预算耗尽等同无法推理."""
   stack = [(poly, 0)]
   count = 0
   while stack:
@@ -257,7 +218,6 @@ def covered_by_negative_disks(poly: Arr, negatives: Arr) -> bool:
       continue
     if depth >= 9 or count >= 80:
       return False
-    # 中心未被覆盖意味着这个外包围尚不能完成认证, 正常测量即可.
     center = cell.mean(axis=0)
     if np.min(np.linalg.norm(negatives - center, axis=1)) >= 999.99:
       return False
@@ -271,9 +231,7 @@ def covered_by_negative_disks(poly: Arr, negatives: Arr) -> bool:
         stack.append((part, depth + 1))
   return True
 
-
 def unknown_negative_implied(site: Arr, negatives: list[Arr]) -> bool:
-  """Q3: 假定本站能接收, 与既有真实阴性观测联立后检验是否矛盾."""
   if not negatives:
     return False
   old = np.asarray(negatives)
@@ -285,13 +243,10 @@ def unknown_negative_implied(site: Arr, negatives: list[Arr]) -> bool:
   for previous in old:
     delta = previous - site
     limit = float(delta @ site + 0.5 * (delta @ delta))
-    # 接收于 site 且不接收于 previous, 必须 d(site,G) < d(previous,G).
     poly = cut(poly, delta, limit)
     if len(poly) == 0:
       return True
-  # 真实阴性点的 1000 m 圆内没有该源, 这里只使用连续域覆盖证明.
   return covered_by_negative_disks(poly, old)
-
 
 def route_cost(order: list[int], distances: Arr) -> float:
   previous = len(distances) - 1
@@ -301,9 +256,7 @@ def route_cost(order: list[int], distances: Arr) -> float:
     previous = i
   return total
 
-
 def exact_open(distances: Arr) -> list[int]:
-  """小节点集的 Held-Karp, 固定起点, 自由终点."""
   n = len(distances) - 1
   dp = np.full((1 << n, n), math.inf)
   parent = np.full((1 << n, n), -1, dtype=np.int16)
@@ -330,7 +283,6 @@ def exact_open(distances: Arr) -> list[int]:
     mask ^= 1 << last
     last = previous
   return order[::-1]
-
 
 def improve_open(order: list[int], distances: Arr) -> list[int]:
   out = order.copy()
@@ -367,9 +319,7 @@ def improve_open(order: list[int], distances: Arr) -> list[int]:
       break
   return out
 
-
 def joint_route(points: Arr, start: Arr, station_count: int) -> list[int]:
-  """同一冻结节点集上不劣于固定扫描顺序加最便宜插入, 不宣称在线最优."""
   n = len(points)
   if n == 0:
     return []
@@ -402,15 +352,8 @@ def joint_route(points: Arr, start: Arr, station_count: int) -> list[int]:
     raise ValueError("route lost a required node")
   return best
 
-# v3: 全测向结果包围, 保持可见性的测站核, 小半径方向完备测站包.
-
-
-
-
-
 def bearing_radius_bound(poly: Arr, site: Arr, err: float = 1.01,
                          step: float = 2.0) -> float:
-  """将所有可能返回角分箱, 每箱用扩大后的锥外包围, 不以名义角代替上界."""
   if not 0 < step <= 10 or not 0 < err < 10:
     raise ValueError("invalid bearing enclosure parameters")
   if len(poly) == 0 or not np.all(np.isfinite(poly)) or not np.all(np.isfinite(site)):
@@ -433,15 +376,9 @@ def bearing_radius_bound(poly: Arr, site: Arr, err: float = 1.01,
     outer = cut_bearing(poly, site, angle, err + width / 2 + 1e-7)
     if len(outer):
       worst = max(worst, enclosing(outer)[1])
-  # 原裁剪器有向外的距离保护, 窄锥尖端的位移比宽锥稍大, 额外留 1 mm.
   return worst + 1e-3
 
-
 def visible_kernel(poly: Arr, positives: Arr) -> Arr:
-  """交集 K = intersect_G conv(positives union {G}), 只保留严格内部."""
-  # 支撑函数 min_G max(h_positive, u.G) 的极小值在 poly 顶点取得.
-  # X 在这个核内时, X-G 是已接收向量和零向量的凸组合:
-  # 既不越过未知定向半平面, 也不超过该源的实际未知接收半径.
   if len(positives) < 2 or len(poly) == 0:
     return np.empty((0, 2))
   hulls = [convex_hull(np.vstack((positives, vertex)), tol=0.0) for vertex in poly]
@@ -458,7 +395,6 @@ def visible_kernel(poly: Arr, positives: Arr) -> Arr:
       kernel = cut(kernel, normal, float(normal @ a) - 1e-4)
       if len(kernel) == 0:
         return kernel
-  # cut 本身向外放宽, 最后再逐边验证内缩量, 不把浮点容差当成可见证书.
   for hull in hulls:
     for a, b in zip(hull, np.roll(hull, -1, axis=0)):
       edge = b - a
@@ -467,20 +403,15 @@ def visible_kernel(poly: Arr, positives: Arr) -> Arr:
         return np.empty((0, 2))
   return kernel
 
-
 def packet_sites(center: Arr, radius: float, start: Arr) -> Arr:
   if not 0 <= radius <= 300.0:
     raise ValueError("packet radius exceeds its receiving certificate")
   size = 1.2 * radius + 8.0
   phase = math.atan2(start[1] - center[1], start[0] - center[0])
   angles = phase + np.arange(12) * math.pi / 6.0
-  # size*cos(30 deg) > radius: 任意朝向的可见弧宽严格大于两个站间角.
-  # 所有站到任意可行源至多 2.2*radius+8 <= 668 m.
   return center + size * np.column_stack((np.cos(angles), np.sin(angles)))
 
-
 def packet_localization_bound(radius: float, err: float = 1.01) -> float:
-  """目标在半径 radius 单元内时, 十二点包结束后的全局位置误差上界."""
   size = 1.2 * radius + 8.0
   h, w = size * math.cos(math.pi / 12), size * math.sin(math.pi / 12)
   low = 2 * math.atan2(w, h + radius)
@@ -492,6 +423,4 @@ def packet_localization_bound(radius: float, err: float = 1.01) -> float:
   factor = math.sin(error) / math.sin(gap / 2)
   if factor >= 1:
     return math.inf
-  # 可见相邻两站的测向矩阵满足 ||H^-1||_(inf->2) <= 1/sin(gap/2).
-  # 任意可行点的位置误差 E <= factor*(2*(size+radius)+E), 移项得到此界.
   return 2 * factor * (size + radius) / (1 - factor) + 1e-3

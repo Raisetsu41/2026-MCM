@@ -1,4 +1,3 @@
-# 问题四: 未知定向半平面下的保证发现与覆盖式清除.
 from __future__ import annotations
 
 import math
@@ -8,9 +7,7 @@ import numpy as np
 from robot.agent import Arr, ChannelTrack, Q3Agent
 from robot.client import ApiError
 
-
 def ordered_route(points: Arr, start: Arr) -> Arr:
-  """Build a deterministic nearest-neighbor route and improve it by 2-opt."""
   p = np.asarray(points, dtype=float)
   if p.ndim != 2 or p.shape[1] != 2 or len(p) == 0:
     raise ValueError("points must have shape (n, 2) with n positive")
@@ -38,10 +35,8 @@ def ordered_route(points: Arr, start: Arr) -> Arr:
           improved = True
   return route
 
-
 def q4_scan_sites(spacing: float = 990.0,
                   target_rad: float = 1800.0) -> Arr:
-  # 取与目标圆相交的基本三角形顶点. spacing < 1000 给边界留余量.
   if spacing <= 0 or spacing >= 1000.0 or target_rad <= 0:
     raise ValueError("invalid Q4 lattice parameters")
   e1 = np.array([spacing, 0.0])
@@ -55,7 +50,6 @@ def q4_scan_sites(spacing: float = 990.0,
       if np.linalg.norm(point) <= cutoff + 1e-9:
         points.append(point)
   return ordered_route(np.asarray(points), np.zeros(2))
-
 
 def _distance_to_sector(points: Arr, lo: float, hi: float,
                         err_rad: float) -> Arr:
@@ -74,20 +68,17 @@ def _distance_to_sector(points: Arr, lo: float, hi: float,
   )
   return np.where(inside, radial, edge)
 
-
 def bearing_clear_sites(
     site: Arr, bearing_deg: float, err_deg: float = 1.01,
     ranges: tuple[float, float] = (5.0, 1500.0),
     cover_rad: float = 20.0, start: Arr | None = None,
 ) -> Arr:
-  """Cover a first-bearing sector by a triangular lattice of clear sites."""
   origin = np.asarray(site, dtype=float)
   if origin.shape != (2,) or not np.all(np.isfinite(origin)):
     raise ValueError("site must be a finite point")
   lo, hi = ranges
   if not 0 <= lo < hi or not 0 <= err_deg < 90 or cover_rad <= 0:
     raise ValueError("invalid bearing sector parameters")
-  # 三角格覆盖半径是边长/sqrt(3), 0.995 避免浮点边界误判.
   spacing = cover_rad * math.sqrt(3.0) * 0.995
   e1 = np.array([spacing, 0.0])
   e2 = np.array([spacing / 2.0, math.sqrt(3.0) * spacing / 2.0])
@@ -113,15 +104,12 @@ def bearing_clear_sites(
   route_start = origin if start is None else np.asarray(start, dtype=float)
   return ordered_route(global_points, route_start)
 
-
 class Q4Agent(Q3Agent):
-  """Q3 state machine with a direction-complete discovery certificate."""
 
   def _scan_sites(self) -> Arr:
     return q4_scan_sites()
 
   def _lost_signal(self, track: ChannelTrack) -> None:
-    # 定向源复测无信号不是矛盾, 改用与朝向无关的 20 m 覆盖清除.
     first = track.obs[0]
     track.status = "clear_fallback"
     for site in bearing_clear_sites(

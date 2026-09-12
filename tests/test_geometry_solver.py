@@ -1,4 +1,3 @@
-# 几何算法回归测试: 解析解, 暴力解和退化构型交叉核验.
 import math
 import unittest
 
@@ -24,7 +23,6 @@ from geometry_solver import (
   source_cone_samples,
   two_site_gdop,
 )
-
 
 class GeometryTest(unittest.TestCase):
   def test_calipers_matches_brute_force_across_scales(self) -> None:
@@ -216,7 +214,6 @@ class GeometryTest(unittest.TestCase):
     np.testing.assert_array_equal(pareto_mask(values), [True, True, False, False])
     np.testing.assert_array_equal(
       pareto_mask(np.full((2, 2), math.inf)), [False, False])
-
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

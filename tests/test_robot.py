@@ -1,4 +1,3 @@
-# 通信幂等性, Q3 批处理和 Q4 定向保证的端到端测试.
 import json
 import math
 import tempfile
@@ -13,7 +12,6 @@ from robot.agent import Q3Agent, polygon_clear_sites, q3_scan_sites
 from robot.client import ApiClient, ApiError
 from robot.mock_server import Jammer, MockArena, MockServer
 from robot.q4_agent import Q4Agent, bearing_clear_sites, q4_scan_sites
-
 
 class RobotTest(unittest.TestCase):
   def test_retry_reuses_request_without_double_time(self) -> None:
@@ -158,7 +156,6 @@ class RobotTest(unittest.TestCase):
     self.assertNotIn("sensitive-value", text)
     row = json.loads(text)
     self.assertEqual(row["request"]["robot_id"], "<redacted>")
-
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

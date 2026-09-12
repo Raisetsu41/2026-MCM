@@ -1,4 +1,3 @@
-# 唯一提速入口: 动作账只统计 accepted 的唯一请求, 日志不含队号.
 from __future__ import annotations
 
 import argparse
@@ -12,13 +11,12 @@ from collections import Counter
 from pathlib import Path
 from typing import TextIO
 
-
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from robot.agent_fast_v3 import Q3FastAgentV3  # noqa: E402
-from robot.client import ApiClient  # noqa: E402
-from robot.fast_geometry_v3 import path_length  # noqa: E402
+from robot.agent_fast_v3 import Q3FastAgentV3
+from robot.client import ApiClient
+from robot.fast_geometry_v3 import path_length
 def redact(value: object, team: str) -> object:
   if isinstance(value, dict):
     return {key: "<redacted>" if key in {"robot_id", "team_no"}
@@ -28,8 +26,7 @@ def redact(value: object, team: str) -> object:
   if isinstance(value, str) and team:
     return value.replace(team, "<redacted>")
   return value
-from robot.q4_agent_fast_v3 import Q4FastAgentV3  # noqa: E402
-
+from robot.q4_agent_fast_v3 import Q4FastAgentV3
 
 def instrument(client: ApiClient, agent, file: TextIO | None, team: str) -> dict:
   original = client._post_once
@@ -92,7 +89,6 @@ def instrument(client: ApiClient, agent, file: TextIO | None, team: str) -> dict
 
   client._post_once = wrapped
   return stats
-
 
 def main(argv: list[str] | None = None) -> int:
   parser = argparse.ArgumentParser(description="Q3/Q4 fast v3")
@@ -168,7 +164,6 @@ def main(argv: list[str] | None = None) -> int:
         file.close()
       except OSError:
         pass
-
 
 if __name__ == "__main__":
   raise SystemExit(main())

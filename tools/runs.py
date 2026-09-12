@@ -1,10 +1,3 @@
-# 查看演练局成绩.
-# 案例与真值来自模拟器导出的 result.json(演练测试才给真值).
-# 清除数、虚拟时间等指标优先取官方统计库(仅问题三有此记录), 否则从自建指令日志推算.
-# 用法:
-#   python -X utf8 tools\runs.py                # 问题三
-#   python -X utf8 tools\runs.py --problem 4    # 问题四
-#   python -X utf8 tools\runs.py --problem all
 from __future__ import annotations
 
 import argparse
@@ -13,7 +6,6 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
 
 root = Path(__file__).resolve().parents[1]
 data_dir = root / "Jammers-simulator" / "JammersSimulatorData"
@@ -26,20 +18,13 @@ journal_dirs = [
 ]
 BEIJING = timezone(timedelta(hours=8))
 
-
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(description="汇总演练局成绩")
   parser.add_argument("--problem", choices=["3", "4", "all"], default="3",
                       help="看哪一问的演练局, 默认问题三")
   return parser.parse_args(argv)
 
-
 def official() -> dict[str, dict]:
-  """模拟器自己记账的官方成绩, 按案例编码索引.
-
-  模拟器运行期间, 新记录可能还在 -wal 文件里没合并进主库. 因此不能用
-  immutable=1(那会忽略 WAL), 必须让 sqlite 正常读 WAL.
-  """
   if not db.is_file():
     return {}
   rows: list[dict] = []
@@ -57,9 +42,7 @@ def official() -> dict[str, dict]:
       continue
   return {str(r["case_code"]): r for r in rows}
 
-
 def read_journal(path: Path) -> dict[str, object]:
-  """从自建指令日志推算清除数、虚拟时间与动作构成."""
   cleared = failed = measures = 0
   virtual = None
   kinds: dict[str, int] = {}
@@ -88,7 +71,6 @@ def read_journal(path: Path) -> dict[str, object]:
   return {"cleared": cleared, "failed": failed, "measures": measures,
           "virtual": virtual, "kinds": kinds}
 
-
 def match(run: dict, pool: list[Path]) -> Path | None:
   best, gap = None, 300.0
   for path in pool:
@@ -98,7 +80,6 @@ def match(run: dict, pool: list[Path]) -> Path | None:
   if best:
     pool.remove(best)
   return best
-
 
 def collect(problem: str) -> list[dict]:
   stats = official()
@@ -126,7 +107,6 @@ def collect(problem: str) -> list[dict]:
     run["local"] = read_journal(run["journal"]) if run["journal"] else {}
     run["stat"] = stats.get(str(run["info"].get("case_code")))
   return runs
-
 
 def report(problem: str) -> None:
   runs = collect(problem)
@@ -177,7 +157,6 @@ def report(problem: str) -> None:
   if gaps:
     print(f"  提示: {len(gaps)} 局在官方统计库里没有记录, 指标来自本地指令日志")
 
-
 def main(argv: list[str] | None = None) -> int:
   args = parse_args(argv)
   if not logs.is_dir():
@@ -189,7 +168,6 @@ def main(argv: list[str] | None = None) -> int:
       print()
     report(problem)
   return 0
-
 
 if __name__ == "__main__":
   sys.exit(main())

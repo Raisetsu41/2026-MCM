@@ -1,4 +1,3 @@
-# 用固定随机种子对比 Q3 调度, 并压测 Q4 混合定向源闭环.
 from __future__ import annotations
 
 import csv
@@ -8,15 +7,13 @@ import sys
 import time
 from pathlib import Path
 
-
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from robot.agent import Q3Agent  # noqa: E402
-from robot.client import ApiClient  # noqa: E402
-from robot.mock_server import MockArena, MockServer  # noqa: E402
-from robot.q4_agent import Q4Agent  # noqa: E402
-
+from robot.agent import Q3Agent
+from robot.client import ApiClient
+from robot.mock_server import MockArena, MockServer
+from robot.q4_agent import Q4Agent
 
 def run_q3(seed: int, schedule: str) -> dict[str, float | int | str | bool]:
   arena = MockArena.random_q3(seed)
@@ -40,7 +37,6 @@ def run_q3(seed: int, schedule: str) -> dict[str, float | int | str | bool]:
     "clear_failure_count": arena.clear_failure_count,
     "program_s": time.perf_counter() - started,
   }
-
 
 def run_q4(seed: int) -> dict[str, float | int | str | bool]:
   arena = MockArena.random_q4(seed)
@@ -66,10 +62,8 @@ def run_q4(seed: int) -> dict[str, float | int | str | bool]:
     "program_s": time.perf_counter() - started,
   }
 
-
 def mean(rows: list[dict[str, object]], key: str) -> float:
   return statistics.fmean(float(row[key]) for row in rows)
-
 
 def main() -> None:
   rows: list[dict[str, object]] = []
@@ -122,7 +116,6 @@ def main() -> None:
   (result_dir / "mock_benchmark.json").write_text(
     json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
   print(json.dumps(summary, ensure_ascii=False, indent=2))
-
 
 if __name__ == "__main__":
   main()

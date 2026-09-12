@@ -1,5 +1,3 @@
-# 测向交会几何库: 半平面交, 旋转卡壳, 最小覆盖圆, 还有 Q2 用的 GDOP 和候选点筛选.
-# 坐标单位一律是米, 角度一律是度.
 from __future__ import annotations
 
 import math
@@ -8,25 +6,21 @@ from collections.abc import Sequence
 
 import numpy as np
 
-
 Arr = np.ndarray
 eps = 1e-10
 rank_rel_tol = 1e-12
 sin_angle_tol = 1e-12
-
 
 def _relative_tol(value: float, name: str = "tol") -> float:
   if not math.isfinite(value) or value < 0.0:
     raise ValueError(f"{name} must be finite and nonnegative")
   return float(value)
 
-
 def _point(x: Sequence[float] | Arr, name: str) -> Arr:
   p = np.asarray(x, dtype=float)
   if p.shape != (2,) or not np.all(np.isfinite(p)):
     raise ValueError(f"{name} must be a finite point")
   return p
-
 
 def _pts(x: Sequence[Sequence[float]] | Arr) -> Arr:
   p = np.asarray(x, dtype=float)
@@ -38,15 +32,12 @@ def _pts(x: Sequence[Sequence[float]] | Arr) -> Arr:
     raise ValueError("points must be finite")
   return p
 
-
 def cross(a: Sequence[float] | Arr, b: Sequence[float] | Arr) -> float:
   x = np.asarray(a, dtype=float)
   y = np.asarray(b, dtype=float)
   return float(x[0] * y[1] - x[1] * y[0])
 
-
 def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
-  # Andrew 单调链, 先按 x 再按 y 排序, 正反各扫一遍
   p = _pts(x)
   tol = _relative_tol(tol)
   if len(p) <= 1:
@@ -61,7 +52,6 @@ def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
   def build(a: Arr) -> list[Arr]:
     s: list[Arr] = []
     for q in a:
-      # <= 而不是 <, 共线点直接丢掉, 免得后面卡壳卡在退化边上
       while len(s) >= 2 and cross(s[-1] - s[-2], q - s[-1]) <= area_tol:
         s.pop()
       s.append(q)
@@ -73,11 +63,9 @@ def convex_hull(x: Sequence[Sequence[float]] | Arr, tol: float = eps) -> Arr:
   hi = build(p[::-1])
   return np.asarray(lo[:-1] + hi[:-1], dtype=float)
 
-
 def regular_bound(rad: float = 1800.0, n: int = 720,
                   center: Sequence[float] = (0.0, 0.0),
                   outer: bool = True) -> Arr:
-  # outer=True 是圆的外接正 n 边形(结果偏大, 当上界用), False 是内接的(当下界用)
   if (not math.isfinite(rad) or rad <= 0 or not isinstance(n, int)
       or isinstance(n, bool) or n < 3):
     raise ValueError("rad must be positive and n must be at least 3")
@@ -86,7 +74,6 @@ def regular_bound(rad: float = 1800.0, n: int = 720,
   off = math.pi / n if outer else 0.0
   ang = off + np.arange(n) * 2.0 * math.pi / n
   return c + r * np.column_stack((np.cos(ang), np.sin(ang)))
-
 
 def bearing_halfplanes(site: Sequence[float], bearing_deg: float,
                        err_deg: float = 1.0) -> Arr:
@@ -102,7 +89,6 @@ def bearing_halfplanes(site: Sequence[float], bearing_deg: float,
   h2 = np.array([-dh[1], dh[0], -dh[1] * s[0] + dh[0] * s[1]])
   return np.vstack((h1, h2))
 
-
 def _clean_poly(x: Arr, tol: float) -> Arr:
   if len(x) == 0:
     return np.empty((0, 2), dtype=float)
@@ -117,7 +103,6 @@ def _clean_poly(x: Arr, tol: float) -> Arr:
     out.pop()
   return np.asarray(out, dtype=float)
 
-
 def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
                    hp: Sequence[float] | Arr, tol: float = eps) -> Arr:
   p = _pts(poly)
@@ -129,14 +114,12 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
     raise ValueError("half-plane must be [a, b, c] with nonzero normal")
   if len(p) == 0:
     return p
-  # 大坐标直接相减会掉精度, 所以先平移到多边形自己的平均位置再算残差
   org = p.mean(axis=0)
   nrm = h[:2] / norm
   cut = float((h[2] - h[:2] @ org) / norm)
   q = p - org
   span = max(float(np.ptp(q[:, 0])), float(np.ptp(q[:, 1])),
              np.finfo(float).tiny)
-  # 容差按多边形跨度缩放, 不能用固定的绝对量, 否则平移一下结果就变了
   roundoff = 32.0 * np.finfo(float).eps * max(
     float(np.linalg.norm(org)), abs(cut), span)
   cut_tol = tol * span + roundoff
@@ -149,7 +132,6 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
     if ina:
       out.append(a)
     if ina != inb:
-      # 跨越边界, 补一个交点; 两边残差几乎相等时说明是平行边, 跳过
       den = fa - fb
       den_tol = 32.0 * np.finfo(float).eps * max(
         abs(fa), abs(fb), span)
@@ -158,7 +140,6 @@ def clip_halfplane(poly: Sequence[Sequence[float]] | Arr,
   if not out:
     return np.empty((0, 2), dtype=float)
   return _clean_poly(np.asarray(out, dtype=float) + org, tol)
-
 
 def halfplane_intersection(hps: Sequence[Sequence[float]] | Arr,
                            bound: Sequence[Sequence[float]] | Arr,
@@ -175,7 +156,6 @@ def halfplane_intersection(hps: Sequence[Sequence[float]] | Arr,
     if len(p) == 0:
       break
   return p
-
 
 def localization_polygon(sites: Sequence[Sequence[float]] | Arr,
                          bearings_deg: Sequence[float] | Arr,
@@ -200,7 +180,6 @@ def localization_polygon(sites: Sequence[Sequence[float]] | Arr,
     bearing_halfplanes(p, a, err_deg) for p, a in zip(s, ang)
   ])
   return local_poly + c, global_hps
-
 
 def localization_diameter_bounds(
     sites: Sequence[Sequence[float]] | Arr,
@@ -236,14 +215,12 @@ def localization_diameter_bounds(
     "upper_pair": upper_pair,
   }
 
-
 def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
                      tol: float = eps) -> tuple[float, Arr]:
   raw = _pts(x)
   tol = _relative_tol(tol)
   if len(raw) == 0:
     raise ValueError("diameter is undefined for an empty set")
-  # 先去平移再做交叉积, 避免 2e6 级坐标下两个大数相减.
   org = raw.mean(axis=0)
   p = convex_hull(raw - org, tol)
   n = len(p)
@@ -266,7 +243,6 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
       best = val
       pair = np.vstack((p[a], p[b]))
 
-  # 旋转卡壳: j 只会沿凸包单调往前走, 所以整个循环 j 总共绕一圈, 是线性的
   for i in range(n):
     ni = (i + 1) % n
     while True:
@@ -274,12 +250,11 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
       cur = abs(cross(p[ni] - p[i], p[j] - p[i]))
       nxt = abs(cross(p[ni] - p[i], p[nj] - p[i]))
       if nxt > cur + area_tol:
-        j = nj            # 三角形面积还在变大, 对踵点继续往前挪
+        j = nj
       else:
         break
     upd(i, j)
     upd(ni, j)
-    # 两条边平行时会出现两个对踵点, 都得试
     nj = (j + 1) % n
     cur = abs(cross(p[ni] - p[i], p[j] - p[i]))
     nxt = abs(cross(p[ni] - p[i], p[nj] - p[i]))
@@ -287,7 +262,6 @@ def polygon_diameter(x: Sequence[Sequence[float]] | Arr,
       upd(i, nj)
       upd(ni, nj)
   return math.sqrt(max(best, 0.0)), pair + org
-
 
 def diameter_circle_coverage(x: Sequence[Sequence[float]] | Arr,
                              pair: Sequence[Sequence[float]] | Arr,
@@ -302,7 +276,6 @@ def diameter_circle_coverage(x: Sequence[Sequence[float]] | Arr,
   r = float(np.linalg.norm(q[1] - q[0])) / 2.0
   far = float(np.max(np.linalg.norm(p - c, axis=1)))
   return far <= r + tol, c, r, far
-
 
 def _circle3(a: Arr, b: Arr, c: Arr, tol: float) -> tuple[Arr, float] | None:
   ab = b - a
@@ -320,7 +293,6 @@ def _circle3(a: Arr, b: Arr, c: Arr, tol: float) -> tuple[Arr, float] | None:
   ])
   cen = a + off
   return cen, float(np.linalg.norm(cen - a))
-
 
 def minimum_enclosing_circle(
     x: Sequence[Sequence[float]] | Arr,
@@ -361,21 +333,17 @@ def minimum_enclosing_circle(
           cen, rad = cir
   return cen + org, rad
 
-
 def bearing_jacobian(target: Sequence[float],
                      sites: Sequence[Sequence[float]] | Arr) -> Arr:
-  # atan2 对位置的偏导, 第 i 行就是第 i 个测站那两列
   g = _point(target, "target")
   s = _pts(sites)
   if len(s) == 0:
     raise ValueError("at least one site is required")
   d = g - s
   r2 = np.sum(d * d, axis=1)
-  # 重合是对相对位移的判定, 不能随全局坐标量级放大阈值.
   if np.any(r2 <= np.finfo(float).tiny):
     raise ValueError("target and site must be distinct")
   return np.column_stack((-d[:, 1] / r2, d[:, 0] / r2))
-
 
 def gdop(target: Sequence[float], sites: Sequence[Sequence[float]] | Arr,
          tol: float = rank_rel_tol) -> float:
@@ -388,12 +356,10 @@ def gdop(target: Sequence[float], sites: Sequence[Sequence[float]] | Arr,
   cov = np.linalg.solve(info, np.eye(2))
   return math.sqrt(float(np.trace(cov)))
 
-
 def error_propagation(target: Sequence[float],
                       sites: Sequence[Sequence[float]] | Arr,
                       sig_deg: float | Sequence[float] = 1.0 / math.sqrt(3.0),
                       tol: float = rank_rel_tol) -> dict[str, Arr | float]:
-  # 加权最小二乘: 测角残差 e 到位置增量 dG 的映射 L = (H'WH)^-1 H'W.
   tol = _relative_tol(tol)
   h = bearing_jacobian(target, sites)
   sig = np.asarray(sig_deg, dtype=float)
@@ -407,7 +373,6 @@ def error_propagation(target: Sequence[float],
   w = np.diag(1.0 / (sig * sig))
   info = h.T @ w @ h
   val = np.linalg.eigvalsh(info)
-  # 信息矩阵奇异说明两条视线共线, 这种情况直接报错, 不能硬算逆
   if val[-1] <= 0.0 or val[0] <= tol * val[-1]:
     raise ValueError("bearing geometry is singular")
   cov = np.linalg.solve(info, np.eye(2))
@@ -421,7 +386,6 @@ def error_propagation(target: Sequence[float],
     "rms": math.sqrt(float(np.trace(cov))),
   }
 
-
 def intersection_angle(target: Sequence[float], site1: Sequence[float],
                        site2: Sequence[float]) -> float:
   g = _point(target, "target")
@@ -432,7 +396,6 @@ def intersection_angle(target: Sequence[float], site1: Sequence[float],
     raise ValueError("target and site must be distinct")
   val = min(1.0, abs(float(a @ b)) / den)
   return math.degrees(math.acos(val))
-
 
 def two_site_gdop(target: Sequence[float], site1: Sequence[float],
                   site2: Sequence[float],
@@ -449,7 +412,6 @@ def two_site_gdop(target: Sequence[float], site1: Sequence[float],
     return math.inf
   return math.sqrt(r1 * r1 + r2 * r2) / sn
 
-
 def second_site_time(site1: Sequence[float], site2: Sequence[float],
                      speed: float = 5.0, switched: bool = False,
                      measure_s: float = 5.0, switch_s: float = 1.0) -> float:
@@ -459,7 +421,6 @@ def second_site_time(site1: Sequence[float], site2: Sequence[float],
     raise ValueError("time parameters must be nonnegative and speed positive")
   d = _point(site2, "site2") - _point(site1, "site1")
   return float(np.linalg.norm(d)) / speed + measure_s + switch_s * switched
-
 
 def nominal_range_bounds(site: Sequence[float], bearing_deg: float,
                          target_rad: float = 1800.0,
@@ -477,7 +438,6 @@ def nominal_range_bounds(site: Sequence[float], bearing_deg: float,
   if hi <= lo:
     raise ValueError("no feasible nominal target range")
   return lo, hi
-
 
 def candidate_region_mask(cand: Sequence[Sequence[float]] | Arr,
                           site1: Sequence[float], bearing_deg: float,
@@ -515,7 +475,6 @@ def candidate_region_mask(cand: Sequence[Sequence[float]] | Arr,
     ok &= np.linalg.norm(p, axis=1) <= target_rad + eps
   return ok
 
-
 def second_site_metrics(cand: Sequence[Sequence[float]] | Arr,
                         site1: Sequence[float], bearing_deg: float,
                         ranges: Sequence[float] | Arr,
@@ -545,14 +504,12 @@ def second_site_metrics(cand: Sequence[Sequence[float]] | Arr,
   tm = np.asarray([second_site_time(s, q, switched=switched) for q in p])
   return {"angle_cost": acc, "gdop": gq, "time_s": tm, "coverage": cov}
 
-
 def source_cone_samples(
     site: Sequence[float], bearing_deg: float,
     ranges: tuple[float, float] = (5.0, 1500.0),
     err_deg: float = 1.0, target_rad: float = 1800.0,
     n_range: int = 41, n_angle: int = 21,
 ) -> Arr:
-  # 首次测到方向后, 可能的目标位置就是这个扇形: 距离 5~1500 米, 角度 ±1°, 再和目标圆求交
   s = _point(site, "site")
   lo, hi = ranges
   if (not math.isfinite(bearing_deg) or not math.isfinite(lo)
@@ -585,14 +542,12 @@ def source_cone_samples(
     return np.empty((0, 2), dtype=float)
   return np.vstack(samples)
 
-
 def sector_max_distance(
     cand: Sequence[Sequence[float]] | Arr,
     site: Sequence[float], bearing_deg: float,
     ranges: tuple[float, float] = (5.0, 1500.0),
     err_deg: float = 1.0,
 ) -> Arr:
-  # 候选点到整个扇形的最远距离. 距离平方对 rho 是凸的, 最大值只可能在 rho 的两个端点取到
   p = _pts(cand)
   s = _point(site, "site")
   lo, hi = ranges
@@ -606,7 +561,6 @@ def sector_max_distance(
   d = p - s
   a, b = d @ u, d @ v
   err = math.radians(err_deg)
-  # 两个角度端点里取更近的那个; 另外如果正后方落在 ±err 内, 那一点更近
   end_min = np.minimum(
     a * math.cos(err) + b * math.sin(err),
     a * math.cos(err) - b * math.sin(err),
@@ -617,7 +571,6 @@ def sector_max_distance(
   q_lo = np.sum(d * d, axis=1) + lo * lo - 2.0 * lo * dot_min
   q_hi = np.sum(d * d, axis=1) + hi * hi - 2.0 * hi * dot_min
   return np.sqrt(np.maximum(np.maximum(q_lo, q_hi), 0.0))
-
 
 def robust_candidate_mask(
     cand: Sequence[Sequence[float]] | Arr,
@@ -641,7 +594,6 @@ def robust_candidate_mask(
        + switch_s * float(switched))
   return (far <= recv_rad + eps) & (t <= time_limit_s + eps)
 
-
 def detected_candidate_mask(
     cand: Sequence[Sequence[float]] | Arr,
     site1: Sequence[float], bearing_deg: float,
@@ -651,13 +603,6 @@ def detected_candidate_mask(
     measure_s: float = 5.0, switched: bool = False,
     switch_s: float = 1.0,
 ) -> Arr:
-  """Filter sites that keep reception after the first positive detection.
-
-  The first detection proves R_recv >= max(recv_min, rho).  For an
-  untruncated bearing sector the continuum condition reduces to its part up
-  to recv_min.  If the target disk truncates that sector, this test remains a
-  safe inner approximation because it checks a superset of possible sources.
-  """
   p = _pts(cand)
   s = _point(site1, "site1")
   lo, hi = ranges
@@ -677,7 +622,6 @@ def detected_candidate_mask(
   time_s = (np.linalg.norm(p - s, axis=1) / speed + measure_s
             + switch_s * float(switched))
   return reception & (time_s <= time_limit_s + eps)
-
 
 def second_site_metrics_sources(
     cand: Sequence[Sequence[float]] | Arr,
@@ -761,7 +705,6 @@ def second_site_metrics_sources(
     "detection_coverage": detection_coverage,
   }
 
-
 def _cos_interval(lo: float, hi: float) -> tuple[float, float]:
   values = [math.cos(lo), math.cos(hi)]
   first = math.ceil(lo / math.pi)
@@ -770,10 +713,8 @@ def _cos_interval(lo: float, hi: float) -> tuple[float, float]:
     values.append(math.cos(index * math.pi))
   return min(values), max(values)
 
-
 def _contains_sin_zero(lo: float, hi: float) -> bool:
   return math.ceil(lo / math.pi) <= math.floor(hi / math.pi)
-
 
 def continuous_two_site_error_bound(
     site1: Sequence[float] | Arr, site2: Sequence[float] | Arr,
@@ -781,14 +722,6 @@ def continuous_two_site_error_bound(
     err_deg: float = 1.0, abs_tol_m: float = 1e-3,
     max_intervals: int = 100_000,
 ) -> dict[str, float | int | bool]:
-  """Certify the two-site error-box supremum on an untruncated sector.
-
-  For a fixed bearing angle the squared bound is convex in source range, so
-  only the two range endpoints are needed.  Interval bounds over the remaining
-  one-dimensional angle give a rigorous enclosure up to outward float
-  inflation.  Callers must not use this shortcut when the target disk truncates
-  the radial interval as a function of angle.
-  """
   first_site = _point(site1, "site1")
   second_site = _point(site2, "site2")
   lo_range, hi_range = ranges
@@ -871,10 +804,8 @@ def continuous_two_site_error_bound(
     "certified": certified_upper <= lower + abs_tol_m,
   }
 
-
 def pareto_mask(vals: Sequence[Sequence[float]] | Arr,
                  tol: float = eps) -> Arr:
-  # 两目标非支配筛选. 含 inf 的点直接出局, 剩下的两两比: 只要有人两项都不差且有一项更好, 就被支配
   x = np.asarray(vals, dtype=float)
   tol = _relative_tol(tol)
   if x.ndim != 2 or len(x) == 0:
@@ -894,7 +825,6 @@ def pareto_mask(vals: Sequence[Sequence[float]] | Arr,
       keep[i] = True
   return keep
 
-
 def pareto_second_sites(cand: Sequence[Sequence[float]] | Arr,
                         site1: Sequence[float], bearing_deg: float,
                         ranges: Sequence[float] | Arr,
@@ -909,7 +839,6 @@ def pareto_second_sites(cand: Sequence[Sequence[float]] | Arr,
   res["pareto"] = pareto_mask(vals)
   return res
 
-
 def pareto_second_sites_cone(
     cand: Sequence[Sequence[float]] | Arr,
     site1: Sequence[float], bearing_deg: float,
@@ -919,7 +848,6 @@ def pareto_second_sites_cone(
     n_range: int = 41, n_angle: int = 21,
     switched: bool = False, conditional_reception: bool = True,
 ) -> dict[str, Arr]:
-  # Q2 主模型: 精度用确定性最坏误差界, 时间用移动+测向, 对完整先验求 Pareto
   src = source_cone_samples(
     site1, bearing_deg, ranges, err_deg, n_range=n_range, n_angle=n_angle)
   res = second_site_metrics_sources(

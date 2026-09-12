@@ -1,4 +1,3 @@
-# 本地轻量级模拟器: 复现题面时耗, 幂等 ID, 固定测向误差和定向半平面.
 from __future__ import annotations
 
 import hashlib
@@ -13,9 +12,7 @@ from typing import Any
 
 import numpy as np
 
-
 Json = dict[str, Any]
-
 
 @dataclass
 class Jammer:
@@ -25,7 +22,6 @@ class Jammer:
   recv_m: float
   heading_deg: float | None = None
   cleared: bool = False
-
 
 class MockArena:
   def __init__(
@@ -217,7 +213,6 @@ class MockArena:
       if body.get("accepted") is True:
         self.cache[request_id] = (path, raw, body)
       return 200, body, True
-
 
 class MockServer:
   def __init__(self, arena: MockArena) -> None:
