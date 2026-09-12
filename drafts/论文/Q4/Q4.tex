@@ -1,0 +1,552 @@
+% Q4 独立模块稿。合并进主论文时，直接输入“问题四的模型建立与求解”部分即可。
+% 参考文献使用主论文 ref.bib 中的 BibTeX key；本章不内嵌 bibliography，避免与 main.tex 重复排版。
+
+\section{问题分析}
+
+问题四沿用问题三的目标圆域 $R_0=1800\mathrm{m}$、$10\sim16$ 个干扰源、20 个频道以及原点起步条件；唯一实质变化是新增数量与朝向均未知的定向源。
+其余检测与清除参数、计时规则和正式测试统计口径均不变。
+
+该变化使 \texttt{no\_signal} 的语义发生改变。
+问题三中，它只可能表示频道无源或源距超过接收半径；利用 $r^{\mathrm{recv}}\ge1000\mathrm{m}$ 的先验下界和有限扫描覆盖，可以据此证明“不存在”。
+问题四中，定向源仅在朝向闭半平面内辐射，测点位于背面也会返回 \texttt{no\_signal}。
+因此，单次 \texttt{no\_signal} 不再是频道为空的充分证据，而只是中性证据。
+
+关键问题是方向未知时的发现完备性：对任意可能位置 $G$，若存在一个朝向使半径下界内的所有扫描点均位于背面，则该源可完全隐藏；反之，若这些扫描点相对 $G$ 的位置向量凸包包含原点，则任意朝向下至少一个扫描点可见。
+严格分离定理给出了该凸包条件的充分必要性，详见定理 1。
+
+发现后，正常示向度仍可用于示向锥交会；连续获得正常示向度时，可沿用问题一、问题三的半平面裁剪与最小覆盖圆判据。
+但定向源不保证后续测站再次可见。若首测点恰位于发射半平面边界且源距等于接收半径下界，则观测只把发射方向约束为与 $S_0-G$ 垂直；对任何 $S\ne S_0$，均可在示向误差内选取相容的 $G$ 和朝向，使 $S$ 落入背面。
+故后续 \texttt{no\_signal} 不能解释为几何故障，也不能假定存在必然可接收的下一测站。
+
+由此，求解路线为：先以方向完备扫描集保证发现；再以正常示向度收缩定位，遇 \texttt{no\_signal} 时优先几何清除、必要时改用有限覆盖清除；最后将扫描站与待服务点合并进行动态开放路径调度。
+该路线保留问题三的正证据几何，但改变了 \texttt{no\_signal} 的推理规则。
+
+无源测向定位的精度受测角误差、站源距离和多站几何共同影响，两站交会站址的最优性也取决于目标与测站构型\cite{wang2019,zheng2014,uav2019,dogancay2005,bishop2010}。
+本章据此处理方向盲区引入的额外不确定性。
+
+\section{模型假设}
+
+本章沿用问题一、问题二和问题三的平面几何、静止目标、确定性误差界与串行动作假设，并针对问题四补充以下假设：
+
+\begin{enumerate}
+\item 所有干扰源和检测点均位于同一平面，忽略设备高度差异；干扰源在任务期间保持静止，其频道、位置、有效接收半径和定向方向均不随时间变化。
+\item 目标圆域内共有 $N_J$ 个干扰源，$10\le N_J\le16$，但具体个数未知；每个干扰源占用 1 至 20 号频道中的一个不同频道。
+\item 干扰源分为全向源和定向源，两种源的个数及定向源方向均未知。全向源的有效覆盖角为 $360^\circ$；第 $j$ 个定向源的发射方向记为 $\boldsymbol o_j$，其有效覆盖角为 $\boldsymbol o_j$ 两侧各 $90^\circ$，且覆盖边界包含在内。
+\item 第 $j$ 个干扰源的有效接收半径 $r_j^{\mathrm{recv}}$ 满足 $1000\mathrm{m}\le r_j^{\mathrm{recv}}\le1500\mathrm{m}$。该半径在任务期间不变，且不能直接查询。
+\item 定向源的场强在有效覆盖范围内只随距离衰减，不随角度变化。因此，若点 $S$ 到源 $G$ 的距离不超过 $r^{\mathrm{recv}}$，则是否能够检测该源只取决于检测点相对源的位置向量 $S-G$ 是否位于定向方向所定义的闭半平面内。
+\item 若测点位于有效覆盖范围内且距离大于 $5\mathrm{m}$，正常示向度与真实方位角之间的误差绝对值不超过 $\delta=1^\circ$。主模型只使用该确定性误差界，不假定误差服从任何概率分布；在线计算使用 $\delta_{\mathrm{num}}=1.01^\circ$ 作为工程安全半角，以吸收接口量化和浮点舍入误差。
+\item 若测点与源的距离不超过 $5\mathrm{m}$ 且位于有效覆盖范围内，则检测结果为 \texttt{near}，可直接进入光学精确定位与清除；若位于盲区，则仍为 \texttt{no\_signal}。
+\item 光学精确定位和激光清除是否成功只与清除点到干扰源的距离有关，与干扰源是否定向以及定向方向无关。当距离不超过 $r_{\mathrm{opt}}=20\mathrm{m}$ 时清除成功，光学精确定位与清除合计耗时 $5\mathrm{s}$；未发现目标时的清除耗时 $3\mathrm{s}$。
+\item 机器狗沿相邻位置间的直线运动，速度为 $5\mathrm{m/s}$；一次检测耗时 $5\mathrm{s}$，一次频道切换耗时 $1\mathrm{s}$。动作按串行顺序执行，请求可安全重试，重试不重复计入时间。
+\item 不同频道的信号互不影响，清除一个频道不会改变其他频道的状态；同一地点重复检测的示向误差固定，因此模型不通过同点重复测量消除误差。
+\end{enumerate}
+
+\section{符号说明}
+
+本章主要符号如表~\ref{tab:q4_symbols} 所示。
+
+{\setlength{\tabcolsep}{4pt}
+\begin{longtable}{@{}>{\small}p{0.20\textwidth}>{\small}p{0.59\textwidth}>{\small}p{0.13\textwidth}@{}}
+\caption{问题四主要符号说明}
+\label{tab:q4_symbols}\\
+\toprule
+符号 & 含义 & 单位或取值 \\
+\midrule
+\endfirsthead
+\toprule
+符号 & 含义 & 单位或取值 \\
+\midrule
+\endhead
+$R_0$ & 目标圆域半径 & $1800\mathrm{m}$ \\
+$\mathcal B_R$ & 以原点为圆心、半径 $R$ 的闭圆域 & 集合 \\
+$S,G,S_0$ & 一般检测点、干扰源位置和首次获得正常示向度的检测点 & m \\
+$c$ & 频道编号 & $1,\ldots,20$ \\
+$N_J$ & 一局中的干扰源总数 & $10,\ldots,16$ \\
+$r^{\mathrm{recv}},r_j^{\mathrm{recv}}$ & 一般干扰源和第 $j$ 个干扰源的有效接收半径 & $1000\sim1500$ m \\
+$\boldsymbol o_j,\boldsymbol o$ & 第 $j$ 个定向干扰源的单位发射方向；单源推导时简写为 $\boldsymbol o$ & 无量纲 \\
+$\hat\theta_c(S)$ & 在测站 $S$ 对频道 $c$ 测得的示向度 & $(^\circ)$ \\
+$\theta(S,G)$ & 从 $S$ 指向 $G$ 的真实方位角 & $(^\circ)$ \\
+$\delta,\delta_{\mathrm{num}}$ & 物理示向误差上界与在线安全半角 & $1^\circ,1.01^\circ$ \\
+$d(\phi)$ & 方位角 $\phi$ 对应的单位方向向量 & 无量纲 \\
+$P_4$ & 基准的 31 点等边三角格扫描集 & 集合 \\
+$P_4'$ & 提交版本使用的 22 点方向完备扫描集 & 集合 \\
+$P_{\mathrm{scan}}$ & 当前用于发现认证的扫描点集，可为 $P_4$ 或 $P_4'$ & 集合 \\
+$\Lambda_s$ & 边长为 $s$ 的等边三角格点集 & 集合 \\
+$V_G$ & 在位置 $G$ 处、距离不超过 $1000\mathrm{m}$ 的全部扫描点相对向量集 & 集合 \\
+$\operatorname{conv}E$ & 有限点集 $E$ 的凸包 & 集合 \\
+$W(S,\hat\theta)$ & 以 $S$ 为顶点、由示向度 $\hat\theta$ 和误差半角形成的闭示向锥 & 集合 \\
+$K_c$ & 频道 $c$ 的真实可行定位区域 & 集合 \\
+$A_c$ & $K_c$ 的凸多边形外包围 & 集合 \\
+$C_c,\rho_c$ & 外包围 $A_c$ 的覆盖圆心与保守半径上界 & m，m \\
+$r_{\mathrm{opt}}$ & 光学精确定位与清除的最大距离 & $20\mathrm{m}$ \\
+$\epsilon_{\mathrm{num}}$ & 在线清除半径的数值安全余量 & $0.001\mathrm{m}$ \\
+$\mathcal R_0$ & 首次正常示向度对应的可行扇形区域 & 集合 \\
+$s_c$ & 覆盖式清除三角格的边长 & m \\
+$\rho_{\mathrm{cov}}$ & 三角格对任意点的最大覆盖半径 & $19.9\mathrm{m}$ \\
+$L$ & 一局中机器狗的总移动距离 & m \\
+$N_m,N_s$ & 检测次数与换频次数 & 次 \\
+$N_{\mathrm{succ}},N_{\mathrm{miss}}$ & 成功清除次数与未发现目标的清除次数 & 次 \\
+$N_{\mathrm{clr}}$ & 实际清除的干扰源个数 & 个 \\
+$T,\bar T$ & 定位清除总时间与平均定位清除时间 & s，s \\
+$\lambda_{\mathrm{clr}}$ & 被清除干扰源个数比例 & 百分数 \\
+$V_t,\sigma,n_t$ & 当前任务节点集、开放访问顺序及节点数 & 集合，排列，个 \\
+$\ell_{ij}$ & 任务节点 $i$ 与 $j$ 之间的欧氏距离 & m \\
+\bottomrule
+\end{longtable}}
+
+方位角 $\phi$ 对应的方向向量定义为
+
+\begin{equation}
+d(\phi)=
+\left(
+\cos\frac{\pi\phi}{180},
+\sin\frac{\pi\phi}{180}
+\right)^{\mathsf T}.
+\label{eq:q4_direction}
+\end{equation}
+
+若机器狗依次访问位置 $P_0,P_1,\ldots,P_N$，则总移动距离为
+
+\begin{equation}
+L=\sum_{k=1}^{N}\lVert P_k-P_{k-1}\rVert_2.
+\label{eq:q4_distance}
+\end{equation}
+
+定位清除总时间采用
+
+\begin{equation}
+T=\frac{L}{5}+5N_m+N_s+3N_{\mathrm{miss}}+5N_{\mathrm{succ}},
+\label{eq:q4_total_time}
+\end{equation}
+
+其中时间单位为秒。题面要求的两个统计量为
+
+\begin{equation}
+\lambda_{\mathrm{clr}}=\frac{N_{\mathrm{clr}}}{N_J}\times100\%,
+\qquad
+\bar T=\frac{T}{N_{\mathrm{clr}}}.
+\label{eq:q4_metrics}
+\end{equation}
+
+\section{问题四的模型建立与求解}
+
+\subsection{模型准备}
+
+\subsubsection{定向可见性与检测结果语义}
+
+设源 $G$ 的定向发射方向为单位向量 $\boldsymbol o$，即 $\boldsymbol o$ 从源指向其有效覆盖区域的中心方向。对测点 $S$，检测点相对源的位置向量为 $S-G$。定向源的可见条件为
+
+\begin{equation}
+\boldsymbol o^{\mathsf T}(S-G)\ge0.
+\label{eq:q4_visibility}
+\end{equation}
+
+该不等式表示测点落在以定向方向为中心的闭半平面内，恰好对应“定向方向两侧各 $90^\circ$ 且包含边界”的题面规则。于是检测结果可以统一写为
+
+\begin{equation}
+\operatorname{result}(S,c)=
+\begin{cases}
+\texttt{near},&
+\lVert G-S\rVert_2\le5,\quad \boldsymbol o^{\mathsf T}(S-G)\ge0,\\[2mm]
+\texttt{direction},&
+5<\lVert G-S\rVert_2\le r^{\mathrm{recv}},\quad
+\boldsymbol o^{\mathsf T}(S-G)\ge0,\\[2mm]
+\texttt{no\_signal},&
+\text{其他情形}.
+\end{cases}
+\label{eq:q4_measure_semantics}
+\end{equation}
+
+其中 \texttt{direction} 还满足示向误差约束
+
+\begin{equation}
+\left|\operatorname{wrap}_{180}(\hat\theta_c(S)-\theta(S,G))\right|\le\delta,
+\label{eq:q4_bearing_error}
+\end{equation}
+
+$\operatorname{wrap}_{180}(\cdot)$ 将角差化为 $[-180^\circ,180^\circ)$ 内的有符号角。上式说明：\texttt{no\_signal} 可能由三种原因产生，即频道不存在、距离超过接收半径，或测点位于定向源背面。问题四不得把第三种原因误判为前两种。
+
+\subsubsection{正证据更新与状态机}
+
+当频道 $c$ 在某测点获得正常示向度时，先把该频道的可行区域多边形外包围 $A_c$ 初始化为目标圆域的外逼近多边形，再依次与示向锥 $W(S,\hat\theta_c)$ 求交，并保留接收距离不超过 $1500\mathrm{m}$ 的部分。若得到多个正常示向度，则继续执行凸多边形裁剪\cite{sutherland1974}。所有裁剪均使用 $1.01^\circ$ 安全半角，保证真实可行集始终包含在数值区域中。
+
+由于 \texttt{no\_signal} 在问题四中具有方向歧义，问题三中“在已成功观测点与无信号点之间比较距离”的阴性半平面推理不能直接沿用。问题四只在定向源分支使用正常示向度作为位置约束，不在未知定向方向下用 \texttt{no\_signal} 收缩可行区域。该处理牺牲了部分可利用信息，但避免了由盲区产生的错误排除。
+
+每个频道维护六类状态：未发现的 \texttt{unknown}，定位中的 \texttt{localizing}，待清除的 \texttt{clear\_ready}，已清除的 \texttt{cleared}，确认不存在的 \texttt{absent\_certified}，以及几何故障 \texttt{geometry\_fault}。频道可在以下三种情形下结束：清除指令返回成功；该频道在全部扫描站均无正响应，由方向完备扫描证书证明无源；或已发现的不同频道数达到 16，此时由题设 $N_J\le16$ 直接判定其余频道不存在。只有 20 个频道全部进入已清除或确认不存在状态时，任务才满足终止条件。
+
+\subsubsection{时间模型与优化目标}
+
+设当前任务的路径、检测、换频和清除动作均已确定，总时间仍由式~\eqref{eq:q4_total_time} 给出。
+
+由于单次检测、换频和清除的耗时固定，而移动时间与总路径长度成正比，在线优化的主要目标是减少重复往返。每完成一个联合节点后，算法删除已闭合的扫描站或服务点，更新各频道的可行区域，并重新求解当前节点集上的开放路径。该动态重规划不改变扫描点集，因此不会削弱发现证书。
+
+\subsection{模型建立}
+
+\subsubsection{方向完备发现判据}
+
+对固定位置 $G$，记位于接收半径下界内的全部扫描点相对向量为
+
+\begin{equation}
+V_G=
+\left\{
+P_j-G:
+\ P_j\in P_{\mathrm{scan}},\ 
+\lVert P_j-G\rVert_2\le1000
+\right\},
+\label{eq:q4_relative_set}
+\end{equation}
+
+其中 $P_{\mathrm{scan}}$ 可以为基准扫描集 $P_4$ 或提交版本的 $P_4'$。
+由于真实接收半径满足 $r^{\mathrm{recv}}\ge1000\mathrm{m}$，$V_G$ 中每个扫描点都必定位于真实接收范围内。
+
+\textbf{定理 1（方向完备发现判据）}　若对目标圆域内每个可能位置 $G$，均满足
+
+\begin{equation}
+0\in\operatorname{conv}V_G,
+\label{eq:q4_direction_certificate}
+\end{equation}
+
+则无论定向方向如何，源 $G$ 都至少会在一个扫描点产生有效响应。反之，若某个 $G$ 不满足上式，则存在一个定向方向和接收半径 $r^{\mathrm{recv}}=1000\mathrm{m}$，使该源对所有扫描点均返回 \texttt{no\_signal}。
+
+证明：先证充分性。设 $0\in\operatorname{conv}V_G$，任取单位发射方向 $\boldsymbol o$。若所有 $v\in V_G$ 都满足 $\boldsymbol o^{\mathsf T}v<0$，则因 $0$ 可写成 $V_G$ 的凸组合，取组合系数 $\lambda_v\ge0$（$\sum_{v\in V_G}\lambda_v=1$），有
+\[
+0=\boldsymbol o^{\mathsf T}0=\sum_{v\in V_G}\lambda_v\,\boldsymbol o^{\mathsf T}v<0,
+\]
+
+产生矛盾。因此至少存在一个 $v=P-G\in V_G$，使
+
+\[
+\boldsymbol o^{\mathsf T}(P-G)\ge0,
+\qquad
+\lVert P-G\rVert_2\le1000\le r^{\mathrm{recv}}.
+\]
+
+该扫描点位于定向源正面且处于有效接收范围内，故必返回 \texttt{direction} 或 \texttt{near}。
+
+再证必要性。若 $V_G=\varnothing$，则接收半径下界内不存在可用扫描点，该源对任意方向都不可见，结论成立。以下设 $V_G\ne\varnothing$：若 $0\notin\operatorname{conv}V_G$，由有限点集凸包的闭性与严格分离定理，存在单位向量 $\boldsymbol o$ 和常数 $\alpha<0$，使
+
+\[
+\boldsymbol o^{\mathsf T}v\le\alpha<0,
+\qquad
+\forall v\in V_G.
+\]
+
+取该方向为定向源方向，并令 $r^{\mathrm{recv}}=1000\mathrm{m}$。此时所有位于接收半径内的扫描点都严格位于盲区，半径外的扫描点也不可能收到信号，因此全部测量均为 \texttt{no\_signal}。定理得证。
+
+扫描集构造只依赖目标圆域和接收半径下界。
+完整扫描后仍无正响应的频道可认证为无源；累计发现 16 个不同频道后，由 $N_J\le16$ 可直接将其余频道标记为确认不存在。
+
+\subsubsection{基准 31 点等边三角格}
+
+为得到证明简明、可用于对照的基准构造，取边长 $s=990\mathrm{m}$ 的等边三角格
+
+\begin{equation}
+e_1=(s,0),\qquad
+e_2=\left(\frac{s}{2},\frac{\sqrt{3}s}{2}\right),
+\qquad
+\Lambda_s=
+\left\{
+ie_1+je_2:\ i,j\in\mathbb Z
+\right\}.
+\label{eq:q4_lattice}
+\end{equation}
+
+扫描集取与目标圆域相交的基本三角形的顶点并集
+
+\begin{equation}
+P_4=
+\left\{
+P\in\Lambda_s:
+\lVert P\rVert_2\le1800+s
+\right\}.
+\label{eq:q4_base_sites}
+\end{equation}
+
+在式~\eqref{eq:q4_lattice} 给定的格点相位下，式~\eqref{eq:q4_base_sites} 枚举得到 31 个扫描点。对任意 $G\in\mathcal B_{1800}$，存在一个基本三角形包含 $G$，其三顶点均在 $P_4$ 中，到 $G$ 的距离不超过 $s=990\mathrm{m}$，且 $G$ 是三个顶点的凸组合。因此
+
+\begin{equation}
+0\in\operatorname{conv}V_G,
+\label{eq:q4_lattice_certificate}
+\end{equation}
+
+该构造对任意朝向均至少可见，且证明直接，仅作为可核验基准，不主张其点数全局最少。
+
+\subsubsection{22 点连续域认证扫描集}
+
+提交版本进一步采用 22 点紧凑扫描集。记
+
+\begin{equation}
+P_4'=
+\{(0,0)\}
+\cup
+\left\{
+975d\left(\frac{2\pi i}{7}\right):
+i=0,\ldots,6
+\right\}
+\cup
+\left\{
+1850d\left(\frac{2\pi j}{14}\right):
+j=0,\ldots,13
+\right\}.
+\label{eq:q4_compact_sites}
+\end{equation}
+
+该集合由原点、半径 $975\mathrm{m}$ 的内环 7 点和半径 $1850\mathrm{m}$ 的外环 14 点组成，合计 22 点。
+
+由于 22 点集合不是完整三角格，其方向完备性采用连续域递归证书，而不是随机采样验证。
+首先用目标圆域的外接正 72 边形覆盖 $\mathcal B_{1800}$，并划分为 72 个三角形。
+对任一三角形单元 $T$，定义可用扫描点集合
+
+\begin{equation}
+E(T)=
+\left\{
+P\in P_4':
+\max_{X\in\operatorname{vert}(T)}
+\lVert P-X\rVert_2\le994.99
+\right\}.
+\label{eq:q4_eligible_set}
+\end{equation}
+
+若 $T\subseteq\operatorname{conv}E(T)$，则该单元通过认证。事实上，三个顶点都在凸包内意味着整个三角形都在凸包内；又因欧氏范数是凸函数，距离在每个三角形上的最大值必在某个顶点取得，所以 $T$ 中任意点 $G$ 到任意 $P\in E(T)$ 的距离均不超过 $994.99\mathrm{m}<1000\mathrm{m}$，从而
+
+\begin{equation}
+0\in\operatorname{conv}\{P-G:P\in E(T)\}\subseteq\operatorname{conv}V_G.
+\label{eq:q4_cell_certificate}
+\end{equation}
+
+若单元尚未通过，则沿最长边递归二分；程序设置最大深度 22 和最多 60000 个单元。
+程序核验表明，该集合在 7372 个单元内完成认证；一旦达到限制仍未完成，程序拒绝证书并回退到 25 点双环解析覆盖集，不在未证明的扫描集上继续执行。
+
+\subsubsection{定向源的定位与正证据收缩}
+
+对频道 $c$ 的首次正常示向度，初始化
+
+\begin{equation}
+K_c=
+\mathcal B_{1800}
+\cap
+W(S_0,\hat\theta_c)
+\cap
+\left\{
+G:
+5<\lVert G-S_0\rVert_2\le1500
+\right\}.
+\label{eq:q4_initial_region}
+\end{equation}
+
+数值实现使用覆盖 $K_c$ 的外逼近多边形 $A_c$，并始终保持
+
+\begin{equation}
+K_c\subseteq A_c.
+\label{eq:q4_outer_contain}
+\end{equation}
+
+每次获得新的正常示向度后，执行
+
+\begin{equation}
+A_c\leftarrow
+A_c\cap W(S,\hat\theta_c)\cap
+\left\{
+G:
+\lVert G-S\rVert_2\le1500
+\right\}.
+\label{eq:q4_region_update}
+\end{equation}
+
+设 $C_c$ 为 $A_c$ 的覆盖圆心，定义保守半径
+
+\begin{equation}
+\rho_c=\max_{X\in A_c}\lVert X-C_c\rVert_2.
+\label{eq:q4_outer_radius}
+\end{equation}
+
+由于欧氏范数是凸函数，最大值在凸多边形顶点取得。若
+
+\begin{equation}
+\rho_c\le r_{\mathrm{opt}}-\epsilon_{\mathrm{num}}
+=19.999\mathrm{m},
+\label{eq:q4_clear_certificate}
+\end{equation}
+
+则可行集内任意真实源到 $C_c$ 的距离都小于 $20\mathrm{m}$；由于清除成功只取决于该距离，在 $C_c$ 处执行清除即可通过距离证书保证成功。
+
+若继续获得的都是正常示向度，上述正证据收缩与问题三一致。区别在于：当后续测量返回 \texttt{no\_signal} 时，问题四不将其视为几何矛盾，而是转入覆盖式清除分支。
+原因是首测点可能恰位于定向源覆盖边界，且源距等于接收半径下界；
+此时对任一备选下一测站 $S\ne S_0$，都存在与首测读数相容的源位置和定向方向，使 $S$ 落入背面；
+因此不能保证下一测站必然收到信号，也不能将后续 \texttt{no\_signal} 解释为几何矛盾。
+
+\subsubsection{与朝向无关的覆盖式清除}
+
+设首次正常示向度为 $\hat\theta_0$，在线安全半角为 $\delta_{\mathrm{num}}$。首次观测成功说明真实源位于扇形
+
+\begin{equation}
+\mathcal R_0=
+\left\{
+G=S_0+\rho d(\phi):
+5<\rho\le1500,\ 
+\left|\operatorname{wrap}_{180}(\phi-\hat\theta_0)\right|
+\le\delta_{\mathrm{num}}
+\right\}.
+\label{eq:q4_first_sector}
+\end{equation}
+
+在 $\mathcal R_0$ 上铺设等边三角格，并只保留到 $\mathcal R_0$ 的距离不超过 $\rho_{\mathrm{cov}}$ 的格点。采用边长
+
+\begin{equation}
+s_c=20\sqrt{3}<35\mathrm{m}
+\label{eq:q4_clear_spacing}
+\end{equation}
+
+时，平面等边三角格对任意点的覆盖半径不超过 $s_c/\sqrt3=20\mathrm{m}$。数值实现将边长再乘以 $0.995$ 的安全系数，得到
+
+\begin{equation}
+\rho_{\mathrm{cov}}=19.9\mathrm{m}.
+\label{eq:q4_clear_cover_radius}
+\end{equation}
+
+因此，对任意 $G\in\mathcal R_0$，存在一个格点 $Q$ 满足
+
+\begin{equation}
+\lVert Q-G\rVert_2\le19.9\mathrm{m}<20\mathrm{m}.
+\label{eq:q4_clear_guarantee}
+\end{equation}
+
+清除是否成功与朝向无关，故有限格点序列中至少一次成功。
+该过程不依赖后续测向，以有限次移动和清除换取方向盲区下的完备性。
+
+提交版本按证明任务使用三个半径：理论覆盖半径不超过 $20\mathrm{m}$，数值实现按 $0.995$ 安全系数取 $19.9\mathrm{m}$；预算内分支以 $19.5\mathrm{m}$ 单元中心覆盖当前外包围 $A_c$，余下预算足以遍历全部单元时必命中。
+$19.5\mathrm{m}$ 仅用于预算遍历证书，实际清除仍以接口距离检查确认。
+预算不足时，改用 12 点近距测站包收缩区域；进入最后单元时，要求该单元全部顶点到历史失败圆或当前站圆心的最远距离不超过 $19.999\mathrm{m}$。真源不在失败圆内，故当前站圆必包含真源。
+因此，每局 5 次空清除只是代价控制，不是完成性前提。
+
+\subsubsection{发现、定位与清除的完备性}
+
+在总扫描阶段，若累计发现的不同频道数达到 16，则由 $N_J\le16$ 可知其余频道均无源；否则扫描继续执行。对任一实际存在且尚未被清除的干扰源，由定理 1 和 22 点连续域证书可知，至少有一个扫描点能够看到它。因此扫描不会遗漏仍可能存在的源，也不可能把“源存在但所有扫描点均无信号”的频道错误认证为空。
+
+对已发现频道，若正常示向度持续给出并使 $\rho_c\le19.999\mathrm{m}$，则由外包围包含关系直接得到清除距离证书。
+出现 \texttt{no\_signal} 时，前述覆盖证书已保证有限次清除内至少成功一次；预算、12 点测站包和最后单元证明仅优化成本，不削弱该保证。
+若出现空区域、认证清除失败或覆盖证明无法闭合，算法进入 \texttt{geometry\_fault}，不会把异常改写为“确认不存在”。
+
+因此，终止时每个频道都已清除，或由方向完备证书或 16 个已发现频道的上界证明无源，不会留下 \texttt{unknown} 或 \texttt{localizing} 状态。
+
+\subsubsection{动态路径调度}
+
+设当前重规划时刻仍需访问的扫描站和待服务频道服务点组成节点集 $V_t$，其节点数为 $n_t$，节点 $i$ 与 $j$ 之间的距离记为 $\ell_{ij}$。对访问顺序 $\sigma=(\sigma_1,\ldots,\sigma_{n_t})$，开放路径长度为
+
+\begin{equation}
+L(\sigma)=
+\ell_{\mathrm{cur},\sigma_1}
++
+\sum_{i=1}^{n_t-1}
+\ell_{\sigma_i\sigma_{i+1}},
+\label{eq:q4_open_path}
+\end{equation}
+
+其中 $\ell_{\mathrm{cur},i}=\lVert P_i-P_{\mathrm{cur}}\rVert_2$ 为当前机器狗位置 $P_{\mathrm{cur}}$ 到节点 $i$ 的欧氏距离，路径不要求返回起点。当前节点集上的调度问题为
+
+\begin{equation}
+\min_{\sigma}\quad L(\sigma).
+\label{eq:q4_route_problem}
+\end{equation}
+
+节点数不超过 10 时，使用 Held--Karp 动态规划求精确开放路径；节点数超过 10 时，先以最小增量插入构造初始解，再使用最近邻起点、2-opt 逆交换和 Or-opt 邻域重定位进行改善。后一种情形只报告高质量可行路径，不宣称全局最优。扫描点集合在规划过程中保持不变，因此重排访问顺序不会改变方向完备发现证书。
+
+\subsubsection{求解算法}
+
+问题四的在线求解过程如下：
+
+\begin{enumerate}
+\item 调用 \texttt{/enter} 并记录剩余现实时间，在接口开放后开始任务；
+\item 构造 22 点扫描集并执行连续域方向完备认证；若认证失败则回退到解析覆盖集；
+\item 将未完成扫描站和待定位、待清除服务点组成动态任务图，求解当前开放路径；
+\item 按规划顺序访问扫描站，依次检测尚未闭合的频道；
+\item 对返回 \texttt{direction} 的频道记录示向观测，对返回 \texttt{near} 的频道直接清除；
+\item 每处理一次正响应后检查已发现的不同频道数；一旦达到 16，立即依据 $N_J\le16$ 将其余 \texttt{unknown} 频道标记为 \texttt{absent\_certified} 并停止访问剩余扫描站；
+\item 对已发现频道，用示向锥和外包围继续收缩；当保守半径不超过 $19.999\mathrm{m}$ 时按距离证书清除；
+\item 若定位阶段返回 \texttt{no\_signal}，优先使用预算内覆盖清除；预算不足时转入方向完备测站包或带最后单元覆盖证明的清除；
+\item 扫描阶段结束时，对所有仍未发现的频道检查方向完备证书，满足条件则标记为 \texttt{absent\_certified}；
+\item 删除已清除和已认证为空的频道，重新规划路径，直到 20 个频道全部闭合；
+\item 调用 \texttt{/exit}，按定位清除总时间与清除个数计算题面要求的统计值。
+\end{enumerate}
+
+\subsection{模型求解与结果分析}
+
+\subsubsection{证书与演练校验}
+
+以下先给出提交版演练与旧版对照，再报告三次正式测试。
+
+使用提交版程序的最近三次演练均正常退出，合计清除 $42/42$ 个实际存在的干扰源，空清除 0 次，平均定位清除时间为 $477.66\mathrm{s}$，最好与最坏分别为 $420.34\mathrm{s}$ 和 $580.98\mathrm{s}$；其中 2 局访问 22 个扫描站，1 局在发现 16 个不同频道后依据 $N_J\le16$ 提前终止，实际访问 21 个扫描站。该批日志中在线决策模块的哈希前 16 位为 \texttt{d5cf45ddcf5065f5}，与三次正式测试一致。
+旧版在线模块的 15 局演练清除 198 个源，平均、中位数和范围分别为 $499.11\mathrm{s}$、$507.11\mathrm{s}$ 和 $351.95$--$619.72\mathrm{s}$，空清除 12 次。
+其哈希与提交版不同，仅作前后对照，不并入提交版统计。
+
+三次正式测试均使用 22 点集完成连续域认证，未触发 25 点回退；18 局演练中，17 局访问 22 站，1 局发现 16 个频道后提前终止并访问 21 站，同样未回退。
+
+\subsubsection{正式测试结果}
+
+三次正式测试均正常退出，结果如表~\ref{tab:q4_formal}所示。表中平均定位清除时间为模拟器的定位清除总时间除以该局清除个数；程序运行时间为模拟器记录的实际运行时间。
+
+\begin{table}[htbp]
+\centering
+\caption{问题四正式测试结果}
+\label{tab:q4_formal}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}clrrr@{}}
+\toprule
+测试序号 & 测试案例编码 & 清除干扰源个数 & 平均定位清除时间/s & 程序运行时间/ms \\
+\midrule
+1 & NGBV-4HQZ-7B7S-26HK & 11 & 519.99 & 2426 \\
+2 & JGN3-394M-SDZB-Y3N7 & 13 & 493.46 & 2364 \\
+3 & 9U2N-ZBZQ-8AB2-VJYS & 15 & 374.53 & 1976 \\
+\midrule
+合计／均值 &  & 39 & 462.66 & 1976--2426 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+表中 $462.66\mathrm{s}$ 为逐局平均时间的等权算术平均；若按源数合并，则 $17752.83/39=455.20\mathrm{s}/\text{个}$。正式结果表采用题面要求的逐局报告口径。
+三次合计空清除 2 次，均在 5 次预算内；每局 20 个频道最终都已清除或认证为空。
+由定理 1，认证为空的频道必无源，因此 39 个被清除频道均真实存在，清除比例均为 $\lambda_{\mathrm{clr}}=100\%$，题面要求的两个统计量均已给出。
+
+\subsubsection{时间构成与结果分析}
+
+三次正式测试合计移动距离为 $67.22\mathrm{km}$，时间构成如表~\ref{tab:q4_time}所示。
+
+\begin{table}[htbp]
+\centering
+\caption{问题四三次正式测试的合计时间构成}
+\label{tab:q4_time}
+\begin{tabular}{lrr}
+\toprule
+时间项 & 数值/s & 占比 \\
+\midrule
+移动时间 & 13443.83 & $75.73\%$ \\
+检测时间 & 3470.00 & $19.55\%$ \\
+换频时间 & 638.00 & $3.59\%$ \\
+成功清除时间 & 195.00 & $1.10\%$ \\
+失败清除时间 & 6.00 & $0.03\%$ \\
+\midrule
+合计 & 17752.83 & $100.00\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+移动时间占总时间的 $75.73\%$，远高于其他项，说明任务时间主要由路径长度决定；三次移动占比分别为 $73.32\%$、$75.07\%$ 和 $78.92\%$，差异来自干扰源空间分布。
+动态开放路径整合扫描站与清除服务点并持续重规划，减少重复往返；22 点扫描保证发现完备性。
+
+三次程序运行时间为 $1.976$--$2.426\mathrm{s}$，远低于 $1200\mathrm{s}$ 上限，不构成约束。
+日志复核显示，时间项之和与虚拟时间的最大残差不超过 $2\times10^{-6}\mathrm{s}$；扫描证书、频道状态和动作序列逐项一致，未出现非接受记录或重复站位。
+
+该策略仅使用在线可得的频道号、位置、示向度和清除结果，不使用干扰源、朝向或接收半径真值；发现、定位和盲区清除分别由方向完备证书、外包围和与朝向无关的覆盖保证。
+结果支持其在题设和测试样本内有效；22 点数和覆盖参数属于工程实现选择，不据此声称对所有随机案例平均最优。
+
+% 参考文献使用主论文 ref.bib 中的 BibTeX key，由 main.tex 的 \bibliography{ref} 统一生成。
+% 本章引用条目如下：
+% [wang2019] 王凯. 无线电测向定位方法在新型无线电干扰查找中的运用研究[D]. [出版地不详]: 南昌大学, 2019.
+% [zheng2014] 郑春锋. 无线电监测中对干扰源的无源测向定位研究[D]. [出版地不详]: 西南交通大学, 2014.
+% [uav2019] WU G. UAV-based interference source localization: A multimodal Q-learning approach[J]. IEEE Access, 2019, 7: 137982-137991.
+% [dogancay2005] DOĞANÇAY K. Bearings-only target localization using total least squares[J]. Signal Processing, 2005, 85(9): 1695-1710.
+% [bishop2010] BISHOP A N, FIDAN B, ANDERSON B D O, et al. Optimality analysis of sensor-target localization geometries[J]. Automatica, 2010, 46(3): 479-492.
+% [sutherland1974] SUTHERLAND I E, HODGMAN G W. Reentrant polygon clipping[J]. Communications of the ACM, 1974, 17(1): 32-42.

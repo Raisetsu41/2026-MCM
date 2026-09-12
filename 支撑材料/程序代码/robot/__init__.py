@@ -1,4 +1,4 @@
-from robot.agent import MissionResult, Q3Agent
+from robot.q3_agent import MissionResult, Q3Agent
 from robot.client import ApiClient, ApiError
 from robot.q4_agent import Q4Agent
 

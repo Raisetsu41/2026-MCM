@@ -4,7 +4,7 @@ import math
 
 import numpy as np
 
-from robot.agent import Arr, ChannelTrack, Q3Agent
+from robot.q3_agent import Arr, ChannelTrack, Q3Agent
 from robot.client import ApiError
 
 def ordered_route(points: Arr, start: Arr) -> Arr:

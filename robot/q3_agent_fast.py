@@ -7,9 +7,9 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from geometry_solver import regular_bound
-from robot.agent import MissionResult, Observation, q3_scan_sites, safe_lateral_site
+from robot.q3_agent import MissionResult, Observation, q3_scan_sites, safe_lateral_site
 from robot.client import ApiClient, ApiError
-from robot.fast_geometry_v3 import (
+from robot.geometry_solver_fast import (
   Arr, bearing_radius_bound, cover_cells, cut, cut_bearing, cut_disk,
   definitely_disjoint, enclosing, forecast, guard, insertion, joint_route,
   packet_sites, route_order, unknown_negative_implied, visible_kernel,
@@ -29,7 +29,7 @@ class FastTrack:
   station_mask: int = 0
   opportunities: int = 0
 
-class Q3FastAgent:
+class Q3FastBase:
   directional = False
 
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
@@ -407,7 +407,7 @@ class Q3FastAgent:
         pass
       raise
 
-class Q3FastAgentV2(Q3FastAgent):
+class Q3FastPlanner(Q3FastBase):
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
                opportunistic: bool = True, inline: bool = True) -> None:
     super().__init__(client, err_deg, opportunistic, inline)
@@ -591,7 +591,7 @@ class Q3FastAgentV2(Q3FastAgent):
         pass
       raise
 
-class LocalV3:
+class LocalProbe:
   def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
     self.phase = "startup"
@@ -705,5 +705,5 @@ class LocalV3:
     finally:
       self.phase = before
 
-class Q3FastAgentV3(LocalV3, Q3FastAgentV2):
+class Q3FastAgent(LocalProbe, Q3FastPlanner):
   pass
