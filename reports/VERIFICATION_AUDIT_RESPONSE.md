@@ -32,8 +32,8 @@
 | R-01 | `code/outputs/*.jsonl`, `robot/main.py:25` | 历史指令日志明文写入身份字段，与提交约定直接冲突 | 搜索旧 JSONL 的 `robot_id` 字段 | 10 份日志已原位替换为 `<redacted>`；新日志对请求和响应递归脱敏，并有回归测试 |
 | R-02 | `robot/main.py:86` | agent 异常路径已调用 `/exit`，入口又调一次，产生重复业务请求 | 任意 agent 异常都进入两层退出逻辑 | 保留 agent 内的单一退出责任，入口只记录错误 |
 | R-03 | `robot/client.py:28` | 防护时间 2 s 小于默认请求超时 3 s，且客户端缺少供直接 agent/Mock 使用的 `enter()` | 在 deadline 前 2.5 s 发起一个 3 s 请求；`Q3Agent(client).run()` 调用不存在方法 | 每次请求超时动态取剩余安全时间与默认超时的较小值；补入幂等 `enter()` |
-| R-04 | `robot/agent.py:123` | `near` 后默认认证清除曾被怀疑语义错误 | 源距测站 3 m 时测向返回 `near` | 不修改。`near` 是 $\le5$ m 强正证据，而 `/clear` 成功半径是 20 m 且与朝向无关；若失败应当报协议或状态故障 |
-| R-05 | `robot/client.py`, `robot/agent.py:80` | 客户端与 agent 同时维护位姿的怀疑与当前代码不符 | 检查 `ApiClient` 实例不存在 `pos/current_channel` | 不修改。位置和当前测向频道只由 agent 维护 |
+| R-04 | `robot/q3_agent.py:123` | `near` 后默认认证清除曾被怀疑语义错误 | 源距测站 3 m 时测向返回 `near` | 不修改。`near` 是 $\le5$ m 强正证据，而 `/clear` 成功半径是 20 m 且与朝向无关；若失败应当报协议或状态故障 |
+| R-05 | `robot/client.py`, `robot/q3_agent.py:80` | 客户端与 agent 同时维护位姿的怀疑与当前代码不符 | 检查 `ApiClient` 实例不存在 `pos/current_channel` | 不修改。位置和当前测向频道只由 agent 维护 |
 | R-06 | `main.tex:64` | AI 声明宣称方法和代码全部人工完成，与当前实际辅助范围不符 | 直接阅读声明 | 改为如实披露思路比较、代码辅助、审查测试与排版用途，并明确人工复核责任 |
 
 ## 3. 问题一、二的最终取舍

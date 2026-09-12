@@ -14,9 +14,9 @@ from typing import TextIO
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from robot.agent_fast_v3 import Q3FastAgentV3
+from robot.q3_agent_fast import Q3FastAgent
 from robot.client import ApiClient
-from robot.fast_geometry_v3 import path_length
+from robot.geometry_solver_fast import path_length
 def redact(value: object, team: str) -> object:
   if isinstance(value, dict):
     return {key: "<redacted>" if key in {"robot_id", "team_no"}
@@ -26,7 +26,7 @@ def redact(value: object, team: str) -> object:
   if isinstance(value, str) and team:
     return value.replace(team, "<redacted>")
   return value
-from robot.q4_agent_fast_v3 import Q4FastAgentV3
+from robot.q4_agent_fast import Q4FastAgent
 
 def instrument(client: ApiClient, agent, file: TextIO | None, team: str) -> dict:
   original = client._post_once
@@ -109,10 +109,10 @@ def main(argv: list[str] | None = None) -> int:
   try:
     client = ApiClient(args.base_url, args.team)
     options = {"opportunistic": not args.no_opportunistic, "inline": not args.no_inline}
-    agent = (Q3FastAgentV3(client, **options) if args.problem == 3 else
-             Q4FastAgentV3(client, scan=args.q4_scan, empty_limit=args.empty_limit, **options))
+    agent = (Q3FastAgent(client, **options) if args.problem == 3 else
+             Q4FastAgent(client, scan=args.q4_scan, empty_limit=args.empty_limit, **options))
     hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-              for name in ("agent_fast*.py", "q4_agent_fast*.py", "fast_geometry*.py", "main_fast*.py")
+              for name in ("*_fast*.py",)
               for p in sorted((root / "robot").glob(name))}
     if args.log_dir:
       folder = Path(args.log_dir).resolve()

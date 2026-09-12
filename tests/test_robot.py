@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 import robot.main as robot_main
-from robot.agent import Q3Agent, polygon_clear_sites, q3_scan_sites
+from robot.q3_agent import Q3Agent, polygon_clear_sites, q3_scan_sites
 from robot.client import ApiClient, ApiError
 from robot.mock_server import Jammer, MockArena, MockServer
 from robot.q4_agent import Q4Agent, bearing_clear_sites, q4_scan_sites

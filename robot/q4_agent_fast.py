@@ -4,9 +4,9 @@ import math
 
 import numpy as np
 
-from robot.agent_fast_v3 import FastTrack, LocalV3, Q3FastAgent, Q3FastAgentV2
+from robot.q3_agent_fast import FastTrack, LocalProbe, Q3FastBase, Q3FastPlanner
 from robot.client import ApiClient, ApiError
-from robot.fast_geometry_v3 import (
+from robot.geometry_solver_fast import (
   Arr, compact_q4_sites, cover_cells, definitely_disjoint, direction_certificate,
   enclosing, packet_localization_bound, packet_sites, path_length, route_order,
 )
@@ -26,7 +26,7 @@ def q4_ring_sites() -> Arr:
     raise ValueError("direction-complete ring certificate failed")
   return np.vstack((np.zeros(2), inner, outer[np.r_[11, np.arange(11)]]))
 
-class Q4FastAgent(Q3FastAgent):
+class Q4FastBase(Q3FastBase):
   directional = True
 
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
@@ -126,7 +126,7 @@ class Q4FastAgent(Q3FastAgent):
     track.status = "geometry_fault"
     raise ApiError(f"directional coverage exhausted on channel {track.channel}")
 
-class Q4FastAgentV2(Q4FastAgent, Q3FastAgentV2):
+class Q4FastCertified(Q4FastBase, Q3FastPlanner):
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
                opportunistic: bool = True, inline: bool = True,
                scan: str = "compact") -> None:
@@ -146,7 +146,7 @@ class Q4FastAgentV2(Q4FastAgent, Q3FastAgentV2):
     self.compact_certified = ok
     return sites if ok else q4_ring_sites()
 
-class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
+class Q4FastAgent(LocalProbe, Q4FastCertified):
   def __init__(self, *args, empty_limit: int = 5, **kwargs) -> None:
     if not 0 <= empty_limit <= 5:
       raise ValueError("empty_limit must be in 0..5")
@@ -200,7 +200,7 @@ class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
       before, self.phase = self.phase, "budgeted_clear_cover"
       self.branches["budgeted_clear_cover"] += 1
       try:
-        Q4FastAgent._finish_cover(self, track)
+        Q4FastBase._finish_cover(self, track)
       finally:
         self.phase = before
       return

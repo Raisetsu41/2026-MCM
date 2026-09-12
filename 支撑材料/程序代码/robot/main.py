@@ -10,7 +10,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from robot.agent import Q3Agent
+from robot.q3_agent import Q3Agent
 from robot.client import ApiClient, ApiError
 from robot.q4_agent import Q4Agent
 
