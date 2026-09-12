@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  12 SEP 2026 22:38
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  12 SEP 2026 23:05
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1362,11 +1362,132 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 
 [13
 
-] (./sections/09-appendix.tex)
+] (./sections/09-appendix.tex
+(c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
+File: lstlang1.sty 2024/09/23 1.10c listings language file
+)
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
+nput line 25.
+
+(./geometry_solver.py) (./geometry_solver.py
 
 [14
 
-] (./main.aux)
+]) (./geometry_solver.py
+
+[15])
+Overfull \hbox (20.92508pt too wide) in paragraph at lines 33--34
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 4 \TU/SimS
+un(0)/m/n/10.5 半 平 面 交 主 循 环 与 定 位 区 域 组 装  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m
+/n/10.5 `halfplane_intersection`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1
+.11b.ttf(1)/m/n/10.5 `localization_polygon`\TU/SimSun(0)/m/n/10.5 ，|
+ []
+
+(./geometry_solver.py) (./geometry_solver.py
+
+[16]) (./geometry_solver.py
+
+[17]) (./geometry_solver.py) (./geometry_solver.py
+
+[18]) (./geometry_solver.py
+
+[19]) (./geometry_solver.py) (./geometry_solver.py
+
+[20]
+
+[21]) (./geometry_solver.py)
+
+[22] (./geometry_solver.py) (./geometry_solver.py
+
+[23]) (./robot/agent.py) (./robot/agent.py) (./robot/agent.py)
+(./robot/client.py
+
+[24]) (./robot/client.py
+
+[25]) (./robot/agent.py)
+
+[26] (./robot/agent.py) (./robot/agent.py
+
+[27]) (./robot/agent.py)
+Overfull \hbox (45.06703pt too wide) in paragraph at lines 89--90
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 23 \TU/Sim
+Sun(0)/m/n/10.5 联 合 选 路 的 精 确 解、| \TU/TimesNewRoman(0)/m/n/10.5 2-opt \TU/SimSu
+n(0)/m/n/10.5 ／ \TU/TimesNewRoman(0)/m/n/10.5 Or-opt \TU/SimSun(0)/m/n/10.5 与 主
+ 入 口  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 `exact_open`\TU/FangSong(0)/m/
+n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 `improve_open`\TU/FangSong(0)
+/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 `joint_route`\TU/SimSun(0)
+/m/n/10.5 ，|
+ []
+
+(./robot/fast_geometry_v3.py
+
+[28]) (./robot/fast_geometry_v3.py)
+
+[29] (./robot/fast_geometry_v3.py)
+Overfull \hbox (45.30374pt too wide) in paragraph at lines 94--95
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 24 \TU/Sim
+Sun(0)/m/n/10.5 阴 性 证 据 的 连 续 域 覆 盖 推 理  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/
+10.5 `covered_by_negative_disks`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1
+.11b.ttf(1)/m/n/10.5 `unknown_negative_implied`\TU/SimSun(0)/m/n/10.5 ，|
+ []
+
+(./robot/fast_geometry_v3.py
+
+[30]) (./robot/fast_geometry_v3.py) (./robot/fast_geometry_v3.py
+
+[31])
+Overfull \hbox (7.04129pt too wide) in paragraph at lines 101--102
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
+Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
+)/m/n/10.5 `packet_sites`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.tt
+f(1)/m/n/10.5 `packet_localization_bound`\TU/SimSun(0)/m/n/10.5 ，|
+ []
+
+(./robot/fast_geometry_v3.py) (./robot/fast_geometry_v3.py)
+Overfull \hbox (37.26468pt too wide) in paragraph at lines 105--106
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 28 \TU/Sim
+Sun(0)/m/n/10.5 顺 路 收 获、|  站 内 排 程 与 联 合 选 路 入 口  |（\TU/YaHei.Consolas.1.11b.tt
+f(1)/m/n/10.5 `_opportunity_jobs`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.
+1.11b.ttf(1)/m/n/10.5 `_harvest`\TU/FangSong(0)/m/n/10.5 、| \TU/YaHei.Consolas.
+1.11b.ttf(1)/m/n/10.5 `_scan_station`\TU/FangSong(0)/m/n/10.5 ／
+ []
+
+(./robot/agent_fast_v3.py
+
+[32]) (./robot/agent_fast_v3.py
+
+[33]) (./robot/agent_fast_v3.py
+
+[34]) (./robot/q4_agent.py) (./robot/agent.py) (./robot/q4_agent.py
+
+[35]) (./robot/q4_agent.py
+
+[36]) (./robot/agent.py) (./robot/fast_geometry_v3.py)
+(./robot/fast_geometry_v3.py
+
+[37])
+Overfull \hbox (7.04129pt too wide) in paragraph at lines 128--129
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
+Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
+)/m/n/10.5 `packet_sites`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.tt
+f(1)/m/n/10.5 `packet_localization_bound`\TU/SimSun(0)/m/n/10.5 ，|
+ []
+
+(./robot/fast_geometry_v3.py) (./robot/fast_geometry_v3.py)
+Overfull \hbox (27.22098pt too wide) in paragraph at lines 132--133
+[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 29 \TU/Sim
+Sun(0)/m/n/10.5 空 清 除 预 算、|  最 后 单 元 覆 盖 证 明 与 近 距 包 收 尾  |（\TU/YaHei.Consolas.
+1.11b.ttf(1)/m/n/10.5 `Q4FastAgentV3._clear`\TU/FangSong(0)/m/n/10.5 ／ \TU/YaHe
+i.Consolas.1.11b.ttf(1)/m/n/10.5 `_cover_fits`\TU/FangSong(0)/m/n/10.5 ／
+ []
+
+(./robot/q4_agent_fast_v3.py
+
+[38]) (./robot/q4_agent_fast_v3.py) (./robot/q4_agent_fast_v3.py
+
+[39]))
+
+[40] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1379,12 +1500,12 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 64A3C6686D7334A35D2C9876B798B70F;6952.
  ) 
 Here is how much of TeX's memory you used:
- 35371 strings out of 473832
- 759593 string characters out of 5733158
- 1172567 words of memory out of 5000000
- 57725 multiletter control sequences out of 15000+600000
- 575564 words of font info for 180 fonts, out of 8000000 for 9000
+ 36170 strings out of 473832
+ 771589 string characters out of 5733158
+ 1934055 words of memory out of 5000000
+ 58418 multiletter control sequences out of 15000+600000
+ 575580 words of font info for 182 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 108i,13n,125p,467b,779s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,13n,125p,467b,2038s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.xdv (14 pages, 201904 bytes).
+Output written on main.xdv (40 pages, 1477648 bytes).
