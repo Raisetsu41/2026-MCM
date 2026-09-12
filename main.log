@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  12 SEP 2026 23:25
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 01:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1325,169 +1325,230 @@ LaTeX Font Warning: Font shape `TU/SimSun(1)/b/n' undefined
 
 [1
 
-]) (./sections/01-problem-restatement.tex)
-(./sections/02-assumptions-and-notation.tex
+]) (./sections/01-problem-restatement.tex
 
-[2]) (./sections/03-problem1.tex
+[2]) (./sections/02-assumptions-and-notation.tex
 
 [3]
 
-[4]
+[4]) (./sections/03-problem1.tex
 
 [5]
+
+[6]
+
+[7]
 File: figures/q1_定位区域与直径.pdf Graphic file (type pdf)
 <use figures/q1_定位区域与直径.pdf>
 File: figures/q1_荣格定理反例.pdf Graphic file (type pdf)
 <use figures/q1_荣格定理反例.pdf>
 ) (./sections/04-problem2.tex
 
-[6]
-
-[7]
-
 [8]
 
 [9]
-File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
-<use figures/q2_候选区域与Pareto前沿.pdf>
-) (./sections/05-problem3.tex) (./sections/06-problem4.tex)
-(./sections/07-validation-and-sensitivity.tex)
-(./sections/08-evaluation-and-improvement.tex
 
 [10]
 
-[11])
+[11]
+File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
+<use figures/q2_候选区域与Pareto前沿.pdf>
+) (./sections/05-problem3.tex
 
-[12] (./main.bbl)
+[12]
 
-[13
+[13]
+
+[14]
+
+[15]
+
+[16]
+
+[17]
+
+[18]) (./sections/06-problem4.tex
+
+[19]
+
+[20]
+
+[21]
+
+[22]
+
+[23]
+
+[24]) (./sections/07-validation-and-sensitivity.tex
+
+[25]
+
+[26]) (./sections/08-evaluation-and-improvement.tex
+
+[27])
+
+[28] (./main.bbl)
+
+[29
 
 ] (./sections/09-appendix.tex
 (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2024/09/23 1.10c listings language file
 )
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 25.
+nput line 45.
 
-(./geometry_solver.py) (./geometry_solver.py
+(./geometry_solver.py
 
-[14
+[30
 
-]) (./geometry_solver.py
+]
 
-[15])
-Overfull \hbox (15.93143pt too wide) in paragraph at lines 33--34
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 4 \TU/SimS
-un(0)/m/n/10.5 半 平 面 交 主 循 环 与 定 位 区 域 组 装  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m
-/n/10.5 halfplane_intersection \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.
-11b.ttf(1)/m/n/10.5 localization_polygon\TU/SimSun(0)/m/n/10.5 ，|
- []
+[31]
 
-(./geometry_solver.py) (./geometry_solver.py
+[32]
 
-[16]) (./geometry_solver.py
+[33]
 
-[17]) (./geometry_solver.py) (./geometry_solver.py
+[34]
 
-[18]) (./geometry_solver.py
+[35]
 
-[19]) (./geometry_solver.py) (./geometry_solver.py
+[36]
 
-[20]
+[37]
 
-[21]) (./geometry_solver.py)
+[38]
 
-[22] (./geometry_solver.py) (./geometry_solver.py
+[39]
 
-[23]) (./robot/q3_agent.py) (./robot/q3_agent.py) (./robot/q3_agent.py)
-(./robot/client.py
+[40]
 
-[24]) (./robot/client.py
+[41]
 
-[25]) (./robot/q3_agent.py)
+[42]
 
-[26] (./robot/q3_agent.py) (./robot/q3_agent.py
+[43]
 
-[27]) (./robot/q3_agent.py)
-Overfull \hbox (40.46303pt too wide) in paragraph at lines 89--90
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 23 \TU/Sim
-Sun(0)/m/n/10.5 联 合 选 路 的 精 确 解、| \TU/TimesNewRoman(0)/m/n/10.5 2-opt \TU/SimSu
-n(0)/m/n/10.5 ／ \TU/TimesNewRoman(0)/m/n/10.5 Or-opt \TU/SimSun(0)/m/n/10.5 与 主
- 入 口  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 exact_open \TU/FangSong(0)/m/n
-/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 improve_open \TU/FangSong(0)/m
-/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf(1)/m/n/10.5 joint_route\TU/SimSun(0)/m/n
-/10.5 ，|
- []
+[44]
 
-(./robot/geometry_solver_fast.py
+[45]
 
-[28]) (./robot/geometry_solver_fast.py)
+[46]
 
-[29] (./robot/geometry_solver_fast.py)
-Overfull \hbox (40.31009pt too wide) in paragraph at lines 94--95
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 24 \TU/Sim
-Sun(0)/m/n/10.5 阴 性 证 据 的 连 续 域 覆 盖 推 理  |（\TU/YaHei.Consolas.1.11b.ttf(1)/m/n/
-10.5 covered_by_negative_disks \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.
-11b.ttf(1)/m/n/10.5 unknown_negative_implied\TU/SimSun(0)/m/n/10.5 ，|
- []
+[47]
 
-(./robot/geometry_solver_fast.py
+[48])
 
-[30]) (./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py
+LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
+(Font)              using `TU/YaHei.Consolas.1.11b.ttf(1)/m/n' instead on input
+ line 49.
 
-[31])
-Overfull \hbox (2.04764pt too wide) in paragraph at lines 101--102
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
-Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
-)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf
-(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
- []
+(./robot/__init__.py) (./robot/client.py
 
-(./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py)
-Overfull \hbox (16.38773pt too wide) in paragraph at lines 105--106
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 28 \TU/Sim
-Sun(0)/m/n/10.5 顺 路 收 获、|  站 内 排 程 与 联 合 选 路 入 口  |（\TU/YaHei.Consolas.1.11b.tt
-f(1)/m/n/10.5 _opportunity_jobs \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1
-.11b.ttf(1)/m/n/10.5 _harvest\TU/FangSong(0)/m/n/10.5 、| \TU/YaHei.Consolas.1.1
-1b.ttf(1)/m/n/10.5 _scan_station
- []
+[49]
 
-(./robot/q3_agent_fast.py
+[50]
 
-[32]) (./robot/q3_agent_fast.py
+[51]
 
-[33]) (./robot/q3_agent_fast.py
+[52]) (./robot/q3_agent.py
 
-[34]) (./robot/q4_agent.py) (./robot/q3_agent.py) (./robot/q4_agent.py
+[53]
 
-[35]) (./robot/q4_agent.py
+[54]
 
-[36]) (./robot/q3_agent.py) (./robot/geometry_solver_fast.py)
-(./robot/geometry_solver_fast.py
+[55]
 
-[37])
-Overfull \hbox (2.04764pt too wide) in paragraph at lines 128--129
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 27 \TU/Sim
-Sun(0)/m/n/10.5 小 半 径 方 向 完 备 测 站 包 与 误 差 上 界  |（\TU/YaHei.Consolas.1.11b.ttf(1
-)/m/n/10.5 packet_sites \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.Consolas.1.11b.ttf
-(1)/m/n/10.5 packet_localization_bound\TU/SimSun(0)/m/n/10.5 ，|
- []
+[56]
 
-(./robot/geometry_solver_fast.py) (./robot/geometry_solver_fast.py)
-Overfull \hbox (0.18143pt too wide) in paragraph at lines 132--133
-[]\TU/SourceHanSerifCN(0)/b/n/10.5 编 号 \TU/TimesNewRoman(0)/b/n/10.5 29 \TU/Sim
-Sun(0)/m/n/10.5 空 清 除 预 算、|  最 后 单 元 覆 盖 证 明 与 近 距 包 收 尾  |（\TU/YaHei.Consolas.
-1.11b.ttf(1)/m/n/10.5 Q4FastAgent._clear \TU/FangSong(0)/m/n/10.5 ／ \TU/YaHei.C
-onsolas.1.11b.ttf(1)/m/n/10.5 _cover_fits
- []
+[57]
 
-(./robot/q4_agent_fast.py
+[58]) (./robot/q4_agent.py
 
-[38]) (./robot/q4_agent_fast.py) (./robot/q4_agent_fast.py
+[59]
 
-[39]))
+[60]
 
-[40] (./main.aux)
+[61]) (./robot/main.py
+
+[62]
+
+[63]
+
+[64]) (./robot/geometry_solver_fast.py
+
+[65]
+
+[66]
+
+[67]
+
+[68]
+
+[69]
+
+[70]
+
+[71]
+
+[72]
+
+[73])
+
+[74] (./robot/q3_agent_fast.py
+
+[75]
+
+[76]
+
+[77]
+
+[78]
+
+[79]
+
+[80]
+
+[81]
+
+[82]
+
+[83]
+
+[84]
+
+[85]
+
+[86]
+
+[87]
+
+[88]
+
+[89]
+
+[90]) (./robot/q4_agent_fast.py
+
+[91]
+
+[92]
+
+[93]
+
+[94]
+
+[95]) (./robot/main_fast.py
+
+[96]
+
+[97]
+
+[98]
+
+[99]))
+
+[100] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1497,15 +1558,15 @@ L3 programming layer <2022/08/05>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 64A3C6686D7334A35D2C9876B798B70F;6952.
+(rerunfilecheck)             Checksum: 1FAD4F982791669541C56BEBC98FD294;11557.
  ) 
 Here is how much of TeX's memory you used:
- 36170 strings out of 473832
- 771736 string characters out of 5733158
- 1934055 words of memory out of 5000000
- 58418 multiletter control sequences out of 15000+600000
- 575580 words of font info for 182 fonts, out of 8000000 for 9000
+ 36876 strings out of 473832
+ 786686 string characters out of 5733158
+ 1967703 words of memory out of 5000000
+ 59187 multiletter control sequences out of 15000+600000
+ 578106 words of font info for 197 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 108i,13n,125p,467b,2038s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,13n,125p,680b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.xdv (40 pages, 1476664 bytes).
+Output written on main.pdf (100 pages).

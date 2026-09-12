@@ -47,7 +47,16 @@ $\operatorname{wrap}_{180}(\cdot)$ 将角差化为 $[-180^\circ,180^\circ)$ 内�
 
 \subsubsection{时间模型与优化目标}
 
-设当前任务的路径、检测、换频和清除动作均已确定，总时间仍由式~\eqref{eq:q4_total_time} 给出。
+设路径依次访问位置 $P_0,P_1,\ldots,P_M$，则问题四的虚拟时间为
+
+\begin{equation}
+T=\sum_{k=1}^{M}\frac{\lVert P_k-P_{k-1}\rVert_2}{5}
++5N_{\mathrm{measure}}+N_{\mathrm{switch}}
++5N_{\mathrm{clear}}^{\mathrm{success}}+3N_{\mathrm{clear}}^{\mathrm{miss}}.
+\label{eq:q4_total_time}
+\end{equation}
+
+式中各动作严格串行，清除动作不改变当前测向频道。
 
 由于单次检测、换频和清除的耗时固定，而移动时间与总路径长度成正比，在线优化的主要目标是减少重复往返。每完成一个联合节点后，算法删除已闭合的扫描站或服务点，更新各频道的可行区域，并重新求解当前节点集上的开放路径。该动态重规划不改变扫描点集，因此不会削弱发现证书。
 
@@ -162,7 +171,33 @@ j=0,\ldots,13
 \label{eq:q4_compact_sites}
 \end{equation}
 
-该集合由原点、半径 $975\mathrm{m}$ 的内环 7 点和半径 $1850\mathrm{m}$ 的外环 14 点组成，合计 22 点。
+该集合由原点、半径 $975\mathrm{m}$ 的内环 7 点和半径 $1850\mathrm{m}$ 的外环 14 点组成，合计 22 点，其空间结构如图~\ref{fig:q4_compact_sites}所示。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.45]
+  \fill[black!3] (0,0) circle (1.8);
+  \draw[thick] (0,0) circle (1.8);
+  \draw[blue!45,dashed] (0,0) circle (0.975);
+  \draw[red!45,dashed] (0,0) circle (1.85);
+  \fill[black] (0,0) circle (2pt);
+  \foreach \k in {0,...,6}{
+    \fill[blue!75!black] ({0.975*cos(360*\k/7)},{0.975*sin(360*\k/7)}) circle (2pt);
+  }
+  \foreach \k in {0,...,13}{
+    \fill[red!75!black] ({1.85*cos(360*\k/14)},{1.85*sin(360*\k/14)}) circle (2pt);
+  }
+  \coordinate (G) at (1.8,0);
+  \draw[green!55!black,densely dashed] (G) circle (1.0);
+  \fill[green!45!black] (G) circle (2.2pt);
+  \node[below left] at (0,0) {原点};
+  \node[above] at (0,1.8) {$\mathcal B_{1800}$};
+  \node[right] at (1.8,0) {$G$};
+  \node[green!45!black] at (2.35,0.65) {$1000\,\mathrm m$ 邻域};
+\end{tikzpicture}
+\caption{22 点紧凑扫描集及一个边界位置的接收邻域示意}
+\label{fig:q4_compact_sites}
+\end{figure}
 
 由于 22 点集合不是完整三角格，其方向完备性采用连续域递归证书，而不是随机采样验证。
 首先用目标圆域的外接正 72 边形覆盖 $\mathcal B_{1800}$，并划分为 72 个三角形。
@@ -335,7 +370,7 @@ L(\sigma)=
 \item 每处理一次正响应后检查已发现的不同频道数；一旦达到 16，立即依据 $N_J\le16$ 将其余 \texttt{unknown} 频道标记为 \texttt{absent\_certified} 并停止访问剩余扫描站；
 \item 对已发现频道，用示向锥和外包围继续收缩；当保守半径不超过 $19.999\mathrm{m}$ 时按距离证书清除；
 \item 若定位阶段返回 \texttt{no\_signal}，优先使用预算内覆盖清除；预算不足时转入方向完备测站包或带最后单元覆盖证明的清除；
-\item 扫描阶段结束时，对所有仍未发现的频道检查方向完备证书，满足条件则标记为 \texttt{absent\_certified}；
+\item 扫描阶段结束时，对所有仍未发现的频道检查方向完备证书，满足条件则标记为“确认不存在”；
 \item 删除已清除和已认证为空的频道，重新规划路径，直到 20 个频道全部闭合；
 \item 调用 \texttt{/exit}，按定位清除总时间与清除个数计算题面要求的统计值。
 \end{enumerate}

@@ -62,3 +62,28 @@ $\mathcal P$ & 精度—耗时 Pareto 非支配集 & 集合 & 问题二 \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{问题三、四的主要符号}
+\begin{tabularx}{\textwidth}{C X C C}
+\toprule
+符号 & 含义 & 单位或取值 & 首次出现 \\
+\midrule
+$N_J,c$ & 一局中的干扰源总数与频道编号 & $10$--$16$；$1$--$20$ & 问题三 \\
+$K_c,A_c$ & 频道 $c$ 的精确可行区域及其数值外包围 & 集合 & 问题三 \\
+$C_c,\rho_c$ & $A_c$ 的覆盖圆心及相应保守覆盖半径 & $\mathrm m$；$\mathrm m$ & 问题三 \\
+$\delta_{\mathrm{num}},\epsilon_{\mathrm{num}}$ & 在线示向安全半角与清除判定数值余量 & $1.01^\circ$；$0.001\,\mathrm m$ & 问题三 \\
+$\mathcal S,P_k,d_{\max}$ & 七点扫描集、第 $k$ 个扫描点及其最坏最近点距离 & 集合；$\mathrm m$；$\mathrm m$ & 问题三 \\
+$V_t^{\mathrm{scan}},V_t^{\mathrm{service}}$ & 时刻 $t$ 尚待访问的扫描节点集与频道服务节点集 & 集合 & 问题三 \\
+$\sigma,L(\sigma)$ & 节点访问顺序及对应开放路径长度 & 排列；$\mathrm m$ & 问题三 \\
+$\boldsymbol o,V_G$ & 定向源发射方向及位置 $G$ 的可接收扫描点相对向量集 & 单位向量；集合 & 问题四 \\
+$P_4,P_4'$ & 31 点基准扫描集与 22 点连续域认证扫描集 & 集合 & 问题四 \\
+$E(T)$ & 三角形单元 $T$ 的一致可接收扫描点集合 & 集合 & 问题四 \\
+$\mathcal R_0,s_c,\rho_{\mathrm{cov}}$ & 首次正检测扇形、清除格边长及其数值覆盖半径 & 集合；$\mathrm m$；$\mathrm m$ & 问题四 \\
+$T$ & 一局的定位清除虚拟时间 & $\mathrm s$ & 问题四 \\
+$N_{\mathrm{measure}},N_{\mathrm{switch}},N_{\mathrm{clear}}^{\mathrm{success}},N_{\mathrm{clear}}^{\mathrm{miss}}$ & 检测、换频以及成功或未发现清除的动作次数 & 次 & 问题四 \\
+\bottomrule
+\end{tabularx}
+\end{table}

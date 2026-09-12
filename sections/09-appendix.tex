@@ -1,137 +1,80 @@
-%附录
+% 附录
 \AtBeginEnvironment{appendices}{
-    \renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+  \renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
 }
 \begin{appendices}
 
 \section{支撑材料文件清单}
-本文支撑材料按用途分为三部分，目录结构如下：
-\begin{verbatim}
-支撑材料/
-├── 行为日志/            六份正式测试行为日志及其元数据
-├── 程序代码/            robot 程序包与几何库
-└── 结果数据/            正式与演练动作日志、各问数值结果
-\end{verbatim}
 
-%\section{图表说明}
+支撑材料与本文的模型、结果和正式测试一一对应，文件清单如下。
 
-%\subsection{问题一图表}
+\begin{enumerate}
+  \item \textbf{行为日志：}问题三与问题四各三份正式测试原始日志，共 6 份，文件名保持模拟器导出形式不变：
+  \begin{itemize}
+    \item \path{formal-p3-1-T5JT-TE93-CQUC-FDAD.jlog}；
+    \item \path{formal-p3-2-FX3P-PUBX-QE4N-783K.jlog}；
+    \item \path{formal-p3-3-Y4HS-EJMD-CXRP-BV5W.jlog}；
+    \item \path{formal-p4-1-NGBV-4HQZ-7B7S-26HK.jlog}；
+    \item \path{formal-p4-2-JGN3-394M-SDZB-Y3N7.jlog}；
+    \item \path{formal-p4-3-9U2N-ZBZQ-8AB2-VJYS.jlog}。
+  \end{itemize}
+  \item \textbf{完整程序：}
+  \begin{itemize}
+    \item \path{geometry_solver.py}；
+    \item \path{robot/__init__.py}、\path{robot/client.py}；
+    \item \path{robot/q3_agent.py}、\path{robot/q4_agent.py}、\path{robot/main.py}；
+    \item \path{robot/geometry_solver_fast.py}、\path{robot/q3_agent_fast.py}；
+    \item \path{robot/q4_agent_fast.py}、\path{robot/main_fast.py}，以及运行说明 \path{robot/README.md}。
+  \end{itemize}
+  \item \textbf{结果数据：}6 份正式测试脱敏动作日志、36 份演练脱敏动作日志，
+  问题一定位多边形与角误差敏感性数据，问题二 Pareto 候选点与候选区敏感性数据，
+  问题三调度对照数据，以及汇总文件 \texttt{geometry\_summary.json}。
+  \item \textbf{AI 工具使用说明：}文件 \path{AI 工具使用详情.pdf} 记录所用工具、具体用途、主要提示方式以及人工核验过程，与正文声明一致。
+\end{enumerate}
 
-\section{程序代码}
-本附录列出各问的核心程序。编号 1--12 是问题一、二使用的几何库；编号 13--22a 是问题三、四未提速的基础实现，用于展示发现证书与状态机主干；编号 23--29 是六次正式测试所用提交版本的路径与测站优化。代码中不含注释与文档字符串，逻辑与支撑材料 \texttt{程序代码/} 中的源码一致；每段代码左侧的行号与原文件一致。
+其中，正式测试原始日志用于满足题目规定的测试记录要求；脱敏动作日志用于复核频道、坐标、动作结果和虚拟时间；完整程序与下节打印的源码一致。
 
-\subsection{问题一代码}
-\textbf{编号 1} 单次示向度化为两个半平面（\texttt{bearing\_halfplanes}，对应论文三 §1.1）
-\lstinputlisting[language=Python, firstline=78, lastline=90, firstnumber=78]{geometry_solver.py}
+\section{完整源程序代码}
 
-\textbf{编号 2} 内外接多边形给出直径上下界（\texttt{localization\_diameter\_bounds}，对应论文三 §1.2）
-\lstinputlisting[language=Python, firstline=184, lastline=216, firstnumber=184]{geometry_solver.py}
+根据格式规范第五条，本节打印建模和正式测试程序的完整源码，而非仅列核心函数片段。
+共收录 10 个 Python 文件、3110 行代码；问题三、四的提交版入口为
+\texttt{robot/main\_fast.py}，其依赖的基础数据结构、客户端和几何模块一并完整列出。
+所有队号均由命令行参数或环境变量在运行时传入，源码不含参赛者身份信息。
 
-\textbf{编号 3} 逐半平面裁剪凸多边形（\texttt{clip\_halfplane}，对应论文三 §2.1）
-\lstinputlisting[language=Python, firstline=106, lastline=142, firstnumber=106]{geometry_solver.py}
+\subsection{问题一、二共用几何与统计模块}
+\lstinputlisting[language=Python]{geometry_solver.py}
 
-\textbf{编号 4} 半平面交主循环与定位区域组装（\texttt{halfplane\_intersection／localization\_polygon}，对应论文三 §2.1）
-\lstinputlisting[language=Python, firstline=144, lastline=158, firstnumber=144]{geometry_solver.py}
-\lstinputlisting[language=Python, firstline=160, lastline=182, firstnumber=160]{geometry_solver.py}
+\subsection{在线程序公共模块}
 
-\textbf{编号 5} 凸包加旋转卡壳求直径与最远点对（\texttt{polygon\_diameter}，对应论文三 §2.2）
-\lstinputlisting[language=Python, firstline=218, lastline=264, firstnumber=218]{geometry_solver.py}
+\textbf{包导出文件 \texttt{robot/\_\_init\_\_.py}}
+\lstinputlisting[language=Python]{robot/__init__.py}
 
-\subsection{问题二代码}
-\textbf{编号 6} 方位 Jacobian 与加权最小二乘误差传播（\texttt{bearing\_jacobian／error\_propagation}，对应论文四 §1）
-\lstinputlisting[language=Python, firstline=336, lastline=346, firstnumber=336]{geometry_solver.py}
-\lstinputlisting[language=Python, firstline=359, lastline=387, firstnumber=359]{geometry_solver.py}
+\textbf{HTTP 客户端 \texttt{robot/client.py}}
+\lstinputlisting[language=Python]{robot/client.py}
 
-\textbf{编号 7} 首次观测后的可能源集合采样（\texttt{source\_cone\_samples}，对应论文四 §2）
-\lstinputlisting[language=Python, firstline=507, lastline=543, firstnumber=507]{geometry_solver.py}
+\subsection{问题三、四基础版完整程序}
 
-\textbf{编号 8} 保证接收的解析边界（\texttt{sector\_max\_distance}，对应论文四 §3.2）
-\lstinputlisting[language=Python, firstline=545, lastline=573, firstnumber=545]{geometry_solver.py}
+\textbf{问题三基础智能体 \texttt{robot/q3\_agent.py}}
+\lstinputlisting[language=Python]{robot/q3_agent.py}
 
-\textbf{编号 9} 确定性最坏误差界与耗时（\texttt{second\_site\_metrics\_sources}，对应论文四 §4.1）
-\lstinputlisting[language=Python, firstline=626, lastline=706, firstnumber=626]{geometry_solver.py}
+\textbf{问题四基础智能体 \texttt{robot/q4\_agent.py}}
+\lstinputlisting[language=Python]{robot/q4_agent.py}
 
-\textbf{编号 10} 非支配筛选（\texttt{pareto\_mask}，对应论文四 §4.1）
-\lstinputlisting[language=Python, firstline=807, lastline=826, firstnumber=807]{geometry_solver.py}
+\textbf{基础版入口 \texttt{robot/main.py}}
+\lstinputlisting[language=Python]{robot/main.py}
 
-\textbf{编号 11} 保证接收区筛选（\texttt{robust\_candidate\_mask}，对应论文四 §4.2）
-\lstinputlisting[language=Python, firstline=575, lastline=595, firstnumber=575]{geometry_solver.py}
+\subsection{六次正式测试所用提交版完整程序}
 
-\textbf{编号 12} 双目标 Pareto 选点主流程（\texttt{pareto\_second\_sites\_cone}，对应论文四 §4.2）
-\lstinputlisting[language=Python, firstline=842, lastline=873, firstnumber=842]{geometry_solver.py}
+\textbf{提速几何与路径模块 \texttt{robot/geometry\_solver\_fast.py}}
+\lstinputlisting[language=Python]{robot/geometry_solver_fast.py}
 
-\subsection{问题三代码}
-\textbf{编号 13} 七点扫描骨架（\texttt{q3\_scan\_sites}，对应论文五 §3）
-\lstinputlisting[language=Python, firstline=35, lastline=38, firstnumber=35]{robot/q3_agent.py}
+\textbf{问题三提交版智能体 \texttt{robot/q3\_agent\_fast.py}}
+\lstinputlisting[language=Python]{robot/q3_agent_fast.py}
 
-\textbf{编号 14} 保证有信号的第二观测点（\texttt{safe\_lateral\_site}，对应论文五 §4.1）
-\lstinputlisting[language=Python, firstline=57, lastline=61, firstnumber=57]{robot/q3_agent.py}
+\textbf{问题四提交版智能体 \texttt{robot/q4\_agent\_fast.py}}
+\lstinputlisting[language=Python]{robot/q4_agent_fast.py}
 
-\textbf{编号 15} 定位区域与最小覆盖圆（\texttt{Q3Agent.\_region}，对应论文五 §4.1）
-\lstinputlisting[language=Python, firstline=121, lastline=130, firstnumber=121]{robot/q3_agent.py}
-
-\textbf{编号 16} 指令发送与幂等重试（\texttt{ApiClient.\_post}，对应论文五 §2）
-\lstinputlisting[language=Python, firstline=95, lastline=128, firstnumber=95]{robot/client.py}
-
-\textbf{编号 17} 等待接口开放（\texttt{ApiClient.enter\_when\_open}，对应论文五 §2）
-\lstinputlisting[language=Python, firstline=139, lastline=161, firstnumber=139]{robot/client.py}
-
-\textbf{编号 18} 单频道定位清除与兜底（\texttt{Q3Agent.\_finish\_channel}，对应论文五 §4.2）
-\lstinputlisting[language=Python, firstline=158, lastline=187, firstnumber=158]{robot/q3_agent.py}
-
-\textbf{编号 19} 扫描发现、批量调度与终止条件（\texttt{Q3Agent.run／\_discover、\_finish\_pending}，对应论文五 §5、§6.2）
-\lstinputlisting[language=Python, firstline=241, lastline=266, firstnumber=241]{robot/q3_agent.py}
-\lstinputlisting[language=Python, firstline=202, lastline=233, firstnumber=202]{robot/q3_agent.py}
-
-\textbf{编号 19a} 频道处理顺序（\texttt{Q3Agent.\_channel\_order}，对应论文五 §6.2）
-\lstinputlisting[language=Python, firstline=195, lastline=200, firstnumber=195]{robot/q3_agent.py}
-
-\textbf{编号 23} 联合选路的精确解、2-opt／Or-opt 与主入口（\texttt{exact\_open／improve\_open／joint\_route}，对应论文五 §5）
-\lstinputlisting[language=Python, firstline=259, lastline=285, firstnumber=259]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=287, lastline=320, firstnumber=287]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=322, lastline=353, firstnumber=322]{robot/geometry_solver_fast.py}
-
-\textbf{编号 24} 阴性证据的连续域覆盖推理（\texttt{covered\_by\_negative\_disks／unknown\_negative\_implied}，对应论文五 §3）
-\lstinputlisting[language=Python, firstline=209, lastline=232, firstnumber=209]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=234, lastline=249, firstnumber=234]{robot/geometry_solver_fast.py}
-
-\textbf{编号 25} 分箱包围的测站定位半径上界（\texttt{bearing\_radius\_bound}，对应论文五 §4.1）
-\lstinputlisting[language=Python, firstline=355, lastline=379, firstnumber=355]{robot/geometry_solver_fast.py}
-
-\textbf{编号 27} 小半径方向完备测站包与误差上界（\texttt{packet\_sites／packet\_localization\_bound}，对应论文五 §4.2／六 §4.2）
-\lstinputlisting[language=Python, firstline=406, lastline=412, firstnumber=406]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=414, lastline=426, firstnumber=414]{robot/geometry_solver_fast.py}
-
-\textbf{编号 28} 顺路收获、站内排程与联合选路入口（\texttt{\_opportunity\_jobs／\_harvest、\_scan\_station／\_plan}，对应论文五 §5、§6.2）
-\lstinputlisting[language=Python, firstline=459, lastline=491, firstnumber=459]{robot/q3_agent_fast.py}
-\lstinputlisting[language=Python, firstline=507, lastline=529, firstnumber=507]{robot/q3_agent_fast.py}
-\lstinputlisting[language=Python, firstline=531, lastline=557, firstnumber=531]{robot/q3_agent_fast.py}
-
-\subsection{问题四代码}
-\textbf{编号 20} 31 点等边三角格扫描集（\texttt{q4\_scan\_sites}，对应论文六 §3.2）
-\lstinputlisting[language=Python, firstline=38, lastline=52, firstnumber=38]{robot/q4_agent.py}
-
-\textbf{编号 21} 定位区域与最小覆盖圆（与问题三共用）（\texttt{Q3Agent.\_region}，对应论文六 §4.2）
-\lstinputlisting[language=Python, firstline=121, lastline=130, firstnumber=121]{robot/q3_agent.py}
-
-\textbf{编号 22} 扇形 20 m 覆盖清除路径与访问顺序（\texttt{bearing\_clear\_sites／ordered\_route}，对应论文六 §4.2）
-\lstinputlisting[language=Python, firstline=71, lastline=105, firstnumber=71]{robot/q4_agent.py}
-\lstinputlisting[language=Python, firstline=10, lastline=36, firstnumber=10]{robot/q4_agent.py}
-
-\textbf{编号 22a} 问题三与问题四在证据解释处的分支（\texttt{Q3Agent.\_lost\_signal}，对应论文六 §5）
-\lstinputlisting[language=Python, firstline=154, lastline=156, firstnumber=154]{robot/q3_agent.py}
-
-\textbf{编号 26} 22 点集与连续域方向完备认证（\texttt{direction\_certificate／compact\_q4\_sites}，对应论文六 §3.3）
-\lstinputlisting[language=Python, firstline=177, lastline=199, firstnumber=177]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=201, lastline=207, firstnumber=201]{robot/geometry_solver_fast.py}
-
-\textbf{编号 27} 小半径方向完备测站包与误差上界（\texttt{packet\_sites／packet\_localization\_bound}，对应论文五 §4.2／六 §4.2）
-\lstinputlisting[language=Python, firstline=406, lastline=412, firstnumber=406]{robot/geometry_solver_fast.py}
-\lstinputlisting[language=Python, firstline=414, lastline=426, firstnumber=414]{robot/geometry_solver_fast.py}
-
-\textbf{编号 29} 空清除预算、最后单元覆盖证明与近距包收尾（\texttt{Q4FastAgent.\_clear／\_cover\_fits／\_finish\_cover}，对应论文六 §4.2）
-\lstinputlisting[language=Python, firstline=157, lastline=176, firstnumber=157]{robot/q4_agent_fast.py}
-\lstinputlisting[language=Python, firstline=178, lastline=183, firstnumber=178]{robot/q4_agent_fast.py}
-\lstinputlisting[language=Python, firstline=196, lastline=236, firstnumber=196]{robot/q4_agent_fast.py}
+\textbf{提交版入口 \texttt{robot/main\_fast.py}}
+\lstinputlisting[language=Python]{robot/main_fast.py}
 
 \end{appendices}

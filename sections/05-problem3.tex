@@ -49,10 +49,10 @@ K_c\subseteq A_c.
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
 \caption{问题三频道状态及进入条件}
 \label{tab:q3_states}
-\begin{tabular}{lll}
+\begin{tabularx}{\textwidth}{@{}p{0.20\textwidth}p{0.28\textwidth}X@{}}
 \toprule
 状态 & 含义 & 进入条件 \\
 \midrule
@@ -63,7 +63,7 @@ K_c\subseteq A_c.
 \texttt{absent\_certified} & 已证明频道内不存在干扰源 & 七站均实测无信号或已有严格推断，或已发现 16 源 \\
 \texttt{geometry\_fault} & 定位区域为空或认证后的动作无法闭合证书 & 空区域、认证清除失败或有限覆盖仍未闭合等异常 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 终止判据要求，仅当所有频道均已清除或认证为空时，才可调用一次 \texttt{/exit}。若仍存在未发现频道、定位未闭合频道或几何故障状态，则任务尚未闭合，不能报告为完成。
@@ -118,7 +118,30 @@ d_{\max}
 \label{eq:q3_dmax}
 \end{equation}
 
-因此，目标圆域内任一点到 $\mathcal S$ 中最近扫描点的距离不超过 $d_{\max}$。
+因此，目标圆域内任一点到 $\mathcal S$ 中最近扫描点的距离不超过 $d_{\max}$；图~\ref{fig:q3_scan_certificate}给出了扫描点、接收圆盘与最坏边界位置的关系。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.45]
+  \fill[black!3] (0,0) circle (1.8);
+  \draw[thick] (0,0) circle (1.8);
+  \draw[blue!35,dashed] (0,0) circle (1.0);
+  \fill[black] (0,0) circle (2pt);
+  \foreach \k in {0,...,5}{
+    \coordinate (Q\k) at ({1.2*cos(60*\k)},{1.2*sin(60*\k)});
+    \draw[blue!35,dashed] (Q\k) circle (1.0);
+    \fill[blue!75!black] (Q\k) circle (2pt);
+  }
+  \coordinate (W) at ({1.8*cos(30)},{1.8*sin(30)});
+  \fill[red!70!black] (W) circle (2.2pt);
+  \draw[red!70!black,thick] (Q0)--(W);
+  \node[above] at (0,1.8) {$\mathcal B_{1800}$};
+  \node[below left] at (0,0) {$P_0$};
+  \node[above right,red!70!black] at (W) {$d_{\max}=968.90\,\mathrm m$};
+\end{tikzpicture}
+\caption{问题三七点扫描骨架、接收覆盖与最坏位置}
+\label{fig:q3_scan_certificate}
+\end{figure}
 
 \textbf{命题 1（发现完备性）}　若 $1000\mathrm{m}\le r_j^{\mathrm{recv}}\le1500\mathrm{m}$，则每个干扰源在七个扫描点中至少一个点上会被检测到；若某频道在七个扫描点上均返回 \texttt{no\_signal}，则该频道必不存在干扰源。
 
@@ -336,9 +359,11 @@ F_{\mathrm{path}}(\{j\},j)=d_{\mathrm{cur},j}.
 
 使用提交版程序的最近三次演练共清除 39 个干扰源，清除失败 0 次，平均定位清除时间为 $268.62\mathrm{s}$，最好与最坏分别为 $255.35\mathrm{s}$ 和 $293.50\mathrm{s}$。该批演练均正常退出。
 
-此前 15 局快速版迭代演练共清除 201 个源，平均时间为 $262.23\mathrm{s}$，中位数为 $259.59\mathrm{s}$，最好与最坏分别为 $197.43\mathrm{s}$ 和 $325.96\mathrm{s}$，空清除次数为 0。该批日志中在线决策模块的哈希前 16 位为 \texttt{2704db2749dd7700}，与提交版不同，故只作迭代前后对照，不与正式版样本合并统计。
+此前 15 局快速版迭代演练共清除 201 个源，平均时间为 $262.23\mathrm{s}$，中位数为 $259.59\mathrm{s}$，范围为 $197.43$--$325.96\mathrm{s}$，空清除次数为 0。
+该批日志中在线决策模块的哈希前 16 位为 \texttt{2704db2749dd7700}；因其与提交版不同，只作迭代前后对照，不与正式版样本合并统计。
 
-早期版本的官方演练对照中，立即调度 18 局的平均时间为 $507.91\mathrm{s}$/源，批量调度 7 局降至 $418.52\mathrm{s}$/源，降幅为 $17.60\%$。
+早期版本的官方演练中，立即调度 18 局的平均每源时间为 $507.91\mathrm{s}$；
+批量调度 7 局的平均每源时间为 $418.52\mathrm{s}$，较前者降低 $17.60\%$。
 
 进一步引入联合选路、站内顺路收获、带误差上界的局部测站和十二点测站包后，三次正式测试单局平均值的算术平均降至 $289.91\mathrm{s}$/源。该对照说明时间收益主要来自减少重复往返和无效测站，而不是减少必要的几何认证。
 
@@ -354,7 +379,7 @@ F_{\mathrm{path}}(\{j\},j)=d_{\mathrm{cur},j}.
 \toprule
 测试案例编码 & 清除干扰源个数 & 平均定位清除时间/s & 程序运行时间/ms \\
 \midrule
-T5JT-TE93-CQUC-FDAD & 12 & 384.94 & 2402 \\
+T5JT-TE93-CQUC-FDAD & 12 & 384.94 & 2401 \\
 FX3P-PUBX-QE4N-783K & 13 & 220.50 & 2198 \\
 Y4HS-EJMD-CXRP-BV5W & 15 & 264.31 & 2404 \\
 \midrule
