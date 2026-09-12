@@ -1,18 +1,18 @@
 # Fdb version 4
-["bibtex main"] 1789225528.28736 "main.aux" "main.bbl" "main" 1789225533.41842 0
+["bibtex main"] 1789225528.28736 "main.aux" "main.bbl" "main" 1789225587.03453 0
   "./gbt7714-numerical.bst" 1789086921 38964 b468873a0d715b19033dd98fde01e8f1 ""
   "./ref.bib" 1789219170 2456 458c81876581c43021a77fe2bd59fabb ""
-  "main.aux" 1789225531 15798 4e351315d5b440b99f96824ae651aea2 "xelatex"
+  "main.aux" 1789225585 15798 4e351315d5b440b99f96824ae651aea2 "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1789225532.51141 "main.xdv" "main.pdf" "main" 1789225533.42907 0
-  "main.xdv" 1789225531 1477648 da8f7b3d445291f47f715cc947344a0d "xelatex"
+["xdvipdfmx"] 1789225586.13115 "main.xdv" "main.pdf" "main" 1789225587.0449 0
+  "main.xdv" 1789225585 1468048 0e210165a88b4e5dcc54111fdf4903ba "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1789225528.64928 "main.tex" "main.xdv" "main" 1789225533.41867 0
+["xelatex"] 1789225582.0474 "main.tex" "main.xdv" "main" 1789225587.0348 0
   "c:/Windows/Fonts/msyh.ttc" 1749310389 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1769737791 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2025/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1769739159 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
@@ -246,9 +246,9 @@
   "figures/q1_荣格定理反例.pdf" 1789147828 17469 dbf4e6541af48568ff5367f32cb1d991 ""
   "figures/q2_候选区域与Pareto前沿.pdf" 1789147828 181560 31480eb5284d97f395015916143ccb57 ""
   "geometry_solver.py" 1789224841 34026 0ac17a493f6dec2cb08b9adaa01236f3 ""
-  "main.aux" 1789225531 15798 4e351315d5b440b99f96824ae651aea2 "xelatex"
+  "main.aux" 1789225585 15798 4e351315d5b440b99f96824ae651aea2 "xelatex"
   "main.bbl" 1789225528 1798 6831d976fccca70691d1f758000f61ec "bibtex main"
-  "main.out" 1789225531 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
+  "main.out" 1789225586 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
   "main.tex" 1789221030 3416 67e3c9179acdef77d94deb1144c0c05a ""
   "robot/agent.py" 1789224841 9739 d020d7cb07eaeae79af82ae2dcf9a926 ""
   "robot/agent_fast_v3.py" 1789224841 27647 fc90f058310cf5b1063aeae6baa47cbf ""
@@ -265,7 +265,7 @@
   "sections/06-problem4.tex" 1789086921 181 4558b7989ca1bb89eb627f0a9aec08de ""
   "sections/07-validation-and-sensitivity.tex" 1789086921 142 13e463a70627bea00f35f068e592edc3 ""
   "sections/08-evaluation-and-improvement.tex" 1789221374 2682 a379c4c629dabb25f75f3c4f089aa8ca ""
-  "sections/09-appendix.tex" 1789225523 10082 c2355e869f848ca93617628cacd525a2 ""
+  "sections/09-appendix.tex" 1789225581 9986 ba8ae7a01fc30deaa468277b59eea1ca ""
   (generated)
   "main.aux"
   "main.log"
