@@ -1,0 +1,77 @@
+{
+  "problem1": {
+    "vertex_count": 6,
+    "diameter_m": 44.14475950937494,
+    "diameter_lower_m": 44.14475950937494,
+    "diameter_gap_m": 0.0,
+    "constraint_violation": 7.815970093361102e-14,
+    "jung_side_m": 100.0,
+    "diameter_circle_radius_m": 50.0,
+    "minimum_cover_radius_m": 57.73502691896258
+  },
+  "problem2": {
+    "candidate_count": 12093,
+    "strict_core_count": 4464,
+    "pareto_count": 1154,
+    "selected_site_m": [
+      993.7385850681706,
+      -143.46994300796996
+    ],
+    "selected_angle_cost": 0.8446270349608129,
+    "selected_gdop_m_per_rad": 2707.663746182336,
+    "selected_rms_m": 27.284215452142014,
+    "selected_sampled_error_m": 60.876025789226475,
+    "selected_continuous_error_lower_m": 60.876025789226496,
+    "selected_continuous_error_upper_m": 60.87696725707165,
+    "selected_continuous_error_certified": true,
+    "selected_continuous_error_interval_count": 85,
+    "selected_time_s": 205.80836635957175,
+    "selected_detection_coverage": 1.0,
+    "selected_strict_coverage": 1.0,
+    "sampled_error_20m_feasible": false,
+    "conditional_core_max_distance_m": 999.9111298490938,
+    "strict_full_cone_max_distance_m": 999.9111298490938,
+    "sampled_worst_rms_m": 27.284215452142014,
+    "sampled_worst_error_m": 60.876025789226475,
+    "orthogonal_test_gdop": 5.0,
+    "orthogonal_test_rms_m": 0.050383315673172724
+  },
+  "sensitivity": {
+    "bearing_error_deg": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5
+    ],
+    "diameter_m": [
+      22.075741997119902,
+      33.11151153814781,
+      44.14475950937494,
+      55.17464568625297,
+      66.20033010024443
+    ],
+    "cone_error_deg": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5
+    ],
+    "guaranteed_count": [
+      4528,
+      4500,
+      4464,
+      4436,
+      4398
+    ],
+    "opportunity_count": [
+      17794,
+      17762,
+      17724,
+      17704,
+      17668
+    ]
+  },
+  "elapsed_s": 12.858120999997482
+}
