@@ -1,5 +1,3 @@
-# 问题三: 先按骨架把全部频道扫一遍找到源, 再逐频道交会定位直到能清除.
-# 每个频道的状态和观测都记在 ChannelTrack 里, 20 个频道全部有结论才允许退出.
 from __future__ import annotations
 
 import math
@@ -10,15 +8,12 @@ import numpy as np
 from geometry_solver import localization_polygon, minimum_enclosing_circle
 from robot.client import ApiClient, ApiError
 
-
 Arr = np.ndarray
-
 
 @dataclass
 class Observation:
   site: Arr
   bearing_deg: float
-
 
 @dataclass
 class ChannelTrack:
@@ -27,7 +22,6 @@ class ChannelTrack:
   obs: list[Observation] = field(default_factory=list)
   radii: list[float] = field(default_factory=list)
   clear_site: Arr | None = None
-
 
 @dataclass
 class MissionResult:
@@ -38,18 +32,12 @@ class MissionResult:
   virtual_time_s: float
   complete: bool
 
-
 def q3_scan_sites(radius: float = 1200.0) -> Arr:
-  # 原点 + 半径 1200 m 的正六边形, 7 个点扫完能保证覆盖整个 1800 m 圆域:
-  # 最坏位置的最近站点距离 968.90 m, 比接收半径下限 1000 m 小 31 m, 这就是余量
   angle = np.arange(6) * math.pi / 3.0
   ring = radius * np.column_stack((np.cos(angle), np.sin(angle)))
   return np.vstack((np.zeros(2), ring))
 
-
 def polygon_clear_sites(poly: Arr, cover_rad: float = 20.0):
-  # 兜底用的网格: 步长取 20*sqrt(2), 保证矩形里任何一点到最近格点都不超过 20 m,
-  # 所以这个序列里必然有一个点能清掉目标
   p = np.asarray(poly, dtype=float)
   if p.ndim != 2 or p.shape[1] != 2 or len(p) == 0 or cover_rad <= 0:
     raise ValueError("invalid fallback polygon")
@@ -62,20 +50,15 @@ def polygon_clear_sites(poly: Arr, cover_rad: float = 20.0):
   ys = np.linspace(lo[1], hi[1], ny + 1)
   points = []
   for i, x in enumerate(xs):
-    # 蛇形走位, 省点移动距离
     row = ys if i % 2 == 0 else ys[::-1]
     points.extend(np.array([x, y]) for y in row)
   return np.asarray(points)
 
-
 def safe_lateral_site(site: Arr, bearing_deg: float, side: float = 1.0) -> Arr:
-  # 第二个测站点: 沿示向度前进 400 m, 再往侧面偏 300 m.
-  # 步长 500 m, 横向有偏移就保证了不和第一条视线共线
   angle = math.radians(bearing_deg)
   u = np.array([math.cos(angle), math.sin(angle)])
   v = np.array([-math.sin(angle), math.cos(angle)])
   return site + 400.0 * u + side * 300.0 * v
-
 
 class Q3Agent:
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
@@ -136,28 +119,23 @@ class Q3Agent:
     track.status = "positively_detected" if len(track.obs) == 1 else "localizing"
 
   def _region(self, track: ChannelTrack) -> tuple[Arr, Arr, float]:
-    # 把该频道所有观测的测向锥求交, 再取最小覆盖圆. 用外接多边形所以半径偏大, 不会把没收敛当成收敛
     sites = np.vstack([obs.site for obs in track.obs])
     bearings = np.array([obs.bearing_deg for obs in track.obs])
     poly, _ = localization_polygon(
       sites, bearings, err_deg=self.err_deg, n_bound=1440, outer=True)
     if len(poly) == 0:
-      # 交集空了说明观测自相矛盾, 记录故障, 不继续认证该频道
       track.status = "geometry_fault"
       raise ApiError(f"empty bearing intersection on channel {track.channel}")
     center, radius = minimum_enclosing_circle(poly)
     return poly, center, radius
 
   def _next_site(self, track: ChannelTrack, center: Arr, radius: float) -> Arr:
-    # 第一次观测后先走侧偏点拿第二条视线; 已经缩得够小就直接去圆心;
-    # 还大的话换到另一侧再测一次(这时候只有两次观测, 只能对称补)
     first = track.obs[0]
     if len(track.obs) == 1:
       return safe_lateral_site(first.site, first.bearing_deg, 1.0)
     if radius <= 900.0:
       if not self._seen(track, center):
         return center
-      # 圆心已测过时做小幅度绕行. step + radius < 1000, 仍保证有信号.
       step = min(40.0, max((1000.0 - radius) / 4.0, 0.01))
       for index in range(16):
         angle = math.radians(first.bearing_deg + 137.5 * index)
@@ -178,7 +156,6 @@ class Q3Agent:
     raise ApiError(f"guaranteed follow-up lost signal on channel {track.channel}")
 
   def _finish_channel(self, track: ChannelTrack) -> None:
-    # 单个频道最多测 max_obs 次, 半径收到 20 m 以内就清除
     last_poly: Arr | None = None
     for _ in range(self.max_obs):
       if track.status == "cleared":
@@ -223,7 +200,6 @@ class Q3Agent:
     return sorted(unknown, key=lambda channel: (channel - self.current_channel) % 20)
 
   def _discover(self, immediate: bool) -> None:
-    # 每个扫描点只测 unknown 频道. batch 模式先入队, 不当场往返定位.
     stop = False
     for site in self._scan_sites():
       for channel in self._channel_order():
@@ -234,7 +210,6 @@ class Q3Agent:
         self._record(track, site, body)
         if immediate and track.status != "cleared":
           self._finish_channel(track)
-        # 频道各不相同且源数最多 16, 达上界后其余频道可直接否定.
         if self._known_count() >= 16:
           stop = True
           break
@@ -249,7 +224,6 @@ class Q3Agent:
       ]
       if not pending:
         return
-      # 每次选距当前位置最近的安全侧偏点, 做一步滚动路径优化.
       def travel(track: ChannelTrack) -> float:
         first = track.obs[0]
         site = safe_lateral_site(first.site, first.bearing_deg)
@@ -265,11 +239,6 @@ class Q3Agent:
         self.absent_mask |= 1 << (track.channel - 1)
 
   def run(self, enter_body: dict[str, object] | None = None) -> MissionResult:
-    """执行一轮 Q3 定位清除.
-
-    enter_body 非空时表示调用方已经成功调用过 /enter (例如为了等待接口开放
-    而先行轮询), 此时不再重复调用, 否则模拟器会以 accepted=false 拒绝本局.
-    """
     if enter_body is None:
       enter_body = self.client.enter()
       self.entered_here = True
@@ -278,16 +247,13 @@ class Q3Agent:
       self._discover(immediate=self.schedule == "immediate")
       if self.schedule == "batch":
         self._finish_pending()
-      # 扫描集具有发现证书, 或者已达到 16 个异频源上界.
       self._certify_unknown()
-      # 20 个频道都拿到 cleared 或 absent_certified 才算完整, 否则不退出
       complete = self.cleared_mask | self.absent_mask == (1 << 20) - 1
       if not complete:
         raise ApiError("mission ended without a channel certificate")
       out = self.client.exit()
       self.virtual_s = float(out["virtual_time_s"])
     except Exception:
-      # 出任何问题都要先退出本局, 不然会被判超时
       try:
         self.client.exit()
       except Exception:

@@ -1,27 +1,18 @@
-# v3 问题四: 原 q4_agent_fast 与 q4_agent_fast_v2 合并到此单文件.
 from __future__ import annotations
 
 import math
 
 import numpy as np
 
-from robot.agent_fast_v3 import FastTrack, LocalV3, Q3FastAgent, Q3FastAgentV2
+from robot.q3_agent_fast import FastTrack, LocalProbe, Q3FastBase, Q3FastPlanner
 from robot.client import ApiClient, ApiError
-from robot.fast_geometry_v3 import (
+from robot.geometry_solver_fast import (
   Arr, compact_q4_sites, cover_cells, definitely_disjoint, direction_certificate,
   enclosing, packet_localization_bound, packet_sites, path_length, route_order,
 )
 from robot.q4_agent import q4_scan_sites
 
-
-# Q4: 双环 25 点方向完备扫描, 多站交会和局部覆盖兜底.
-
-
-
-
-
 def q4_ring_sites() -> Arr:
-  """36 个小三角形覆盖目标圆域, 每条边小于 1000 m."""
   inner_r, outer_r = 980.0, 1870.0
   angle = np.arange(12) * math.pi / 6.0
   inner = inner_r * np.column_stack((np.cos(angle), np.sin(angle)))
@@ -33,16 +24,9 @@ def q4_ring_sites() -> Arr:
                  2 * outer_r * math.sin(math.pi / 12.0), cross_edge)
   if max_edge >= 999.0 or outer_r * math.cos(math.pi / 12.0) <= 1800.0:
     raise ValueError("direction-complete ring certificate failed")
-  # 记内环为 I_i, 外环为 O_i. 网格三角形分别为:
-  # (0,I_i,I_{i+1}), (I_i,O_i,I_{i+1}), (O_i,O_{i+1},I_{i+1}).
-  # 三角形任意一点到其三个顶点都不超过最长边. 圆域位于网格内部,
-  # 因此任意源的 1000 m 邻域内测站的凸包包含该源, 与发射朝向无关.
-  # 源在网格边或顶点上时取相邻三角形并集, 仍有严格朝前的测站.
-  # 双环各走 11 条边, 从 I_11 接 O_11, 不增加闭环返回边.
   return np.vstack((np.zeros(2), inner, outer[np.r_[11, np.arange(11)]]))
 
-
-class Q4FastAgent(Q3FastAgent):
+class Q4FastBase(Q3FastBase):
   directional = True
 
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
@@ -57,7 +41,6 @@ class Q4FastAgent(Q3FastAgent):
     return q4_ring_sites() if self.scan == "rings" else q4_scan_sites()
 
   def _coarse_packet(self, track: FastTrack) -> None:
-    """沿当前多边形的长轴铺两排测站, 信号丢失后仍能从别的方位接近."""
     if track.poly is None:
       raise ApiError("missing directional region")
     origin = track.obs[0].site
@@ -68,8 +51,6 @@ class Q4FastAgent(Q3FastAgent):
     xs, ys = local @ u, local @ v
     lo, hi = float(xs.min()) - 60.0, float(xs.max()) + 60.0
     bottom, top = float(ys.min()) - 160.0, float(ys.max()) + 160.0
-    # 首次 1.01 度锥在 1500 m 内的横宽不到 53 m. 即便放宽到 2 度,
-    # 这里的矩形单元对角线仍远小于 1000 m, 提供连续域发现保证.
     nx = max(1, int(math.ceil((hi - lo) / 450.0)))
     ny = max(1, int(math.ceil((top - bottom) / 450.0)))
     sites = np.array([origin + x * u + y * v
@@ -120,7 +101,6 @@ class Q4FastAgent(Q3FastAgent):
     cover_time += 3.0 * (len(cells) - 1) + 5.0
     ring_r = 2.0 * track.radius + 40.0
     approach = abs(float(np.linalg.norm(self.pos - track.center)) - ring_r)
-    # 覆盖时耗取全遍历上界, 测站包只作调度估算, 不拿估算发证书.
     packet_time = (approach + 2.0 * ring_r) / 5.0 + 15.0
     return cover_time <= packet_time
 
@@ -130,14 +110,12 @@ class Q4FastAgent(Q3FastAgent):
     if track.poly is None:
       raise ApiError("missing directional fallback region")
     angle = math.radians(track.obs[0].bearing_deg)
-    # 覆盖所有测向和距离约束的交集, 不重新覆盖第一次的完整扇形.
     cells = cover_cells(track.poly, 19.5, angle)
     centers = np.vstack([enclosing(cell)[0] for cell in cells])
     for i in route_order(centers, self.pos):
       cell = cells[i]
       if definitely_disjoint(cell, track.poly):
         continue
-      # 只有整个单元都被已失败的清除圆覆盖时才跳过, 不删除部分重叠单元.
       if any(np.max(np.linalg.norm(cell - old, axis=1)) <= 19.999
              for old in track.failures):
         continue
@@ -148,11 +126,7 @@ class Q4FastAgent(Q3FastAgent):
     track.status = "geometry_fault"
     raise ApiError(f"directional coverage exhausted on channel {track.channel}")
 
-# Q4 v2: 保留已验证的定向定位和覆盖兜底, 叠加联合选路及 22 点证书.
-
-
-
-class Q4FastAgentV2(Q4FastAgent, Q3FastAgentV2):
+class Q4FastCertified(Q4FastBase, Q3FastPlanner):
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
                opportunistic: bool = True, inline: bool = True,
                scan: str = "compact") -> None:
@@ -170,16 +144,9 @@ class Q4FastAgentV2(Q4FastAgent, Q3FastAgentV2):
     sites = compact_q4_sites()
     ok, self.certificate_cells = direction_certificate(sites)
     self.compact_certified = ok
-    # 认证在 /enter 之前执行, 精度或计算预算不足就使用原 25 点解析证书.
     return sites if ok else q4_ring_sites()
 
-# Q4: 全局空清除预算, 大覆盖区域改用有误差上界的局部测站包.
-
-
-
-
-
-class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
+class Q4FastAgent(LocalProbe, Q4FastCertified):
   def __init__(self, *args, empty_limit: int = 5, **kwargs) -> None:
     if not 0 <= empty_limit <= 5:
       raise ValueError("empty_limit must be in 0..5")
@@ -200,7 +167,6 @@ class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
       if not all(any(np.max(np.linalg.norm(cell - p, axis=1)) <= 19.999
                      for p in disks) for cell in cells):
         raise ApiError("clear would exceed the mission-wide budget")
-      # 全区域被失败圆与本站圆覆盖, 真源不在失败圆内, 所以本站必定成功.
     ok = super()._clear(track, site, near, certified)
     if not ok:
       self.empty_calls += 1
@@ -214,7 +180,6 @@ class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
       return False
     angle = math.radians(track.obs[0].bearing_deg)
     count = len(cover_cells(track.poly, 19.5, angle))
-    # 遍历 k 个覆盖单元, 最坏 k-1 次失败. 预算按整局计算, 不按频道重置.
     return count - 1 <= self.empty_limit - self.empty_calls
 
   def _prefer_cover(self, track: FastTrack) -> bool:
@@ -235,7 +200,7 @@ class Q4FastAgentV3(LocalV3, Q4FastAgentV2):
       before, self.phase = self.phase, "budgeted_clear_cover"
       self.branches["budgeted_clear_cover"] += 1
       try:
-        Q4FastAgent._finish_cover(self, track)
+        Q4FastBase._finish_cover(self, track)
       finally:
         self.phase = before
       return

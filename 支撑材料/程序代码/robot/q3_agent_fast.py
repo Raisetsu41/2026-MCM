@@ -1,4 +1,3 @@
-# v3 问题三: 原 agent_fast 与 agent_fast_v2 合并到此单文件, v3 决策叠加在最上层.
 from __future__ import annotations
 
 import math
@@ -8,20 +7,13 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from geometry_solver import regular_bound
-from robot.agent import MissionResult, Observation, q3_scan_sites, safe_lateral_site
+from robot.q3_agent import MissionResult, Observation, q3_scan_sites, safe_lateral_site
 from robot.client import ApiClient, ApiError
-from robot.fast_geometry_v3 import (
+from robot.geometry_solver_fast import (
   Arr, bearing_radius_bound, cover_cells, cut, cut_bearing, cut_disk,
   definitely_disjoint, enclosing, forecast, guard, insertion, joint_route,
   packet_sites, route_order, unknown_negative_implied, visible_kernel,
 )
-
-
-# Q3: 扫描站复用方位, 阴性测量约束, 清除任务插入同一条开放路径.
-
-
-
-
 
 @dataclass
 class FastTrack:
@@ -37,8 +29,7 @@ class FastTrack:
   station_mask: int = 0
   opportunities: int = 0
 
-
-class Q3FastAgent:
+class Q3FastBase:
   directional = False
 
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
@@ -78,7 +69,6 @@ class Q3FastAgent:
     track.status = "clear_ready" if track.radius <= 19.999 else "localizing"
 
   def _range_order(self, poly: Arr, positive: Arr, negative: Arr) -> Arr:
-    # 同一接收半径下, d(G,positive) < d(G,negative). Q4 不能使用此式.
     delta = negative - positive
     if np.linalg.norm(delta) <= 1e-7:
       raise ApiError("conflicting measurements at the same position")
@@ -141,7 +131,6 @@ class Q3FastAgent:
       raise ApiError("uncertified clear is disabled in Q3")
     body = self.client.clear(float(site[0]), float(site[1]), track.channel)
     self.pos = site.copy()
-    # /clear 不执行测向频道切换, current_channel 仍是最后测向频道.
     self.clear_calls += 1
     self.virtual_s = float(body["virtual_time_s"])
     result = body.get("clear_result")
@@ -180,7 +169,6 @@ class Q3FastAgent:
       return False
     if np.max(np.linalg.norm(track.poly - site, axis=1)) < 999.99:
       return True
-    # 对整个外包围都比某个已接收点更近, 则未知接收半径也足够.
     for obs in track.obs:
       delta = site - obs.site
       value = (float(delta @ delta)
@@ -215,7 +203,6 @@ class Q3FastAgent:
       track.opportunities += 1
       self._sense(track, site)
       if track.status != "cleared" and track.poly is not None:
-        # 只在当前点本身覆盖整个定位区域时原地清除, 不打断站内批测.
         if np.max(np.linalg.norm(track.poly - site, axis=1)) <= 19.999:
           self._clear(track, site)
 
@@ -274,7 +261,6 @@ class Q3FastAgent:
       score = (travel + onward + 2.0 * pred) / 5.0
       score += 6.0 * max(0.0, math.log2(max(pred, 20.0) / 20.0))
       if self.directional:
-        # 沿过去可见方向靠近的点通常更好, 这里只改变排序, 不删假设.
         old = first.site - center
         new = site - center
         if float(old @ new) < 0:
@@ -313,7 +299,6 @@ class Q3FastAgent:
     self._finish_cover(track)
 
   def _close_packet(self, track: FastTrack) -> None:
-    """小区域外的六点测站包, 方向未知时也覆盖多个观测方位."""
     if track.center is None or track.radius > 300.0:
       return
     center, old = track.center.copy(), track.radius
@@ -321,7 +306,6 @@ class Q3FastAgent:
     phase = math.atan2(self.pos[1] - center[1], self.pos[0] - center[0])
     angles = phase + np.arange(6) * math.pi / 3.0
     sites = center + radius * np.column_stack((np.cos(angles), np.sin(angles)))
-    # 全部测站到区域内任意点至多 3*old+40 <= 940 m.
     for i in route_order(sites, self.pos):
       if self._ready_clear(track):
         return
@@ -330,7 +314,6 @@ class Q3FastAgent:
         return
 
   def _finish_cover(self, track: FastTrack) -> None:
-    # 极端退化时只测覆盖单元, 命中 5 m near 才清除, 保持 Q3 零试探清除.
     if self._ready_clear(track):
       return
     if track.poly is None:
@@ -338,7 +321,6 @@ class Q3FastAgent:
     angle = math.radians(track.obs[0].bearing_deg)
     cells = cover_cells(track.poly, 4.5, angle)
     centers = np.vstack([enclosing(cell)[0] for cell in cells])
-    # 小单元可能较多, 避免为兜底本身做立方级路径优化.
     left = set(range(len(cells)))
     while left:
       if self._ready_clear(track):
@@ -364,7 +346,6 @@ class Q3FastAgent:
         index, cost = insertion(track.center, self.pos, remaining)
         if index != 0:
           continue
-        # 若后续必经站就能达到清除精度, 暂缓这次主动靠近.
         if track.radius > 19.999 and any(
             self._cached(track, site) is None
             and self._forecast(track, site) <= 19.5 for site in remaining[:3]):
@@ -426,12 +407,7 @@ class Q3FastAgent:
         pass
       raise
 
-# Q3 v2: 全部剩余任务联合选路, 合并站内检测, 仅凭严格阴性推理跳过检测.
-
-
-
-
-class Q3FastAgentV2(Q3FastAgent):
+class Q3FastPlanner(Q3FastBase):
   def __init__(self, client: ApiClient, err_deg: float = 1.01,
                opportunistic: bool = True, inline: bool = True) -> None:
     super().__init__(client, err_deg, opportunistic, inline)
@@ -460,7 +436,6 @@ class Q3FastAgentV2(Q3FastAgent):
       bit = 1 << index
       for track in unknown:
         if not track.station_mask & bit and self._inferred_at(track, index):
-          # 推理单独计数, 不伪造响应, 不追加虚构测量到 history/negatives.
           track.station_mask |= bit
           self.inferred_negative_count += 1
       if all(t.station_mask & bit for t in unknown):
@@ -500,7 +475,6 @@ class Q3FastAgentV2(Q3FastAgent):
         continue
       if pred > 19.5 and pred >= 0.68 * track.radius:
         continue
-      # 单频道收尾时减少跳出去再跳回来的弱收益测量.
       if excluded and pred > 19.5 and pred >= 0.35 * track.radius:
         continue
       defer = False
@@ -543,7 +517,6 @@ class Q3FastAgentV2(Q3FastAgent):
                  if t.status == "unknown" and not t.station_mask & bit]
     optional = self._opportunity_jobs(site)
     required_channels = {t.channel for t in mandatory}
-    # 把 unknown 和已发现频道合在一次站内排程中, 当前频道优先, 不重复测量.
     for track in self._order_jobs(mandatory + optional):
       if track.status in {"cleared", "absent_certified"}:
         continue
@@ -567,7 +540,6 @@ class Q3FastAgentV2(Q3FastAgent):
         continue
       if self.todo and (not self.inline or track.radius > 300.0):
         continue
-      # 有必经站明显更接近且能预测达到清除精度时, 先等那一条真实观测.
       if self.todo and track.radius > 19.999 and any(
           self._cached(track, self.sites[i]) is None
           and not self._known_negative(track, self.sites[i])
@@ -619,13 +591,7 @@ class Q3FastAgentV2(Q3FastAgent):
         pass
       raise
 
-# 保留 v2 路由与全部证书, 仅替换局部测站决策并记录实际分支.
-
-
-
-
-
-class LocalV3:
+class LocalProbe:
   def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
     self.phase = "startup"
@@ -676,7 +642,6 @@ class LocalV3:
       if len(kernel):
         candidates.extend(kernel)
         candidates.append(kernel.mean(axis=0))
-        # 核的凸组合仍在核内, 沿真实可见方向接近可行区域.
         close = kernel[int(np.argmin(np.linalg.norm(kernel - center, axis=1)))]
         candidates.append(0.8 * close + 0.2 * kernel.mean(axis=0))
     else:
@@ -697,7 +662,6 @@ class LocalV3:
         continue
       travel = float(np.linalg.norm(site - self.pos))
       onward = max(0.0, float(np.linalg.norm(site - center)) - 20.0)
-      # 冻结同一个名义中心比较, 不用更长的进出路程换取更漂亮的预测.
       if travel + onward > base_distance + 1e-6:
         continue
       nominal = (travel + onward + 2 * self._forecast(track, site)) / 5.0
@@ -724,7 +688,6 @@ class LocalV3:
     old = track.radius
     sites = packet_sites(track.center.copy(), old, self.pos)
     try:
-      # 从最近角开始, 相邻弦依次遍历, 路长有闭式上界.
       for site in sites:
         if self._ready_clear(track):
           return
@@ -742,6 +705,5 @@ class LocalV3:
     finally:
       self.phase = before
 
-
-class Q3FastAgentV3(LocalV3, Q3FastAgentV2):
-  """Q3 不引入试探清除, v2 的发现和不存在证书原样保留."""
+class Q3FastAgent(LocalProbe, Q3FastPlanner):
+  pass

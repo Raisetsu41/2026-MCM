@@ -1,4 +1,3 @@
-# 生成问题 1 和问题 2 的数值结果与图表.
 from __future__ import annotations
 
 import csv
@@ -11,11 +10,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-from geometry_solver import (  # noqa: E402
+from geometry_solver import (
   continuous_two_site_error_bound,
   detected_candidate_mask,
   error_propagation,
@@ -27,7 +25,6 @@ from geometry_solver import (  # noqa: E402
   source_cone_samples,
 )
 
-
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["pdf.fonttype"] = 42
@@ -35,13 +32,11 @@ plt.rcParams["pdf.fonttype"] = 42
 fig_dir = root / "figures"
 res_dir = root / "results"
 
-
 def save_csv(path: Path, head: list[str], rows: list[list[float | int | str]]) -> None:
   with path.open("w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f)
     w.writerow(head)
     w.writerows(rows)
-
 
 def q1_result() -> dict[str, float | int]:
   g = np.array([500.0, 300.0])
@@ -106,7 +101,6 @@ def q1_result() -> dict[str, float | int]:
     "minimum_cover_radius_m": side / math.sqrt(3.0),
   }
 
-
 def q2_result() -> dict[str, float | int | list[float]]:
   s1 = np.array([0.0, 0.0])
   ang = 25.0
@@ -133,7 +127,6 @@ def q2_result() -> dict[str, float | int | list[float]]:
   ids = np.flatnonzero(res["pareto"])
   if len(ids) == 0:
     raise RuntimeError("pareto set is empty")
-  # 有 20 m 可行点时先最短时间, 否则先最小化误差界再比耗时.
   accurate = ids[res["sampled_error"][ids] <= 20.0]
   if len(accurate):
     pick = accurate[int(np.argmin(res["time_s"][accurate]))]
@@ -219,7 +212,6 @@ def q2_result() -> dict[str, float | int | list[float]]:
     "orthogonal_test_rms_m": float(ortho["rms"]),
   }
 
-
 def sensitivity_result() -> dict[str, list[float | int]]:
   g = np.array([500.0, 300.0])
   s = np.array([[-300.0, -100.0], [900.0, -500.0], [-100.0, 1000.0]])
@@ -272,7 +264,6 @@ def sensitivity_result() -> dict[str, list[float | int]]:
     "opportunity_count": cnt2,
   }
 
-
 def main() -> None:
   st = time.perf_counter()
   fig_dir.mkdir(parents=True, exist_ok=True)
@@ -287,7 +278,6 @@ def main() -> None:
     json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
   print(f"结果已写入 {res_dir / 'geometry_summary.json'}")
   print(f"运行耗时 {out['elapsed_s']:.3f} 秒")
-
 
 if __name__ == "__main__":
   main()

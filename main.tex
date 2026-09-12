@@ -7,10 +7,10 @@
 
 % ================= 宏包与格式 =================
 \makeatletter
-% 正文改五号(10.5pt), 行距 12.0pt*1.38 ~ 16.6pt, 与参考论文格式一致
+% 正文五号（10.5pt）；在保证可读性的前提下压缩到约 15pt 基线距
 \renewcommand\normalsize{\@setfontsize\normalsize{10.5}{12.0}}
 \makeatother
-\geometry{top=25mm,bottom=20mm,left=20mm,right=20mm}
+\geometry{top=25mm,bottom=25mm,left=25mm,right=25mm}
 \usepackage{etoolbox}
 \usepackage{ctex}
 \usepackage{graphicx}   % 插图（\includegraphics 必需）
@@ -25,8 +25,13 @@
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
 \renewcommand{\textbf}[1]{{\song\bfseries #1}}
-
-% 流程图样式（技术路线图等可用）
+\AtBeginDocument{%
+  \renewcommand{\baselinestretch}{1.25}\normalsize
+  \setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}
+  \setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}
+  \setlength{\abovedisplayshortskip}{3pt plus 2pt minus 1pt}
+  \setlength{\belowdisplayshortskip}{4pt plus 2pt minus 1pt}
+}
 
 % 流程图样式（技术路线图等可用）
 \usepackage{tikz}
@@ -42,14 +47,13 @@
 
 \begin{document}
 
-\pagenumbering{gobble}   % 封面、目录不显示页码
+\pagenumbering{arabic}   % 电子版摘要为第 1 页，正文连续编号
 \maketitle
 
 \input{sections/00-abstract}
 
 % \tableofcontents        % 需要目录时取消注释
 
-\pagenumbering{arabic}
 \input{sections/01-problem-restatement}
 \input{sections/02-assumptions-and-notation}
 \input{sections/03-problem1}
