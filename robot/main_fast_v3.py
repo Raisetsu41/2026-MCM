@@ -1,4 +1,4 @@
-# 独立 v3 入口, 动作账只统计 accepted 的唯一请求, 日志不含队号.
+# 唯一提速入口: 动作账只统计 accepted 的唯一请求, 日志不含队号.
 from __future__ import annotations
 
 import argparse
@@ -18,8 +18,16 @@ sys.path.insert(0, str(root))
 
 from robot.agent_fast_v3 import Q3FastAgentV3  # noqa: E402
 from robot.client import ApiClient  # noqa: E402
-from robot.fast_geometry import path_length  # noqa: E402
-from robot.main_fast import redact  # noqa: E402
+from robot.fast_geometry_v3 import path_length  # noqa: E402
+def redact(value: object, team: str) -> object:
+  if isinstance(value, dict):
+    return {key: "<redacted>" if key in {"robot_id", "team_no"}
+            else redact(item, team) for key, item in value.items()}
+  if isinstance(value, (list, tuple)):
+    return [redact(item, team) for item in value]
+  if isinstance(value, str) and team:
+    return value.replace(team, "<redacted>")
+  return value
 from robot.q4_agent_fast_v3 import Q4FastAgentV3  # noqa: E402
 
 
