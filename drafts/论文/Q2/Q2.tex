@@ -1,4 +1,7 @@
-# 问题分析
+% Q2 独立模块稿。合并进主论文时，只输入“问题二的模型建立与求解”部分，避免重复“问题分析、模型假设、符号说明”等全局章节。
+% 参考文献使用主论文 ref.bib 中的 BibTeX key；图片路径相对于本文件所在文件夹。
+
+\section{问题分析}
 
 问题二在已知第一检测点 $S_1$ 及其正常示向度 $\hat\theta$ 的条件下，要求设计第二检测点 $S_2$ 的选择策略，使两次测向交会后的定位区域尽可能小，并给出第二检测点的可行分布区域。与问题一不同，问题二面对的是一次观测加一次待执行观测：第一次示向度已经获得，但干扰源的真实距离、第二次示向度以及两次测量误差的具体实现均未知；第二次检测点的选择必须先保证能够再次收到信号，然后才谈定位精度。
 
@@ -10,143 +13,156 @@
 
 最坏情形离线目标定义为
 
-$$
+\[
 A_{\mathrm{true}}(X)
 =
 \sup_{\substack{G\in U_1\\
 \lVert X-G\rVert_2>5\mathrm{m}}}
 \sup_{|e_2|\le\delta}
 \operatorname{area}\left(P_{\mathrm{exact}}^{(2)}(X;G,e_2)\right).
-$$
+\]
 
 其中第二条示向锥由 $\hat\theta_2=\theta_2+e_2$ 生成，$\theta_2$ 是从 $S_2$ 指向 $G$ 的真实方位角。该目标同时覆盖源位置与第二次测角误差的不确定性；普通交会分支只纳入满足 $\lVert X-G\rVert_2>5\mathrm{m}$ 的源点。
 
 观测前用于快速排序的一阶面积代理为
 
-$$
+\[
 A_{\mathrm{proxy}}(X)=\pi F_1(X)^2.
-$$
+\]
 
 因此，$A_{\mathrm{proxy}}$ 只用于候选站址排序，不等于 $A_{\mathrm{true}}$；第二次观测返回正常示向度后，仍需按问题一模型重算实际区域、面积和最小覆盖圆。
 
 据此，本章按“第一次观测后的可能源集合—保证接收与最大半径参考区—面积代理与耗时指标—Pareto 选点—数值验证—问题一接口”的顺序建立模型。相关工作表明，无源测向定位的精度同时受测角误差和站址几何影响\cite{wang2019,zheng2014,uav2019}，基于 Fisher 信息矩阵的站址最优性分析也说明交会几何与站源距离必须联合考虑\cite{dogancay2005,bishop2010}；因此本章不会仅用“交会角越接近直角越好”这一单指标选点，而是在完整先验、接收距离和时间约束下综合比较。
 
-# 模型假设
+\section{模型假设}
 
-## 基本假设
+\subsection{基本假设}
 
 以下假设沿用问题一的平面几何框架，并补充问题二所需的检测过程约定。
 
-1. 所有检测点和干扰源均位于同一平面，忽略设备高度差异；检测点坐标已知且无误差。
-2. 干扰源位于以原点为圆心、半径为 $R_0=1800\mathrm{m}$ 的目标圆域内，即 $\lVert G\rVert_2\le R_0$。
-3. 第 $i$ 次示向度满足 $\hat\theta_i=\theta_i+e_i$，其中 $\theta_i$ 为检测点指向干扰源的真实方位角，$e_i$ 为测量误差，且 $|e_i|\le\delta=1^\circ$。主模型只使用误差界，不假定误差服从某种概率分布。
-4. 同一干扰源、同一频道的观测在短时间内具有相同的物理目标；干扰源在移动和第二次检测期间保持静止，且有效接收半径在此期间保持不变。
-5. 问题二针对题面给出的全向干扰源，其辐射不存在方向盲区。因此第一次正常测向只说明目标位于有效接收半径之内，不涉及方向遮挡分支；“未检测到信号”的方向歧义在问题四中单独讨论。
-6. 获得正常示向度意味着目标距离严格大于 $5\mathrm{m}$；首次未返回正常示向度的失败分支在问题三、问题四中讨论，第二次返回距离过近时则按本章的近距离分支转出，不能与零误差观测混同。
-7. 每个干扰源的有效接收半径 $r_{\mathrm{recv}}$ 事先未知，但满足 $1000\mathrm{m}\le r_{\mathrm{recv}}\le1500\mathrm{m}$。首次检测成功说明该源到 $S_1$ 的距离不超过 $r_{\mathrm{recv}}$，即 $r_{\mathrm{recv}}\ge\max\left(1000\mathrm{m},\lVert G-S_1\rVert_2\right)$；不依赖这一信息作最保守判断时，一律按 $1000\mathrm{m}$ 的核心区计算。
-8. 机器狗以 $5\mathrm{m/s}$ 沿直线前往第二检测点，到达后完成一次示向度检测需要 $5\mathrm{s}$。若调度中先切换到其他频道，则额外计 $1\mathrm{s}$；同一频道连续检测时不计换频时间。
-9. 第二检测点可以位于目标圆域内部或外部；目标圆域约束的是干扰源位置，不是机器狗的运动边界。
-10. 若两次观测对应的半平面、接收距离与目标圆域约束交集为空，则报告观测不相容或目标不在当前先验内，不能把空区域解释为零面积，也不能继续使用该区域进行清除判定。
+\begin{enumerate}
+\item 所有检测点和干扰源均位于同一平面，忽略设备高度差异；检测点坐标已知且无误差。
+\item 干扰源位于以原点为圆心、半径为 $R_0=1800\mathrm{m}$ 的目标圆域内，即 $\lVert G\rVert_2\le R_0$。
+\item 第 $i$ 次示向度满足 $\hat\theta_i=\theta_i+e_i$，其中 $\theta_i$ 为检测点指向干扰源的真实方位角，$e_i$ 为测量误差，且 $|e_i|\le\delta=1^\circ$。主模型只使用误差界，不假定误差服从某种概率分布。
+\item 同一干扰源、同一频道的观测在短时间内具有相同的物理目标；干扰源在移动和第二次检测期间保持静止，且有效接收半径在此期间保持不变。
+\item 问题二针对题面给出的全向干扰源，其辐射不存在方向盲区。因此第一次正常测向只说明目标位于有效接收半径之内，不涉及方向遮挡分支；“未检测到信号”的方向歧义在问题四中单独讨论。
+\item 获得正常示向度意味着目标距离严格大于 $5\mathrm{m}$；首次未返回正常示向度的失败分支在问题三、问题四中讨论，第二次返回距离过近时则按本章的近距离分支转出，不能与零误差观测混同。
+\item 每个干扰源的有效接收半径 $r_{\mathrm{recv}}$ 事先未知，但满足 $1000\mathrm{m}\le r_{\mathrm{recv}}\le1500\mathrm{m}$。首次检测成功说明该源到 $S_1$ 的距离不超过 $r_{\mathrm{recv}}$，即 $r_{\mathrm{recv}}\ge\max\left(1000\mathrm{m},\lVert G-S_1\rVert_2\right)$；不依赖这一信息作最保守判断时，一律按 $1000\mathrm{m}$ 的核心区计算。
+\item 机器狗以 $5\mathrm{m/s}$ 沿直线前往第二检测点，到达后完成一次示向度检测需要 $5\mathrm{s}$。若调度中先切换到其他频道，则额外计 $1\mathrm{s}$；同一频道连续检测时不计换频时间。
+\item 第二检测点可以位于目标圆域内部或外部；目标圆域约束的是干扰源位置，不是机器狗的运动边界。
+\item 若两次观测对应的半平面、接收距离与目标圆域约束交集为空，则报告观测不相容或目标不在当前先验内，不能把空区域解释为零面积，也不能继续使用该区域进行清除判定。
+\end{enumerate}
 
-## 建模约定
+\subsection{建模约定}
 
-1. 为比较不同第二检测点，本章先固定第一次观测的读数 $\hat\theta$、目标圆域和有效接收半径范围，再讨论一般选点规则。数值算例只用于给出一组可复现的站址，不代表任意第一次读数都对应同一个 $S_2$。
-2. 主模型采用确定性误差盒，不对两次示向误差作独立性或概率分布假设；位置不确定度由误差盒的一阶上界刻画。
-3. 站址评价分两阶段：移动前使用面积代理和耗时进行 Pareto 选点；第二次观测返回正常示向度后，使用问题一的精确半平面交会区域计算真实面积、直径或最小覆盖圆。
-4. 记两条交会视线的夹角为 $\gamma$。若 $|\sin\gamma|\le\varepsilon_{\mathrm{ang}}$，则认为视线在数值意义下共线退化，该站址不可用于定位，返回不可行状态而不是输出一个有限的误差指标。本文数值实现取 $\varepsilon_{\mathrm{ang}}=10^{-12}$，仅用于排除浮点舍入造成的伪可逆情形；该阈值不代表条件数已经合格，参考站址还须在完整先验上单独核验实际交角下界。
+\begin{enumerate}
+\item 为比较不同第二检测点，本章先固定第一次观测的读数 $\hat\theta$、目标圆域和有效接收半径范围，再讨论一般选点规则。数值算例只用于给出一组可复现的站址，不代表任意第一次读数都对应同一个 $S_2$。
+\item 主模型采用确定性误差盒，不对两次示向误差作独立性或概率分布假设；位置不确定度由误差盒的一阶上界刻画。
+\item 站址评价分两阶段：移动前使用面积代理和耗时进行 Pareto 选点；第二次观测返回正常示向度后，按问题一的交会模型重新计算区域，并在需要时显式处理圆弧边界，再据此计算面积、直径或最小覆盖圆。
+\item 记两条交会视线的夹角为 $\gamma$。若 $|\sin\gamma|\le\varepsilon_{\mathrm{ang}}$，则认为视线在数值意义下共线退化，该站址不可用于定位，返回不可行状态而不是输出一个有限的误差指标。本文数值实现取 $\varepsilon_{\mathrm{ang}}=10^{-12}$，仅用于排除浮点舍入造成的伪可逆情形；该阈值不代表条件数已经合格，参考站址还须在完整先验上单独核验实际交角下界。
+\end{enumerate}
 
-# 符号说明
+\section{符号说明}
 
-| 符号 | 含义 | 单位或取值 |
-| --- | --- | --- |
-| $S_i$ | 第 $i$ 个检测点位置 | m |
-| $G$ | 干扰源真实位置 | m |
-| $m$ | 参与交会的正常观测次数 | 个 |
-| $\hat\theta_i$ | 第 $i$ 次测得的示向度 | $(^\circ)$，进入误差传播时换算为 rad |
-| $\theta_i$ | 第 $i$ 个检测点指向干扰源的真实方位角 | $(^\circ)$ |
-| $e_i$ | 第 $i$ 次示向度误差，采用角度制 | $(^\circ)$ |
-| $\tilde e_i$ | 进入误差传播后的示向度误差，$\tilde e_i=\pi e_i/180$ | rad |
-| $\delta$ | 示向误差上界 | $1^\circ$ |
-| $\tilde\delta$ | 进入误差传播后的示向误差上界，$\tilde\delta=\pi\delta/180$ | rad |
-| $R_0$ | 目标圆域半径 | $1800\mathrm{m}$ |
-| $d(\phi)$ | 方位角 $\phi$ 对应的单位方向向量 | 无量纲 |
-| $\beta(\phi)$ | 首次观测方向射线的径向投影，$\beta(\phi)=S_1^{\mathsf T}d(\phi)$ | m |
-| $c(\phi),s(\phi)$ | 度制方位角的余弦、正弦，$c=\cos(\pi\phi/180)$，$s=\sin(\pi\phi/180)$ | 无量纲 |
-| $\tilde z_i$ | 第 $i$ 次度制示向度换算后的弧度读数，$\tilde z_i=\pi\hat\theta_i/180$ | rad |
-| $d_{\parallel},d_{\perp}$ | 以第一示向方向及其法向构造的单位正交基 | 无量纲 |
-| $a,b$ | 第二检测点在局部正交基下的坐标 | m |
-| $H_i^-,H_i^+$ | 第 $i$ 次测向对应的两条半平面约束 | 集合 |
-| $\rho$ | 目标到第一检测点的距离 | m |
-| $r_i$ | 目标到第 $i$ 个检测点的距离 | m |
-| $\phi$ | 目标的真实方位角 | $(^\circ)$ |
-| $\eta$ | 第一次观测真实方位角相对名义读数的偏移，$\phi=\hat\theta+\eta$ | $(^\circ)$，$|\eta|\le\delta$ |
-| $\rho_{\rm lo},\rho_{\rm hi}$ | 给定方位角下目标圆域截断后的径向端点 | m |
-| $I_f$ | 目标圆域截断后仍可行的方位角集合 | 集合 |
-| $R_f(\phi)$ | 给定方位角下同时满足首次接收距离与目标圆域约束的径向集合 | 集合（元素单位为 m） |
-| $U_1$ | 第一次正常测向后的完整可能源集合 | 集合 |
-| $X$ | 待选择的第二检测点位置 | m |
-| $S_2$ | 给定验证场景和 $T_{\max}=260\mathrm{s}$ 下选出的参考第二检测点 | m |
-| $r_{\mathrm{recv}}$ | 干扰源有效接收半径 | $1000\sim1500\mathrm{m}$ |
-| $\mathcal C_{1000}$ | 对 $U_1$ 保证在 $1000\mathrm{m}$ 内可接收的第二检测点集合，即保守核心区 | 集合 |
-| $\mathcal C_{\det}$ | 利用首次成功检测信息的条件保证区，即主候选区 | 集合 |
-| $\mathcal C_{\mathrm{reg},N}$ | 在有限源点样本 $U_{1,N}$ 上排除近距分支和共线退化的数值可行域 | 集合 |
-| $q_{1500}(X)$ | 点 $X$ 对 $U_1$ 的 1500 m 覆盖率 | 无量纲 |
-| $\alpha$ | 机会区要求的最小覆盖率 | $0<\alpha\le1$ |
-| $\mathcal C_{1500}^{\mathrm{all}}$ | 接收半径取其上限 1500 m 时，对全部 $G\in U_1$ 均有效的参考区 | 集合 |
-| $\mathcal C_{1500}^{\mathrm{opp}}(\alpha)$ | 1500 m 覆盖率不小于 $\alpha$ 的机会区 | 集合 |
-| $F_{\mathrm{core}}(X)$ | 核心保证区的最远距离残差，$F_{\mathrm{core}}(X)\le0$ 等价于 $X\in\mathcal C_{1000}$ | m |
-| $T_{\max}$ | 第二次检测的可用时间预算 | s |
-| $\mathbf 1_{\mathrm{switch}}$ | 是否发生换频的指示量 | $0$ 或 $1$ |
-| $J_i$ | 第 $i$ 次测向模型对目标位置的 Jacobian 行向量 | $\mathrm{rad/m}$ |
-| $J$ | 两次测向的 Jacobian 堆叠矩阵 | $\mathrm{rad/m}$ |
-| $K_{\mathrm{LS}}$ | 等权最小二乘的位置误差增益矩阵 | $\mathrm{m/rad}$ |
-| $u$ | 两次示向误差盒的顶点 | $u\in\{-1,1\}^2$ |
-| $f_{1,\mathrm{loc}}(G;X)$ | 固定目标 $G$ 与候选点 $X$ 时的一阶局部误差界 | m |
-| $F_1(X)$ | 对完整 $U_1$ 取上确界后的连续误差指标 | m |
-| $U_{1,N}$ | 用于数值计算的有限源点样本集，$U_{1,N}\subseteq\overline{U_1}$，包含径向端点 | 集合 |
-| $\widehat F_{1,N}$ | $F_1$ 在有限源点样本 $U_{1,N}$ 上的数值估计 | m |
-| $\widehat A_N$ | 由有限样本指标 $\widehat F_{1,N}$ 得到的面积代理估计 | $\mathrm{m^2}$ |
-| $r_{\mathrm{opt}}$ | 光学定位与清除装置的有效作用距离 | $20\mathrm{m}$ |
-| $A_{\mathrm{loc}}$ | 一阶误差平行四边形的局部面积 | $\mathrm{m^2}$ |
-| $R_{\mathrm{MEC}}(P)$ | 集合 $P$ 的最小覆盖圆半径 | m |
-| $O$ | 用于覆盖或清除判据的候选圆心 | m |
-| $A_{\mathrm{true}}(X)$ | 第二次源点位置与示向误差取最坏情形时的离线定位面积上确界 | $\mathrm{m^2}$ |
-| $A_{\mathrm{proxy}}$ | 局部线性化误差集的一阶包络面积，仅用于观测前排序 | $\mathrm{m^2}$ |
-| $f_1(X)$ | 数值计算中的一阶精度目标，$f_1(X)=\widehat F_{1,N}(X)$ | m |
-| $f_2(X)$ | 第二次检测环节的局部耗时（移动、可能换频与测向） | s |
-| $\gamma$ | 两条交会视线所在直线所成的锐角；直角情形取 $90^\circ$ | $(^\circ)$ |
-| $\kappa_{\mathrm{ang}}$ | 两视线交角的正弦绝对值，用于检查近平行退化 | 无量纲 |
-| $\varepsilon_{\mathrm{ang}}$ | 视线共线判定的数值阈值 | $10^{-12}$ |
-| $\mathrm{GDOP}$ | 几何精度衰减因子 | $\mathrm{m/rad}$ |
-| $P_{\mathrm{exact}}^{(m)}$ | 问题二中 $m$ 次正常观测的精确交会区域，含示向锥和接收距离约束 | 集合 |
-| $K_{\mathrm{out}}^{(m)}$ | 暂不删除近距圆盘的凸超集 | 集合 |
-| $\mathcal P$ | 精度与耗时意义下的 Pareto 非支配候选点集 | 集合 |
+\begin{longtable}{@{}p{0.17\textwidth}p{0.64\textwidth}p{0.12\textwidth}@{}}
+\toprule
+符号 & 含义 & 单位或取值 \\
+\midrule
+\endfirsthead
+\toprule
+符号 & 含义 & 单位或取值 \\
+\midrule
+\endhead
+$S_i$ & 第 $i$ 个检测点位置 & m \\
+$G$ & 干扰源真实位置 & m \\
+$m$ & 参与交会的正常观测次数 & 个 \\
+$\hat\theta_i$ & 第 $i$ 次测得的示向度 & $(^\circ)$，进入误差传播时换算为 rad \\
+$\theta_i$ & 第 $i$ 个检测点指向干扰源的真实方位角 & $(^\circ)$ \\
+$e_i$ & 第 $i$ 次示向度误差，采用角度制 & $(^\circ)$ \\
+$\tilde e_i$ & 进入误差传播后的示向度误差，$\tilde e_i=\pi e_i/180$ & rad \\
+$\delta$ & 示向误差上界 & $1^\circ$ \\
+$\tilde\delta$ & 进入误差传播后的示向误差上界，$\tilde\delta=\pi\delta/180$ & rad \\
+$R_0$ & 目标圆域半径 & $1800\mathrm{m}$ \\
+$d(\phi)$ & 方位角 $\phi$ 对应的单位方向向量 & 无量纲 \\
+$\beta(\phi)$ & 首次观测方向射线的径向投影，$\beta(\phi)=S_1^{\mathsf T}d(\phi)$ & m \\
+$c(\phi),s(\phi)$ & 度制方位角的余弦、正弦，$c=\cos(\pi\phi/180)$，$s=\sin(\pi\phi/180)$ & 无量纲 \\
+$\tilde z_i$ & 第 $i$ 次度制示向度换算后的弧度读数，$\tilde z_i=\pi\hat\theta_i/180$ & rad \\
+$d_{\parallel},d_{\perp}$ & 以第一示向方向及其法向构造的单位正交基 & 无量纲 \\
+$a,b$ & 第二检测点在局部正交基下的坐标 & m \\
+$H_i^-,H_i^+$ & 第 $i$ 次测向对应的两条半平面约束 & 集合 \\
+$\rho$ & 目标到第一检测点的距离 & m \\
+$r_i$ & 目标到第 $i$ 个检测点的距离 & m \\
+$\phi$ & 目标的真实方位角 & $(^\circ)$ \\
+$\eta$ & 第一次观测真实方位角相对名义读数的偏移，$\phi=\hat\theta+\eta$ & $(^\circ)$，$|\eta|\le\delta$ \\
+$\rho_{\rm lo},\rho_{\rm hi}$ & 给定方位角下目标圆域截断后的径向端点 & m \\
+$I_f$ & 目标圆域截断后仍可行的方位角集合 & 集合 \\
+$R_f(\phi)$ & 给定方位角下同时满足首次接收距离与目标圆域约束的径向集合 & 集合（元素单位为 m） \\
+$U_1$ & 第一次正常测向后的完整可能源集合 & 集合 \\
+$X$ & 待选择的第二检测点位置 & m \\
+$S_2$ & 给定验证场景和 $T_{\max}=260\mathrm{s}$ 下选出的参考第二检测点 & m \\
+$r_{\mathrm{recv}}$ & 干扰源有效接收半径 & $1000\sim1500\mathrm{m}$ \\
+$\mathcal C_{1000}$ & 对 $U_1$ 保证在 $1000\mathrm{m}$ 内可接收的第二检测点集合，即保守核心区 & 集合 \\
+$\mathcal C_{\det}$ & 利用首次成功检测信息的条件保证区，即主候选区 & 集合 \\
+$\mathcal C_{\mathrm{reg},N}$ & 在有限源点样本 $U_{1,N}$ 上排除近距分支和共线退化的数值可行域 & 集合 \\
+$q_{1500}(X)$ & 点 $X$ 对 $U_1$ 的 1500 m 覆盖率 & 无量纲 \\
+$\alpha$ & 机会区要求的最小覆盖率 & $0<\alpha\le1$ \\
+$\mathcal C_{1500}^{\mathrm{all}}$ & 接收半径取其上限 1500 m 时，对全部 $G\in U_1$ 均有效的参考区 & 集合 \\
+$\mathcal C_{1500}^{\mathrm{opp}}(\alpha)$ & 1500 m 覆盖率不小于 $\alpha$ 的机会区 & 集合 \\
+$F_{\mathrm{core}}(X)$ & 核心保证区的最远距离残差，$F_{\mathrm{core}}(X)\le0$ 等价于 $X\in\mathcal C_{1000}$ & m \\
+$T_{\max}$ & 第二次检测的可用时间预算 & s \\
+$\mathbf 1_{\mathrm{switch}}$ & 是否发生换频的指示量 & $0$ 或 $1$ \\
+$J_i$ & 第 $i$ 次测向模型对目标位置的 Jacobian 行向量 & $\mathrm{rad/m}$ \\
+$J$ & 两次测向的 Jacobian 堆叠矩阵 & $\mathrm{rad/m}$ \\
+$K_{\mathrm{LS}}$ & 等权最小二乘的位置误差增益矩阵 & $\mathrm{m/rad}$ \\
+$u$ & 两次示向误差盒的顶点 & $u\in\{-1,1\}^2$ \\
+$f_{1,\mathrm{loc}}(G;X)$ & 固定目标 $G$ 与候选点 $X$ 时的一阶局部误差界 & m \\
+$F_1(X)$ & 对完整 $U_1$ 取上确界后的连续误差指标 & m \\
+$U_{1,N}$ & 用于数值计算的有限源点样本集，$U_{1,N}\subseteq\overline{U_1}$，包含径向端点 & 集合 \\
+$\widehat F_{1,N}$ & $F_1$ 在有限源点样本 $U_{1,N}$ 上的数值估计 & m \\
+$\widehat A_N$ & 由有限样本指标 $\widehat F_{1,N}$ 得到的面积代理估计 & $\mathrm{m^2}$ \\
+$r_{\mathrm{opt}}$ & 光学定位与清除装置的有效作用距离 & $20\mathrm{m}$ \\
+$A_{\mathrm{loc}}$ & 一阶误差平行四边形的局部面积 & $\mathrm{m^2}$ \\
+$R_{\mathrm{MEC}}(P)$ & 集合 $P$ 的最小覆盖圆半径 & m \\
+$O$ & 用于覆盖或清除判据的候选圆心 & m \\
+$A_{\mathrm{true}}(X)$ & 第二次源点位置与示向误差取最坏情形时的离线定位面积上确界 & $\mathrm{m^2}$ \\
+$A_{\mathrm{proxy}}$ & 局部线性化误差集的一阶包络面积，仅用于观测前排序 & $\mathrm{m^2}$ \\
+$f_1(X)$ & 数值计算中的一阶精度目标，$f_1(X)=\widehat F_{1,N}(X)$ & m \\
+$f_2(X)$ & 第二次检测环节的局部耗时（移动、可能换频与测向） & s \\
+$\gamma$ & 两条交会视线所在直线所成的锐角；直角情形取 $90^\circ$ & $(^\circ)$ \\
+$\kappa_{\mathrm{ang}}$ & 两视线交角的正弦绝对值，用于检查近平行退化 & 无量纲 \\
+$\varepsilon_{\mathrm{ang}}$ & 视线共线判定的数值阈值 & $10^{-12}$ \\
+$\mathrm{GDOP}$ & 几何精度衰减因子 & $\mathrm{m/rad}$ \\
+$P_{\mathrm{exact}}^{(m)}$ & 问题二中 $m$ 次正常观测的精确交会区域，含示向锥和接收距离约束 & 集合 \\
+$K_{\mathrm{out}}^{(m)}$ & 暂不删除近距圆盘的凸超集 & 集合 \\
+$\mathcal P$ & 精度与耗时意义下的 Pareto 非支配候选点集 & 集合 \\
+\bottomrule
+\end{longtable}
 
 二维方向向量沿用问题一的定义
 
-$$
+\[
 d(\phi)=\left(c(\phi),s(\phi)\right)^{\mathsf T},\qquad c(\phi)=\cos\frac{\pi\phi}{180},\qquad s(\phi)=\sin\frac{\pi\phi}{180}.
-$$
+\]
 
 问题一已经使用 $H_i^-,H_i^+$ 表示两条半平面约束，因此本章将测向模型的 Jacobian 记为 $J$，不再用 $H$ 表示 Jacobian。问题一的精确定位区域仍记为 $P_{\mathrm{exact}}$；问题二在沿用同一组示向锥的同时增加了成功接收距离约束，因而用 $P_{\mathrm{exact}}^{(m)}$ 特指问题二的精确区域。$m=2$ 时，它是在问题一对应两站示向交会区域的基础上再与接收距离条件求交，因此是问题一对应区域的子集，而不可能因新增约束而扩大。
 
 表中示向度、方位角与交会夹角均沿用问题一的度制，$\hat\theta$ 表示第一次示向度读数，$\hat\theta_2$ 表示第二次测向的待观测量；上式中的 $\phi$ 以度为单位并已显式换算为弧度。测向模型、Jacobian 和误差传播统一使用弧度制：记 $\tilde z_i=\pi\hat\theta_i/180$、$\tilde e_i=\pi e_i/180$，并有 $\tilde\delta=\pi\delta/180$。同一公式内不混用角度制和弧度制。本章不引入误差分布假设，$\delta$ 始终是确定性误差上界。
 
-# 问题二的模型建立与求解
+\section{问题二的模型建立与求解}
 
-## 模型准备
+\subsection{模型准备}
 
-### 第一次观测后的可能源集合
+\subsubsection{第一次观测后的可能源集合}
 
 第一次正常示向度的读数为 $\hat\theta$，误差上界为 $\delta$，因此目标的真实方位角满足
 
-$$
+\[
 \left|\operatorname{wrap}_{180}(\phi-\hat\theta)\right|\le\delta,
-$$
+\]
 
 其中 $\operatorname{wrap}_{180}(\psi)=((\psi+180^\circ)\bmod 360^\circ)-180^\circ$，表示把度制角差化为 $[-180^\circ,180^\circ)$ 内的最小有符号角。由正常示向度可知目标到 $S_1$ 的距离大于 $5\mathrm{m}$；由有效接收半径上限可知该距离不超过 $1500\mathrm{m}$。与目标圆域求交后，得到完整可能源集合
 
-$$
+\[
 U_1=
 \left\{
 G=S_1+\rho d(\phi):
@@ -154,94 +170,94 @@ G=S_1+\rho d(\phi):
 \left|\operatorname{wrap}_{180}(\phi-\hat\theta)\right|\le\delta,\ 
 \lVert G\rVert_2\le R_0
 \right\}.
-$$
+\]
 
 这里 $U_1$ 是二维环形扇区，而不是一条射线或线段。距离不确定性与角度不确定性同等重要：若先把目标固定在某个名义距离上，后续“保证接收”和“面积最小”都会失去对真实先验的覆盖意义。
 
-### 目标圆域造成的径向截断
+\subsubsection{目标圆域造成的径向截断}
 
 对给定方向 $\phi$，令
 
-$$
+\[
 \beta(\phi)=S_1^{\mathsf T}d(\phi),
 \qquad
 \Delta(\phi)=\beta(\phi)^2+R_0^2-\lVert S_1\rVert_2^2.
-$$
+\]
 
 当 $\Delta(\phi)<0$ 时，该方向射线与目标圆域不相交；当 $\Delta(\phi)\ge0$ 时，圆域对应的闭径向区间为
 
-$$
+\[
 \rho_{\rm lo}(\phi)=-\beta(\phi)-\sqrt{\Delta(\phi)},
 \qquad
 \rho_{\rm hi}(\phi)=-\beta(\phi)+\sqrt{\Delta(\phi)}.
-$$
+\]
 
 因此，可将该方向的可行径向集合统一写为
 
-$$
+\[
 R_f(\phi)=(5,1500]\cap[\rho_{\rm lo}(\phi),\rho_{\rm hi}(\phi)].
-$$
+\]
 
 若 $\Delta(\phi)<0$ 或上述交集为空，则 $R_f(\phi)=\emptyset$；若交集非空，则记 $I_f=\{\phi:\left|\operatorname{wrap}_{180}(\phi-\hat\theta)\right|\le\delta,\ R_f(\phi)\ne\emptyset\}$。这样定义后，圆域与射线相切且切点距离大于 $5\mathrm{m}$ 时的单点集合 $R_f(\phi)=\{\rho_0\}$、下端点恰为 $5\mathrm{m}$ 的半开区间情形，以及圆域边界与接收距离端点重合的情形都不会被漏掉。若可行径向集合的下端点来自开条件 $\rho>5\mathrm{m}$，计算极值时按 $\rho\to5\mathrm{m}^+$ 的极限处理。于是
 
-$$
+\[
 U_1=
 \left\{
 S_1+\rho d(\phi):
 \left|\operatorname{wrap}_{180}(\phi-\hat\theta)\right|\le\delta,
 \ \phi\in I_f,\ \rho\in R_f(\phi)
 \right\}.
-$$
+\]
 
 该表达式把第一次测向的角度误差、距离范围和目标圆域统一到同一个集合中。后续求最大值或上确界时，必须区分 $R_f(\phi)$ 的闭端点和开端点，并保留单点退化情形；若最优值只在 $\rho\to5\mathrm{m}^+$ 的极限处达到，应使用上确界表述。若 $U_1=\emptyset$，说明观测、接收范围与目标圆域不相容，应停止选点并报告无可行源，而不是让空集上的上确界失去定义。
 
-### 数值验证场景
+\subsubsection{数值验证场景}
 
 为给出一组可复现的结果，取
 
-$$
+\[
 S_1=(0,0),\qquad \hat\theta=25^\circ,\qquad \delta=1^\circ,
-$$
+\]
 
-$$
+\[
 R_0=1800\mathrm{m},\qquad 5<\rho\le1500\mathrm{m}.
-$$
+\]
 
 此时 $S_1$ 位于目标圆域中心，且 $1500<1800$，目标圆域不会进一步截断 $5<\rho\le1500$ 的扇形，因此
 
-$$
+\[
 U_1=
 \left\{
 \rho d(25^\circ+\eta):
 5<\rho\le1500,\ |\eta|\le1^\circ
 \right\}.
-$$
+\]
 
 该场景与问题一数值算例中的 $S_1=(-300,-100)$ 和 $\hat\theta_1\approx26.57^\circ$ 不是同一组数据，二者不能直接作数值比较；若需比较，必须重新代入相同的 $S_1$、示向读数和误差界。下文的候选区计数和参考站址均针对本验证场景给出。
 
-## 模型建立
+\subsection{模型建立}
 
-### 保证接收区与最大半径参考区
+\subsubsection{保证接收区与最大半径参考区}
 
 由于每个干扰源的有效接收半径可能低至 $1000\mathrm{m}$，若要求第二次检测对 $U_1$ 中所有可能源都保证有信号，则第二检测点 $X$ 必须满足
 
-$$
+\[
 \sup_{G\in U_1}\lVert X-G\rVert_2\le1000\mathrm{m}.
-$$
+\]
 
 因此定义 $1000\mathrm{m}$ 核心保证区。它只使用接收半径的先验下界 $r_{\mathrm{recv}}\ge1000\mathrm{m}$，不利用首次成功检测所附加的 $r_{\mathrm{recv}}\ge\lVert G-S_1\rVert_2$ 这一信息，因而筛选条件最严格，得到的候选区也最保守。
 
-$$
+\[
 \mathcal C_{1000}
 =
 \left\{
 X:
 \sup_{G\in U_1}\lVert X-G\rVert_2\le1000\mathrm{m}
 \right\}.
-$$
+\]
 
 实际上，第一次检测已经收到正常示向度，因此对距离 $S_1$ 为 $\rho=\lVert G-S_1\rVert_2$ 的可能源 $G$，必有 $r_{\mathrm{recv}}\ge\rho$，于是 $r_{\mathrm{recv}}\ge\max(1000\mathrm{m},\rho)$。利用这一信息，主候选区可取为条件保证区
-$$
+\[
 \mathcal C_{\det}
 =
 \left\{
@@ -249,11 +265,11 @@ X:
 \lVert X-G\rVert_2\le\max(1000\mathrm{m},\lVert G-S_1\rVert_2),
 \quad \forall G\in U_1
 \right\}.
-$$
+\]
 
 对任意 $G\in U_1$，条件保证区内的点 $X$ 到 $G$ 的距离不超过 $r_{\mathrm{recv}}$ 的下界，故第二次检测必定收到信号；同时显然有 $\mathcal C_{1000}\subseteq\mathcal C_{\det}$。为便于计算，本章在不含目标圆域约束的完整楔形上定义
 
-$$
+\[
 \begin{aligned}
 \widetilde{\mathcal C}_{\det}^{\mathrm{in}}
 &=\left\{X:\vphantom{\left|\operatorname{wrap}_{180}\right|}\right.\ 
@@ -263,31 +279,31 @@ $$
 \lVert X-S_1-\rho d(\phi)\rVert_2
 \le1000\mathrm{m}\right\}.
 \end{aligned}
-$$
+\]
 
 该集合满足 $\widetilde{\mathcal C}_{\det}^{\mathrm{in}}\subseteq\mathcal C_{\det}$：当目标圆域不截断扇形时，结合后文由三角不等式给出的径向端点比较，它与 $\mathcal C_{\det}$ 等价；当圆域截断扇形时，它是安全但不一定完整的条件保证区。若需要一般截断场景下的完整边界，应按 $R_f(\phi)$ 的端点是否来自圆域、径向区间是否退化为单点以及 $\rho=1000\mathrm{m}$ 的分段点划分方向区间，逐段比较端点与驻点；本文的数值验证场景不截断，故可精确使用 $\mathcal C_{\det}$。
 
 若仅按接收半径上限 $1500\mathrm{m}$ 计算，先定义点 $X$ 对 $U_1$ 的覆盖率
 
-$$
+\[
 q_{1500}(X)
 =
 \frac{\left|\left\{G\in U_1:\lVert X-G\rVert_2\le1500\mathrm{m}\right\}\right|}{\lvert U_1\rvert}.
-$$
+\]
 
 其中分子、分母均按二维面积度量理解；若 $U_1$ 退化为线段或单点，则改用其长度或计数测度，并单独说明，不能直接把二维面积之比写成 $0/0$。相应地，定义 $\mathcal C_{1500}^{\mathrm{all}}=\{X:q_{1500}(X)=1\}$ 和给定覆盖比例 $\alpha$ 时的机会区
 
-$$
+\[
 \mathcal C_{1500}^{\mathrm{opp}}(\alpha)
 =
 \left\{X:q_{1500}(X)\ge\alpha\right\}.
-$$
+\]
 
 $\mathcal C_{1500}^{\mathrm{all}}$ 是在接收半径取其上限 $1500\mathrm{m}$ 时、对全部可能源点均有效的参考区，并不代表真实接收半径就是 $1500\mathrm{m}$；$\mathcal C_{1500}^{\mathrm{opp}}(\alpha)$ 才表示允许部分源点未被覆盖的风险机会区。由于本章未对源点位置或接收条件附加概率分布，$q_{1500}(X)$ 只表示几何面积覆盖率，不能解释为接收成功的概率。二者均不能替代保证区，本章以 $\mathcal C_{\det}$ 为主候选区，以 $\mathcal C_{1000}$ 为保守对照。
 
 四类集合的层级关系为
 
-$$
+\[
 \mathcal C_{1000}
 \subseteq
 \mathcal C_{\det}
@@ -296,59 +312,59 @@ $$
 \subseteq
 \mathcal C_{1500}^{\mathrm{opp}}(\alpha),
 \qquad 0<\alpha\le1.
-$$
+\]
 
 其中第一层扩大来自首次成功检测提供的附加信息，利用该信息后仍可证明接收保证；后两层扩大分别依赖“接收半径取上限”的参考假设和“只覆盖比例 $\alpha$”的风险放松，因而保证强度才逐步减弱。
 
-### 核心保证区的边界方程
+\subsubsection{核心保证区的边界方程}
 
 在第一示向坐标系中，取
 
-$$
+\[
 d_{\parallel}=d(\hat\theta),
 \qquad
 d_{\perp}=(-d_{\parallel,y},d_{\parallel,x}),
-$$
+\]
 
 并把第二检测点写为
 
-$$
+\[
 X=S_1+a d_{\parallel}+b d_{\perp}.
-$$
+\]
 
 对任意可能源
 
-$$
+\[
 G=S_1+\rho d(\hat\theta+\eta),
 \qquad
 |\eta|\le\delta,
-$$
+\]
 
 有
 
-$$
+\[
 \begin{aligned}
 \ell_{\rho,\eta}^2(a,b)
 &=\lVert X-G\rVert_2^2\\
 &=\left(a-\rho c(\hat\theta+\eta)\right)^2+\left(b-\rho s(\hat\theta+\eta)\right)^2.
 \end{aligned}
-$$
+\]
 
 固定 $\eta$ 时，$\ell_{\rho,\eta}^2$ 关于 $\rho$ 是开口向上的二次函数，因此其最大值只可能由径向区间的两个端点或开端点的极限值给出。固定径向端点时，$\eta$ 的极值候选包括区间端点以及满足
 
-$$
+\[
 a\,s(\hat\theta+\eta)-b\,c(\hat\theta+\eta)=0
-$$
+\]
 
 的驻点。对于核心保证区，定义最远距离残差
 
-$$
+\[
 F_{\mathrm{core}}(X)=
 \sup_{\phi\in I_f}\sup_{\rho\in R_f(\phi)}
 \left\lVert
 X-S_1-\rho d(\phi)
 \right\rVert_2-1000\mathrm{m}.
-$$
+\]
 
 因此 $\mathcal C_{1000}=\{X:F_{\mathrm{core}}(X)\le0\}$，其边界由 $F_{\mathrm{core}}(X)=0$ 描述；这样写也把候选点在边界内侧、边界上及边界外的情形统一到同一个判别量中。
 
@@ -356,27 +372,27 @@ $$
 
 条件保证区的判据在扇形未被目标圆域截断时，等价于对径向区间 $5<\rho\le1000\mathrm{m}$ 的部分要求最远距离不超过 $1000\mathrm{m}$。对 $\rho\le1000\mathrm{m}$ 的可能源，判据中的右端就是 $1000\mathrm{m}$；对 $\rho>1000\mathrm{m}$ 的可能源 $G$，取同一方向上的 $G_0=S_1+1000\mathrm{m}\,d(\phi)$，由三角不等式
 
-$$
+\[
 \lVert X-G\rVert_2
 \le\lVert X-G_0\rVert_2+(\rho-1000\mathrm{m})
 \le1000\mathrm{m}+(\rho-1000\mathrm{m})=\rho,
-$$
+\]
 
 故在 $(5\mathrm{m},1000\mathrm{m}]$ 上满足 $1000\mathrm{m}$ 距离约束的候选点自动满足完整判据。反之，完整判据对 $\rho\le1000\mathrm{m}$ 的源点直接给出同一距离约束，因此两侧合起来得到所述等价关系。检验所使用的辅助点 $G_0$ 不必属于 $U_1$，其作用只是在同一条可能性射线上比较距离；若目标圆域截断了扇形，这种未截断楔形检验只是 $\mathcal C_{\det}$ 的一个保守可行子集，不会把不保证接收的点误判为保证点。
 
-### 时间约束
+\subsubsection{时间约束}
 
 第二次检测环节的局部耗时定义为
 
-$$
+\[
 f_2(X)=
 \frac{\lVert X-S_1\rVert_2}{5}
 +5+\mathbf 1_{\mathrm{switch}}.
-$$
+\]
 
 其中速度单位为 $\mathrm{m/s}$，检测时间单位为 s。这里只统计机器狗沿直线从 $S_1$ 移动到 $X$、可能发生的换频以及第二次测向本身的耗时；后续光学定位与清除发生在两次测向完成之后，其耗时依赖尚未获得的第二次读数及后续清除位置，不能在选择阶段精确归因，故不计入 $f_2$，而留到后续调度总时间中计算。本问题连续检测时 $\mathbf 1_{\mathrm{switch}}=0$，若调度中插入其他频道动作则令其为 $1$。给定时间预算 $T_{\max}$ 后，核心保证候选区为
 
-$$
+\[
 \mathcal C_{1000}(T_{\max})
 =
 \mathcal C_{1000}
@@ -385,11 +401,11 @@ $$
 X:
 f_2(X)\le T_{\max}
 \right\}.
-$$
+\]
 
 主候选区同样加入时间预算：
 
-$$
+\[
 \mathcal C_{\det}(T_{\max})
 =
 \mathcal C_{\det}
@@ -398,59 +414,59 @@ $$
 X:
 f_2(X)\le T_{\max}
 \right\},
-$$
+\]
 
 并且 $\mathcal C_{1000}(T_{\max})\subseteq\mathcal C_{\det}(T_{\max})$。数值验证取 $T_{\max}=260\mathrm{s}$。该值是后续调度中的一个局部预算示例，不是题面写定的固定常数；若不加时间限制，只需分别使用 $\mathcal C_{\det}$ 与 $\mathcal C_{1000}$。若 $\mathcal C_{\det}(T_{\max})$ 为空而 $\mathcal C_{\det}$ 非空，说明限制来自时间预算，此时可在总时间允许时放宽 $T_{\max}$ 或增加中继观测；若 $\mathcal C_{\det}$ 本身为空，则延长预算不能恢复保证接收，只能增加中继观测，或在明确承担漏检风险的前提下使用机会区，且不能把机会区直接改称为保证区。
 
-### 一阶局部不确定度代理与误差传播
+\subsubsection{一阶局部不确定度代理与误差传播}
 
 设目标位置为 $G=(x,y)^{\mathsf T}$，第 $i$ 个检测点处的测向模型为
 
-$$
+\[
 \begin{aligned}
 \tilde z_i&=\tilde h_i(G)+\tilde e_i,
 \qquad \tilde z_i=\frac{\pi}{180}\hat\theta_i,\qquad
 \tilde e_i=\frac{\pi}{180}e_i,\\
 \tilde h_i(G)&=\operatorname{atan2}(y-y_i,x-x_i).
 \end{aligned}
-$$
+\]
 
 其中 $e_i,\hat\theta_i$ 采用角度制，进入误差传播前按上式统一换算为弧度，并记 $\tilde\delta=\frac{\pi}{180}\delta$。令
 
-$$
+\[
 r_i^2=(x-x_i)^2+(y-y_i)^2,
-$$
+\]
 
 则方位观测的 Jacobian 行向量为
 
-$$
+\[
 J_i=
 \begin{bmatrix}
 -\dfrac{y-y_i}{r_i^2} & \dfrac{x-x_i}{r_i^2}
 \end{bmatrix}.
-$$
+\]
 
 两次测向的 Jacobian 堆叠为
 
-$$
+\[
 J(G;S_1,X)=
 \begin{bmatrix}
 J_1(G)\\
 J_2(G)
 \end{bmatrix}.
-$$
+\]
 
 等权最小二乘的位置误差增益矩阵为
 
-$$
+\[
 K_{\mathrm{LS}}
 =
 \left(J^{\mathsf T}J\right)^{-1}J^{\mathsf T}.
-$$
+\]
 
 令两次示向误差盒的顶点为 $u\in\{-1,1\}^2$。对固定目标 $G$ 和候选点 $X$，一阶局部误差界为
 
-$$
+\[
 f_{1,\mathrm{loc}}(G;X)
 =
 \tilde\delta
@@ -458,66 +474,66 @@ f_{1,\mathrm{loc}}(G;X)
 \left\lVert
 K_{\mathrm{LS}}(G;S_1,X)u
 \right\rVert_2.
-$$
+\]
 
 由于 $K_{\mathrm{LS}}u$ 关于 $u$ 线性，而欧氏范数为凸函数，误差盒上的最大值必在某个顶点取得，因此只需枚举四个顶点 $u\in\{-1,1\}^2$。
 
 由于 $G$ 只能确定到 $U_1$，候选点的连续鲁棒精度指标定义为
 
-$$
+\[
 F_1(X)=
 \sup_{G\in U_1}f_{1,\mathrm{loc}}(G;X).
-$$
+\]
 
 该误差盒经 $K_{\mathrm{LS}}$ 映射后形成一个平行四边形。若 $J$ 可逆，则在一阶线性化模型下，该局部平行四边形的面积恰为
 
-$$
+\[
 A_{\mathrm{loc}}(G;X)
 =
 4\tilde\delta^2\left|\det K_{\mathrm{LS}}\right|
 =
 \frac{4\tilde\delta^2r_1r_2}{|\sin\gamma|},
-$$
+\]
 
 式中 $\tilde\delta$ 为弧度制误差上界。其中 $\gamma$ 为两条交会视线所在直线所成的锐角（直角情形取 $90^\circ$），$r_1,r_2$ 分别为目标到 $S_1$ 与 $X$ 的距离。该式说明面积与两站距离、交会角和角误差同时有关，不能只看交会角。若 $\gamma$ 接近 $0$，矩阵趋于奇异，必须剔除该站址。
 
 误差平行四边形的最大顶点范数恰为 $f_{1,\mathrm{loc}}$，因此以原点为圆心、半径 $f_{1,\mathrm{loc}}$ 的圆包含该平行四边形，并有
 
-$$
+\[
 A_{\mathrm{loc}}(G;X)\le
 \pi f_{1,\mathrm{loc}}(G;X)^2
 \le
 \pi F_1(X)^2.
-$$
+\]
 
 据此定义一阶局部不确定度代理
 
-$$
+\[
 A_{\mathrm{proxy}}(X)=\pi F_1(X)^2.
-$$
+\]
 
 $A_{\mathrm{proxy}}$ 是对完整 $U_1$ 上各局部线性化误差平行四边形包含圆面积的统一上界，但既不是 $P_{\mathrm{exact}}^{(2)}$ 的真实面积，也不与 $A_{\mathrm{true}}$ 普遍保持单向包含或排序等价。最小化 $F_1$ 等价于最小化该代理；其作用是在第二次示向度未知时控制局部一阶不确定度并形成可计算排序。由于 $U_1$ 连续，数值计算采用
 
-$$
+\[
 \widehat F_{1,N}(X)
 =
 \max_{G_j\in U_{1,N}}
 f_{1,\mathrm{loc}}(G_j;X)
-$$
+\]
 
 作为有限样本估计，并以加密样本复核参考站址。在扇形未被目标圆域截断的验证场景中，本文对最终参考站址进一步用区间分支定界给出连续先验上的认证区间，因此表中既报告样本估计 $\widehat F_{1,N}$，也报告该认证区间；单凭样本估计本身不能写成连续集合上的严格全局最坏值。
 
 下文同时使用有限样本面积代理估计
 
-$$
+\[
 \widehat A_N(X)=\pi\widehat F_{1,N}(X)^2.
-$$
+\]
 
 $\widehat A_N$ 只是有限样本上的估计；在未证明样本覆盖连续先验或未给出区间上界时，不能把它解释为连续集合上的严格保守上界。
 
 作为几何条件的诊断量，定义距离加权几何精度因子
 
-$$
+\[
 \mathrm{GDOP}(G;S_1,X)
 =
 \sqrt{
@@ -526,23 +542,23 @@ $$
 \left(J^{\mathsf T}J\right)^{-1}
 \right]
 }.
-$$
+\]
 
 两站情形下还有闭式关系
 
-$$
+\[
 \mathrm{GDOP}
 =
 \frac{\sqrt{r_1^2+r_2^2}}{|\sin\gamma|}.
-$$
+\]
 
 $\mathrm{GDOP}$ 只描述交会几何对角误差的放大倍数，单位为 $\mathrm{m/rad}$，与误差的具体水平无关，也不预设任何分布。它不进入选点目标函数，只用于校核 Pareto 前沿的几何合理性，并与基于 Fisher 信息矩阵的站址最优性分析属于同一一阶框架\cite{bishop2010}。本章的一阶精度指标始终由确定性误差界 $F_1$ 给出，$A_{\mathrm{proxy}}=\pi F_1^2$ 只是其严格单调变换；题面未给误差分布，故不引入需要额外统计假设的均方根误差指标。
 
-### 第二检测点的双目标选点模型
+\subsubsection{第二检测点的双目标选点模型}
 
 在保证接收和给定操作时间下，第二检测点的决策变量为 $X$。为统一连续域与数值实现中的退化判据，先定义归一化夹角量 $\kappa_{\mathrm{ang}}(G;X)=|\sin\gamma(G;S_1,X)|$。仅写 $\det J\ne0$ 不足以排除浮点舍入造成的伪可逆，因此数值求解先要求 $\kappa_{\mathrm{ang}}\ge\varepsilon_{\mathrm{ang}}=10^{-12}$ 作为最低退化防护；这一小阈值不能替代条件性评价，最终候选点仍须检查实际交角下界。于是，源点与第二次测角误差均取最坏情形时的离线面积模型可写为
 
-$$
+\[
 \begin{aligned}
 \inf_{X}\quad & A_{\mathrm{true}}(X),\\
 \text{s.t.}\quad
@@ -551,12 +567,11 @@ $$
 & \kappa_{\mathrm{ang}}(G;S_1,X)\ge\varepsilon_{\mathrm{ang}}>0,
 \quad \forall G\in U_1.
 \end{aligned}
-$$
+\]
 
 其中关于最近距离的约束保证普通交会分支对每个可能源都成立；若该条件不成立，部分可能源会转入近距离分支，不能用双站交会面积直接比较。该模型是对尚未发生的第二次读数作最坏情形离线评价，实际区域仍需在读数返回后重算。为了在线形成不依赖未知读数的候选排序，将真实目标替换为一阶误差界和耗时组成的可计算双目标问题：
 
-
-$$
+\[
 \begin{aligned}
 \min_{X}\quad
 & A_{\mathrm{proxy}}(X)=\pi F_1(X)^2,\\
@@ -568,104 +583,103 @@ $$
 & \kappa_{\mathrm{ang}}(G;S_1,X)\ge\varepsilon_{\mathrm{ang}}>0,
 \quad \forall G\in U_{1,N}.
 \end{aligned}
-$$
+\]
 
 其中正常距离与非退化约束在有限源点样本 $U_{1,N}$ 上检查；最终参考站址再用解析方法复核。若某候选点使两条视线在某个样本源点处接近共线，则矩阵病态或数值上不可逆，该点应判为不可行，不参与误差界比较。
 
 由于 $A_{\mathrm{proxy}}=\pi F_1^2$ 关于 $F_1\ge0$ 严格单调，最小化 $A_{\mathrm{proxy}}$ 与最小化 $F_1$ 等价；在有限样本代理中相应以 $\widehat F_{1,N}$ 替换 $F_1$，并在 $(\widehat F_{1,N},f_2)$ 上做 Pareto 与字典序比较。为书写方便，记两个数值目标为 $f_1(X)=\widehat F_{1,N}(X)$ 与 $f_2(X)$；二者分别具有精度和时间的物理意义，不能直接相加。为排除近距分支和共线退化站址，先在样本上定义数值可行域
 
-$$
+\[
+\begin{aligned}
 \mathcal C_{\mathrm{reg},N}
-=
-\left\{
-X\in\mathcal C_{\det}(T_{\max}):
-\inf_{G\in U_{1,N}}\lVert X-G\rVert_2>5\mathrm{m},\quad
-\kappa_{\mathrm{ang}}(G;S_1,X)\ge\varepsilon_{\mathrm{ang}},
-\quad \forall G\in U_{1,N}
-\right\}.
-$$
+&=\left\{X\in\mathcal C_{\det}(T_{\max}):\right.\\
+&\qquad\inf_{G\in U_{1,N}}\lVert X-G\rVert_2>5\mathrm{m},\\
+&\qquad\left.\kappa_{\mathrm{ang}}(G;S_1,X)\ge\varepsilon_{\mathrm{ang}},\quad \forall G\in U_{1,N}\right\}.
+\end{aligned}
+\]
+
 
 再在该可行域上定义 Pareto 非支配集
 
-$$
+\[
+\begin{gathered}
 \mathcal P=
-\left\{
-X\in\mathcal C_{\mathrm{reg},N}:
-\nexists Y\in\mathcal C_{\mathrm{reg},N},\
-f_k(Y)\le f_k(X)\ (k=1,2),
-\text{且至少一项严格小于}
-\right\}.
-$$
+\left\{X\in\mathcal C_{\mathrm{reg},N}:\right.\\
+\left.\nexists Y\in\mathcal C_{\mathrm{reg},N},\right.\\
+\left.f_k(Y)\le f_k(X)\ (k=1,2),\ \text{且至少一项严格小于}\right\}.
+\end{gathered}
+\]
 
 选点采用分层规则：先排除不满足保证接收和时间约束的站址，再在 Pareto 集上按字典序比较一阶误差界估计和耗时。$20\mathrm{m}$ 不是观测前的可行性门槛，而是第二次观测后对实际区域进行清除判定的物理阈值。若参考站址同时属于 $\mathcal C_{1000}$，则它同时通过主候选区与保守核心区的接收约束筛选。
 
+$r_{\mathrm{opt}}=20\mathrm{m}$ 是光学装置允许精确定位的\textbf{物理距离}，不是定位误差指标。第二次观测后，若要在真实源位置未知时作保守清除判定，可要求存在点 $O$，使
 
-$r_{\mathrm{opt}}=20\mathrm{m}$ 是光学装置允许精确定位的**物理距离**，不是定位误差指标。第二次观测后，若要在真实源位置未知时作保守清除判定，可要求存在点 $O$，使
-
-$$
+\[
 \max_{G\in\overline{P_{\mathrm{exact}}^{(2)}}}\lVert O-G\rVert_2\le r_{\mathrm{opt}}.
-$$
+\]
 
 当 $\overline{P_{\mathrm{exact}}^{(2)}}$ 非空时（此时为紧集），由最小覆盖圆的定义，存在满足上式的点 $O$ 当且仅当 $R_{\mathrm{MEC}}(\overline{P_{\mathrm{exact}}^{(2)}})\le r_{\mathrm{opt}}$。因此，该条件对“闭包内所有可能位置均可由同一圆心清除”的保守问题是充要条件，对真实单点可清除只是充分条件。证书成立后需移动到相应的最小覆盖圆圆心；该移动及清除耗时不计入本阶段的 $f_2$，应在后续调度中另计。若要求原地清除，则须改用更强的判据 $\max_{G\in\overline{P_{\mathrm{exact}}^{(2)}}}\lVert X-G\rVert_2\le r_{\mathrm{opt}}$。选点阶段的 $\widehat F_{1,N}$ 只是工程代理，不能视为实际 MEC 半径，也不能代替清除证书。
 
-### 第二次观测后的实际区域与问题一接口
+\subsubsection{第二次观测后的实际区域与问题一接口}
 
 第二次检测得到正常示向度后，应将两次观测共同代入问题一的半平面交会模型，并保留两次正常检测给出的距离范围。对 $m$ 次观测，精确区域记作
 
-$$
+\[
 \begin{aligned}
 P_{\mathrm{exact}}^{(m)}
 &=\left\{G:
 \lVert G\rVert_2\le R_0,\ 5<\lVert G-S_i\rVert_2\le1500\mathrm{m},\right.\\
 &\qquad\left.G\in H_i^-\cap H_i^+\ (i=1,\ldots,m)\right\}.
 \end{aligned}
-$$
+\]
 
 其中 $H_i^-,H_i^+$ 由问题一中的示向锥边界确定，且同一次正常示向度满足距离大于 $5\mathrm{m}$、有效接收距离不超过 $1500\mathrm{m}$。先令
 
-$$
+\[
 \begin{aligned}
 K_{\mathrm{out}}^{(m)}
 &=\left\{G:\lVert G\rVert_2\le R_0,
 \ \lVert G-S_i\rVert_2\le1500\mathrm{m},\right.\\
 &\qquad\left.G\in H_i^-\cap H_i^+\ (i=1,\ldots,m)\right\}.
 \end{aligned}
-$$
+\]
 
 它是半平面、目标圆域和有限个闭圆盘的交集；这些集合均为凸集，故 $K_{\mathrm{out}}^{(m)}$ 为凸集，可以沿用问题一的半平面裁剪与凸集极值思想。不过其边界可能包含圆弧，计算直径和最小覆盖圆时应保留圆弧，并检查弧端点及弧内驻点，不能仅把它当作多边形逐顶点处理。为落实 $\lVert G-S_i\rVert_2>5\mathrm{m}$，应从 $K_{\mathrm{out}}^{(m)}$ 中删除对应的闭圆盘：
 
-$$
+\[
 P_{\mathrm{exact}}^{(m)}
 =
 K_{\mathrm{out}}^{(m)}\setminus
 \bigcup_{i=1}^{m}\left\{G:\lVert G-S_i\rVert_2\le5\mathrm{m}\right\}.
-$$
+\]
 
 删除近距圆盘会改变区域面积；当相应圆弧参与面积、直径或最小覆盖圆的极值边界时，还会改变这些几何量，因此必须显式处理圆弧或给出认证区间，不能直接用 $K_{\mathrm{out}}^{(m)}$ 代替 $P_{\mathrm{exact}}^{(m)}$。又因原始条件使用严格不等式 $\lVert G-S_i\rVert_2>5\mathrm{m}$，$P_{\mathrm{exact}}^{(m)}$ 一般不是闭集。面积对边界不敏感，但直径和最小覆盖圆可能只在边界极限处达到，因此后二者应分别按直径上确界和闭包上的最小覆盖圆半径处理；也可以统一改用非严格边界，并明确说明与近距离分支的衔接。若第二次观测返回“距离过近”，则不进入 $m=2$ 的普通交会流程，而直接转入近距离清除分支。选点阶段的 $F_1$ 和 $A_{\mathrm{proxy}}$ 只负责在第二次观测前比较站址，不能用它们代替 $P_{\mathrm{exact}}^{(2)}$。
 
 若第二次检测返回“距离过近”，则该分支不再需要普通交会，可直接进入近距离光学定位与清除流程；若返回正常示向度但 $P_{\mathrm{exact}}^{(2)}$ 为空，则说明两次读数与目标圆域不相容，应报告几何故障或重新观测，而不是把空集解释为零面积。
 
-## 模型求解与结果分析
+\subsection{模型求解与结果分析}
 
-### 求解流程
+\subsubsection{求解流程}
 
-1. 根据第一次示向度、角误差上界、距离范围和目标圆域定义 $U_1$；一般场景还需求出圆域截断后的可行方向分段 $I_f$。本验证场景 $I_f$ 为完整的 $\pm\delta$ 角区间。
-2. 在局部坐标系 $(a,b)$ 中计算保证接收边界，分别得到 $\mathcal C_{\det}$ 与 $\mathcal C_{1000}$，并核算 $\mathcal C_{1000}\subseteq\mathcal C_{\det}$。
-3. 加入时间预算 $T_{\max}$，得到 $\mathcal C_{\det}(T_{\max})$ 与 $\mathcal C_{1000}(T_{\max})$；若为空，按前述区分“仅时间预算导致为空”与“几何保证区本身为空”两种情形处理。
-4. 对离散候选点计算面积代理对应的误差指标 $\widehat F_{1,N}$ 和耗时 $f_2$；先按 $\inf_{G\in U_{1,N}}\lVert X-G\rVert_2>5\mathrm{m}$ 排除近距分支，再按 $\kappa_{\mathrm{ang}}\ge\varepsilon_{\mathrm{ang}}$ 检查两视线是否近平行或数值近奇异。
-5. 进行 Pareto 非支配筛选，按“先最小化误差界、再最小化耗时”的字典序选点；$20\mathrm{m}$ 阈值留到第二次观测后按实际区域核验。
-6. 用更密的源点样本复核参考站址，对保证接收的最远距离作解析检查；在未截断扇形场景中，进一步对参考站址的连续域误差界给出认证区间。
-7. 若第二次观测返回正常示向度，则先由两次读数、接收距离和目标圆域构造凸外包 $K_{\mathrm{out}}^{(2)}$；随后删除近距闭圆盘得到 $P_{\mathrm{exact}}^{(2)}$，并在保留圆弧的前提下直接对实际区域计算面积、直径上确界与闭包上的最小覆盖圆。$K_{\mathrm{out}}^{(2)}$ 只作为中间外包，不能用它的直径或最小覆盖圆代替实际区域结果。若返回距离过近，则不进入普通交会流程，直接转入近距离清除分支。
+\begin{enumerate}
+\item 根据第一次示向度、角误差上界、距离范围和目标圆域定义 $U_1$；一般场景还需求出圆域截断后的可行方向分段 $I_f$。本验证场景 $I_f$ 为完整的 $\pm\delta$ 角区间。
+\item 在局部坐标系 $(a,b)$ 中计算保证接收边界，分别得到 $\mathcal C_{\det}$ 与 $\mathcal C_{1000}$，并核算 $\mathcal C_{1000}\subseteq\mathcal C_{\det}$。
+\item 加入时间预算 $T_{\max}$，得到 $\mathcal C_{\det}(T_{\max})$ 与 $\mathcal C_{1000}(T_{\max})$；若为空，按前述区分“仅时间预算导致为空”与“几何保证区本身为空”两种情形处理。
+\item 对离散候选点计算面积代理对应的误差指标 $\widehat F_{1,N}$ 和耗时 $f_2$；先按 $\inf_{G\in U_{1,N}}\lVert X-G\rVert_2>5\mathrm{m}$ 排除近距分支，再按 $\kappa_{\mathrm{ang}}\ge\varepsilon_{\mathrm{ang}}$ 检查两视线是否近平行或数值近奇异。
+\item 进行 Pareto 非支配筛选，按“先最小化误差界、再最小化耗时”的字典序选点；$20\mathrm{m}$ 阈值留到第二次观测后按实际区域核验。
+\item 用更密的源点样本复核参考站址，对保证接收的最远距离作解析检查；在未截断扇形场景中，进一步对参考站址的连续域误差界给出认证区间。
+\item 若第二次观测返回正常示向度，则先由两次读数、接收距离和目标圆域构造凸外包 $K_{\mathrm{out}}^{(2)}$；随后删除近距闭圆盘得到 $P_{\mathrm{exact}}^{(2)}$，并在保留圆弧的前提下直接对实际区域计算面积、直径上确界与闭包上的最小覆盖圆。$K_{\mathrm{out}}^{(2)}$ 只作为中间外包，不能用它的直径或最小覆盖圆代替实际区域结果。若返回距离过近，则不进入普通交会流程，直接转入近距离清除分支。
+\end{enumerate}
 
-### 候选区域与 Pareto 前沿
+\subsubsection{候选区域与 Pareto 前沿}
 
 在上述验证场景中，以第一示向方向为横轴、其法向为纵轴，取网格
 
-$$
+\[
 a=0,10,\ldots,1500,
 \qquad
 b=-800,-790,\ldots,800,
-$$
+\]
 
 共有 $151\times161$ 个初始点。其中 $a$ 沿第一示向方向取到 $1500\mathrm{m}$，与前向射程上限一致；$b$ 取 $\pm800\mathrm{m}$，用于覆盖横向可行带。该网格是人为设定的数值搜索域，并非对连续候选区之外所有点都给出了解析排除证明；候选点是否满足保证接收和耗时限制由解析公式判定，精度指标及 Pareto 前沿则在有限源点样本上计算。
 
@@ -673,48 +687,60 @@ $$
 
 在候选点上计算误差界与耗时：主筛选阶段对每个候选点用 $41\times21$ 个径向与角度组合离散 $U_1$，得到 $\widehat F_{1,N}$ 的初步值；随后再用 $61\times31$ 个源点样本复核参考站址。去除被支配点后得到 $1154$ 个 Pareto 点。
 
-候选区域、Pareto 前沿和参考站址如下图所示。
+候选区域、Pareto 前沿和参考站址如图~\ref{fig:q2_pareto}所示。
 
-![第二检测点候选区域与Pareto前沿](../figures/q2_候选区域与Pareto前沿.png)
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{../figures/q2_候选区域与Pareto前沿.png}
+\caption{第二检测点候选区域与 Pareto 前沿（左：候选区域；右：误差界—耗时前沿与参考站址，星号处为字典序选出的参考站址）}
+\label{fig:q2_pareto}
+\end{figure}
 
-**图 1　第二检测点候选区域与 Pareto 前沿（左：候选区域；右：误差界—耗时前沿与参考站址，星号处为字典序选出的参考站址）**
+\subsubsection{参考第二检测点}
 
-### 参考第二检测点
+在给定验证场景和 $T_{\max}=260\mathrm{s}$ 下，按“先最小化误差界、再最小化耗时”的字典序规则选得参考站址
 
-按“先最小化误差界、再最小化耗时”的字典序规则，选得
-
-$$
+\[
 S_2=(993.74,-143.47)\mathrm{m}.
-$$
+\]
 
 在以第一示向方向为横轴的局部坐标中，
 
-$$
+\[
 S_2=S_1+840d_{\parallel}-550d_{\perp},
-$$
+\]
 
 该点的第二次检测环节局部耗时为
 
-$$
+\[
 f_2(S_2)
 =
 \frac{\sqrt{840^2+550^2}}{5}+5
 =
 205.81\mathrm{s}.
-$$
+\]
 
-在 $41\times21$ 个源点样本上的筛选值与 $61\times31$ 个源点样本上的复核值在两位小数显示精度下一致；在当前未截断扇形场景中，进一步对连续先验上的误差界做区间分支定界并收敛，得到一个实际宽度小于 $10^{-3}\mathrm{m}$ 的认证包含区间。按两位小数向外取整后，可保守显示为 $F_1(S_2)\in[60.87,\ 60.88]\mathrm{m}$。下表列出复核后的主要结果。
+在 $41\times21$ 个源点样本上的筛选值与 $61\times31$ 个源点样本上的复核值在两位小数显示精度下一致；在当前未截断扇形场景中，进一步对连续先验上的误差界做区间分支定界并收敛，得到一个实际宽度小于 $10^{-3}\mathrm{m}$ 的认证包含区间。按两位小数向外取整后，可保守显示为 $F_1(S_2)\in[60.87,\ 60.88]\mathrm{m}$。表~\ref{tab:q2_main_results}列出复核后的主要结果。
 
-**表 1　参考第二检测点的主要结果**
 
-| 指标 | 数值 |
-| --- | ---: |
-| 第二次检测环节局部耗时 $f_2$ | $205.81\mathrm{s}$ |
-| 参考站址到完整先验可能源的最大距离 | $999.91\mathrm{m}$ |
-| 加密源样本下的最坏 GDOP（几何诊断量） | $2707.66\mathrm{m/rad}$ |
-| 加密样本下确定性误差界估计 $\widehat F_{1,N}$ | $60.88\mathrm{m}$ |
-| 有限样本面积代理估计 $\widehat A_N=\pi\widehat F_{1,N}^2$ | $1.16\times10^4\mathrm{m^2}$ |
-| $F_1(S_2)$ 的连续域认证区间（向外取整） | $[60.87,\ 60.88]\mathrm{m}$ |
+
+\begin{table}[htbp]
+\centering
+\caption{参考第二检测点的主要结果}
+\label{tab:q2_main_results}
+\begin{tabular}{lr}
+\toprule
+指标 & 数值 \\
+\midrule
+第二次检测环节局部耗时 $f_2$ & $205.81\mathrm{s}$ \\
+参考站址到完整先验可能源的最大距离 & $999.91\mathrm{m}$ \\
+加密源样本下的最坏 GDOP（几何诊断量） & $2707.66\mathrm{m/rad}$ \\
+加密样本下确定性误差界估计 $\widehat F_{1,N}$ & $60.88\mathrm{m}$ \\
+有限样本面积代理估计 $\widehat A_N=\pi\widehat F_{1,N}^2$ & $1.16\times10^4\mathrm{m^2}$ \\
+$F_1(S_2)$ 的连续域认证区间（向外取整） & $[60.87,\ 60.88]\mathrm{m}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 表中的 $\widehat A_N$ 只用于选点排序，不构成实际定位面积或清除能力的认证值。
 
@@ -722,19 +748,19 @@ $$
 
 此外，$S_1X$ 的全局方位角约为 $351.78^\circ$（等价于有符号角 $-8.22^\circ$）；相对于第一示向轴 $d_\parallel=d(25^\circ)$ 的局部方向约为 $-33.22^\circ$。在角度距离意义下，它与首次观测角区间 $[24^\circ,26^\circ]$ 的最小夹角约为 $32.22^\circ$；为避免取整抬高该下界，后文取保守值 $\gamma_0\ge32.21^\circ$。这里 $\gamma_0$ 是用于下界估计的辅助角，表示射线 $S_1G$ 与 $S_1X$ 所在直线所成的锐角（直角情形取 $90^\circ$），并非两条实际交会视线在 $G$ 处的夹角；后文借助同一面积恒等式把它转化为对 $\kappa_{\mathrm{ang}}$ 的界。又因 $[G-S_1,X-S_1]=[G-S_1,X-G]$，有
 
-$$
+\[
 \kappa_{\mathrm{ang}}
 =\frac{|[G-S_1,X-S_1]|}{\lVert G-S_1\rVert_2\lVert X-G\rVert_2}
 =\frac{\lVert X-S_1\rVert_2\sin\gamma_0}{\lVert X-G\rVert_2}.
-$$
+\]
 
 利用 $\lVert X-S_1\rVert_2=\sqrt{1008100}\mathrm{m}>1004.04\mathrm{m}$ 和向外取整后的距离上界 $\lVert X-G\rVert_2\le999.92\mathrm{m}$，可得
 
-$$
+\[
 \kappa_{\mathrm{ang}}
 \ge\frac{1004.04}{999.92}\sin32.21^\circ
 >0.53>\varepsilon_{\mathrm{ang}}.
-$$
+\]
 
 因此参考站址的共线退化约束也在完整连续先验上得到验证，而不只是依赖源点样本。
 
@@ -742,20 +768,10 @@ $$
 
 因此，本节所谓“最优”仅指在给定网格、先验和时间约束下，使有限样本代理估计 $\widehat A_N=\pi\widehat F_{1,N}^2$ 数值最小，并不声称求得 $A_{\mathrm{true}}$ 在连续可行域上的全局下确界。
 
-### 清除条件与结果解释
+\subsubsection{清除条件与结果解释}
 
 光学装置的有效作用距离为 $r_{\mathrm{opt}}=20\mathrm{m}$。在“保证闭包内每个可能位置均可清除”的保守问题中，$R_{\mathrm{MEC}}(\overline{P_{\mathrm{exact}}^{(2)}})\le r_{\mathrm{opt}}$ 与“存在一个满足距离要求的清除圆心”互为充要条件；相对于真实单点的实际清除结果，它只是充分条件。证书成立后需移动到对应最小覆盖圆圆心执行清除，这不能直接证明第二检测点本身就在 $20\mathrm{m}$ 范围内；若要求原地清除，则应使用原地距离判据。
 
 在当前离散搜索范围内，$\widehat F_{1,N}$ 的最小估计值为 $60.88\mathrm{m}$，但它与实际最小覆盖圆半径不是同一量，不能代替清除证书。第二次观测正常时必须按实际区域计算 $R_{\mathrm{MEC}}(\overline{P_{\mathrm{exact}}^{(2)}})\le20\mathrm{m}$；若返回距离过近，则进入近距离分支。证书不成立只能说明尚未获得保证，不能断言真实源必在 $20\mathrm{m}$ 之外。若闭包上的极值点落在 $5\mathrm{m}$ 距离边界，还应同时核对近距离分支，不能把边界极限点当作正常测向得到的有效源点。
 
-# 参考文献
-
-[wang2019] 王凯. 无线电测向定位方法在新型无线电干扰查找中的运用研究[D]. 南昌: 南昌大学, 2019.
-
-[zheng2014] 郑春锋. 无线电监测中对干扰源的无源测向定位研究[D]. 成都: 西南交通大学, 2014.
-
-[uav2019] WU G. UAV-based interference source localization: A multimodal Q-learning approach[J]. IEEE Access, 2019, 7: 137982-137991. DOI: 10.1109/ACCESS.2019.2942330.
-
-[dogancay2005] DOĞANÇAY K. Bearings-only target localization using total least squares[J]. Signal Processing, 2005, 85(9): 1695-1710. DOI: 10.1016/j.sigpro.2005.03.007.
-
-[bishop2010] BISHOP A N, FIDAN B, ANDERSON B D O, et al. Optimality analysis of sensor-target localization geometries[J]. Automatica, 2010, 46(3): 479-492. DOI: 10.1016/j.automatica.2009.12.003.
+% 参考文献由 main.tex 中的 \bibliography{ref} 统一生成。
