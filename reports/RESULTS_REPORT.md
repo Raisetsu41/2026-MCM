@@ -30,7 +30,7 @@
 | 量 | 数值 | 文件 |
 | --- | --- | --- |
 | 基础版本演练局数 | 25 局，清除数全部等于真值，清除失败 0 | `JammersSimulatorData/practice-statistics-queue.sqlite3` |
-| **提交版本演练** | **15 局，201/201 清除，空清除 0，平均 262.2 s/源（197.4–326.0）** | `fast_logs_v3/q3_*.jsonl` |
+| **提交版本演练** | **15 局，201/201 清除，空清除 0，平均 262.2 s/源（197.4–326.0）** | `fast_logs_practice/q3_*.jsonl` |
 | **正式测试（三次）** | **40 个干扰源全部清除，空清除 0，平均 289.91 s/源（220.50–384.94），程序 2198–2404 ms** | `JammersSimulatorData/formal-statistics-queue.sqlite3`、`fast_logs_formal/q3_*.jsonl` |
 | 提交版本逐动作账 | 移动／检测／换频／清除四分量、阶段归因、兜底分支计数 | 同上 |
 | 基础版本平均定位清除时间 | 立即调度 507.91 s/源；批量调度 418.52 s/源（−17.60%） | `results/q3_schedule_speedup.csv` |
@@ -43,7 +43,7 @@
 | 量 | 数值 | 文件 |
 | --- | --- | --- |
 | 基础版本演练局数 | 6 局，清除数全部等于真值 | `JammersSimulatorData/practice-statistics-queue.sqlite3` |
-| **提交版本演练** | **18 局，240/240 清除，空清除 12 次，平均 495.5 s/源（351.9–619.7）** | `fast_logs_v3/q4_*.jsonl` |
+| **提交版本演练** | **18 局，240/240 清除，空清除 12 次，平均 495.5 s/源（351.9–619.7）** | `fast_logs_practice/q4_*.jsonl` |
 | 提交版本认证核验 | 每局扫描点数 22，即 22 点连续域证书逐局通过 | 同上 |
 | **正式测试（三次）** | **39 个干扰源全部清除，空清除 2 次，平均 462.66 s/源（374.53–519.99），程序 1976–2426 ms** | `JammersSimulatorData/formal-statistics-queue.sqlite3`、`fast_logs_formal/q4_*.jsonl` |
 | 基础版本平均定位清除时间 | 均值 845.8 s，最好 660.7 s，最坏 1096.9 s | 同上 |

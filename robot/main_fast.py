@@ -77,7 +77,7 @@ def instrument(client: ApiClient, agent, file: TextIO | None, team: str) -> dict
           part["clear_failures"] += 1
           track["clear_failures"] += 1
     if file is not None:
-      record = {"t": time.time_ns() // 1_000_000, "variant": "fast_v3",
+      record = {"t": time.time_ns() // 1_000_000, "variant": "fast",
                 "phase": phase, "path": path, "request": payload,
                 "status": status, "response": body, "unique_accepted": unique}
       try:
@@ -91,7 +91,7 @@ def instrument(client: ApiClient, agent, file: TextIO | None, team: str) -> dict
   return stats
 
 def main(argv: list[str] | None = None) -> int:
-  parser = argparse.ArgumentParser(description="Q3/Q4 fast v3")
+  parser = argparse.ArgumentParser(description="Q3/Q4 fast")
   parser.add_argument("--team", default=os.environ.get("CUMCM_TEAM_NO", ""))
   parser.add_argument("--problem", type=int, choices=(3, 4), default=3)
   parser.add_argument("--base-url", default="http://127.0.0.1:2026")
@@ -117,10 +117,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.log_dir:
       folder = Path(args.log_dir).resolve()
       folder.mkdir(parents=True, exist_ok=True)
-      file = (folder / f"q{args.problem}_fast_v3_{time.time_ns()}.jsonl").open("x", encoding="utf-8")
-      file.write(json.dumps({"variant": "fast_v3", "source_sha256": hashes}) + "\n")
+      file = (folder / f"q{args.problem}_fast_{time.time_ns()}.jsonl").open("x", encoding="utf-8")
+      file.write(json.dumps({"variant": "fast", "source_sha256": hashes}) + "\n")
     stats = instrument(client, agent, file, args.team)
-    print(f"Q{args.problem} fast v3 已就绪, 扫描点 {len(agent.sites)}, 等待官方演练窗口")
+    print(f"Q{args.problem} fast 已就绪, 扫描点 {len(agent.sites)}, 等待官方演练窗口")
     enter = client.enter_when_open(wait_s=args.wait_s)
     started = time.perf_counter()
     result = agent.run(enter_body=enter)
@@ -132,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     stats["max_segment_m"] = max(lengths, default=0.0)
     accounted = (stats["distance_m"] / 5 + 5 * result.measures + stats["switches"]
                  + 5 * result.cleared + 3 * stats["clear_failures"])
-    out = {"problem": args.problem, "variant": "fast_v3", "source_sha256": hashes,
+    out = {"problem": args.problem, "variant": "fast", "source_sha256": hashes,
            "cleared": result.cleared, "absent_certified": result.absent_certified,
            "channel_certificates": {str(k): t.status for k, t in agent.tracks.items()},
            "measures": result.measures, "clear_calls": result.clear_calls,

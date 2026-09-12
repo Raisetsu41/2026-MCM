@@ -1,8 +1,8 @@
 # Fdb version 4
-["bibtex main"] 1789226510.27027 "main.aux" "main.bbl" "main" 1789226515.4135 0
+["bibtex main"] 1789226633.52616 "main.aux" "main.bbl" "main" 1789226633.84922 2
   "./gbt7714-numerical.bst" 1789086921 38964 b468873a0d715b19033dd98fde01e8f1 ""
   "./ref.bib" 1789219170 2456 458c81876581c43021a77fe2bd59fabb ""
-  "main.aux" 1789226514 15954 89b540b93ee8e77b9b7e21c529b41ae5 "xelatex"
+  "main.aux" 1789226633 32 3985256e7290058c681f74d7a3565a19 "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
@@ -247,8 +247,8 @@
   "figures/q1_荣格定理反例.pdf" 1789147828 17469 dbf4e6541af48568ff5367f32cb1d991 ""
   "figures/q2_候选区域与Pareto前沿.pdf" 1789147828 181560 31480eb5284d97f395015916143ccb57 ""
   "geometry_solver.py" 1789224841 34026 0ac17a493f6dec2cb08b9adaa01236f3 ""
-  "main.aux" 1789226514 15954 89b540b93ee8e77b9b7e21c529b41ae5 "xelatex"
-  "main.bbl" 1789226510 1798 6831d976fccca70691d1f758000f61ec "bibtex main"
+  "main.aux" 1789226633 32 3985256e7290058c681f74d7a3565a19 "xelatex"
+  "main.bbl" 1789226633 0 d41d8cd98f00b204e9800998ecf8427e "bibtex main"
   "main.out" 1789226514 6952 64a3c6686d7334a35d2c9876b798b70f "xelatex"
   "main.tex" 1789221030 3416 67e3c9179acdef77d94deb1144c0c05a ""
   "robot/client.py" 1789224841 6456 2e09c780453406fbd574071dfc00520f ""

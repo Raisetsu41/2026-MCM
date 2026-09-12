@@ -31,8 +31,8 @@ D:\Python3.13.12\python.exe -X utf8 robot\main.py --problem 4 --team <参赛队�
 
 ```powershell
 cd D:\2026MCM
-D:\Python3.13.12\python.exe -X utf8 -m robot.main_fast --problem 3 --team <参赛队号> --log-dir D:\2026MCM\fast_logs_v3
-D:\Python3.13.12\python.exe -X utf8 -m robot.main_fast --problem 4 --team <参赛队号> --log-dir D:\2026MCM\fast_logs_v3 --q4-scan compact --empty-limit 5
+D:\Python3.13.12\python.exe -X utf8 -m robot.main_fast --problem 3 --team <参赛队号> --log-dir D:\2026MCM\fast_logs_practice
+D:\Python3.13.12\python.exe -X utf8 -m robot.main_fast --problem 4 --team <参赛队号> --log-dir D:\2026MCM\fast_logs_practice --q4-scan compact --empty-limit 5
 ```
 
 队号也可以用环境变量 `CUMCM_TEAM_NO` 提供。其余参数：
@@ -56,7 +56,7 @@ D:\Python3.13.12\python.exe -X utf8 -m robot.main_fast --problem 4 --team <参�
 
 ## 提速版与基础版的关系
 
-`main_fast.py` 把此前多级提速版本合并为单文件，仓库只保留两条可运行入口：`main.py`（未提速的基础版本，Q3/Q4 共用同一套证书与状态机）与 `main_fast.py`（提交版本）。合并后用 `fast_logs_v3/` 里的 30 局官方演练日志做了逐动作回放：30 局的动作序列、位置、频道与虚拟时间全部与日志一致，说明合并没有改变任何决策。
+`main_fast.py` 把此前多级提速版本合并为单文件，仓库只保留两条可运行入口：`main.py`（未提速的基础版本，Q3/Q4 共用同一套证书与状态机）与 `main_fast.py`（提交版本）。合并后用 `fast_logs_practice/` 里的 30 局官方演练日志做了逐动作回放：30 局的动作序列、位置、频道与虚拟时间全部与日志一致，说明合并没有改变任何决策。
 
 ## 流程
 
