@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 09:27
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 10:25
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1379,17 +1379,19 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 
 [23]
 
-[24]) (./sections/07-validation-and-sensitivity.tex
+[24]
 
-[25]
+[25]) (./sections/07-validation-and-sensitivity.tex
 
-[26]) (./sections/08-evaluation-and-improvement.tex
+[26]
 
-[27])
+[27]) (./sections/08-evaluation-and-improvement.tex
 
-[28] (./main.bbl)
+[28])
 
-[29
+[29] (./main.bbl)
+
+[30
 
 ] (./sections/09-appendix.tex
 (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
@@ -1400,11 +1402,9 @@ nput line 43.
 
 (./geometry_solver.py
 
-[30
+[31
 
 ]
-
-[31]
 
 [32]
 
@@ -1438,7 +1438,9 @@ nput line 43.
 
 [47]
 
-[48])
+[48]
+
+[49])
 
 LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 (Font)              using `TU/YaHei.Consolas.1.11b.ttf(1)/m/n' instead on input
@@ -1446,15 +1448,13 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 (./robot/__init__.py) (./robot/client.py
 
-[49]
-
 [50]
 
 [51]
 
-[52]) (./robot/q3_agent.py
+[52]
 
-[53]
+[53]) (./robot/q3_agent.py
 
 [54]
 
@@ -1464,21 +1464,21 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [57]
 
-[58])
+[58]
 
-[59] (./robot/q4_agent.py
+[59])
 
-[60]
+[60] (./robot/q4_agent.py
 
-[61]) (./robot/main.py
+[61]
 
-[62]
+[62]) (./robot/main.py
 
 [63]
 
-[64]) (./robot/geometry_solver_fast.py
+[64]
 
-[65]
+[65]) (./robot/geometry_solver_fast.py
 
 [66]
 
@@ -1496,9 +1496,9 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [73]
 
-[74]) (./robot/q3_agent_fast.py
+[74]
 
-[75]
+[75]) (./robot/q3_agent_fast.py
 
 [76]
 
@@ -1528,9 +1528,9 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [89]
 
-[90]) (./robot/q4_agent_fast.py
+[90]
 
-[91]
+[91]) (./robot/q4_agent_fast.py
 
 [92]
 
@@ -1538,17 +1538,19 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [94]
 
-[95]) (./robot/main_fast.py
+[95]
 
-[96]
+[96]) (./robot/main_fast.py
 
 [97]
 
 [98]
 
-[99]))
+[99]
 
-[100] (./main.aux)
+[100]))
+
+[101] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1558,15 +1560,15 @@ L3 programming layer <2022/08/05>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 1FAD4F982791669541C56BEBC98FD294;11557.
+(rerunfilecheck)             Checksum: 981BE51EDDC1B472CB9744B69EB92AF3;11597.
  ) 
 Here is how much of TeX's memory you used:
- 36879 strings out of 473832
- 786769 string characters out of 5733158
- 1967708 words of memory out of 5000000
- 59189 multiletter control sequences out of 15000+600000
+ 37065 strings out of 473832
+ 791789 string characters out of 5733158
+ 1970743 words of memory out of 5000000
+ 59375 multiletter control sequences out of 15000+600000
  578114 words of font info for 198 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  108i,13n,125p,680b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (100 pages).
+Output written on main.pdf (101 pages).

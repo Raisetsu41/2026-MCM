@@ -357,23 +357,71 @@ L(\sigma)=
 
 节点数不超过 10 时，使用 Held--Karp 动态规划求精确开放路径；节点数超过 10 时，先以最小增量插入构造初始解，再使用最近邻起点、2-opt 逆交换和 Or-opt 邻域重定位进行改善。后一种情形只报告高质量可行路径，不宣称全局最优。扫描点集合在规划过程中保持不变，因此重排访问顺序不会改变方向完备发现证书。
 
-\subsubsection{求解算法}
+\subsubsection{统一闭环与求解算法}
 
-问题四的在线求解过程如下：
+问题三与问题四共享“认证状态---生成任务---联合选路---执行首节点---更新证据”的控制闭环，见图~\ref{fig:q34_closed_loop}。该图只表达不会随具体几何策略改变的控制骨架；两问对 \texttt{no\_signal} 的不同解释及各自兜底过程由后续伪代码给出。
 
-\begin{enumerate}
-\item 调用 \texttt{/enter} 并记录剩余现实时间，在接口开放后开始任务；
-\item 构造 22 点扫描集并执行连续域方向完备认证；若认证失败则回退到解析覆盖集；
-\item 将未完成扫描站和待定位、待清除服务点组成动态任务图，求解当前开放路径；
-\item 按规划顺序访问扫描站，依次检测尚未闭合的频道；
-\item 对返回 \texttt{direction} 的频道记录示向观测，对返回 \texttt{near} 的频道直接清除；
-\item 每处理一次正响应后检查已发现的不同频道数；一旦达到 16，立即依据 $N_J\le16$ 将其余 \texttt{unknown} 频道标记为 \texttt{absent\_certified} 并停止访问剩余扫描站；
-\item 对已发现频道，用示向锥和外包围继续收缩；当保守半径不超过 $19.999\mathrm{m}$ 时按距离证书清除；
-\item 若定位阶段返回 \texttt{no\_signal}，优先使用预算内覆盖清除；预算不足时转入方向完备测站包或带最后单元覆盖证明的清除；
-\item 扫描阶段结束时，对所有仍未发现的频道检查方向完备证书，满足条件则标记为“确认不存在”；
-\item 删除已清除和已认证为空的频道，重新规划路径，直到 20 个频道全部闭合；
-\item 调用 \texttt{/exit}，按定位清除总时间与清除个数计算题面要求的统计值。
-\end{enumerate}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  box/.style={rectangle,rounded corners,draw=black,align=center,minimum height=8mm,text width=9.6cm,font=\normalsize},
+  check/.style={rectangle,rounded corners,draw=black,fill=black!5,align=center,minimum height=8mm,text width=5.6cm,font=\normalsize},
+  line/.style={-Latex,thick}
+]
+  \node[box] (init) at (0,0) {验证扫描集证书，初始化 20 个频道状态与观测集};
+  \node[box] (tasks) at (0,-1.10) {认证已有状态，生成未完成扫描站与频道服务点};
+  \node[box] (route) at (0,-2.20) {求联合开放路径，仅执行当前首节点};
+  \node[box] (update) at (0,-3.30) {吸收动作响应，更新可行域、频道证书与当前位置};
+  \node[check] (closed) at (0,-4.40) {20 个频道是否全部闭合？};
+  \node[check] (done) at (0,-5.50) {一致性核验通过，调用一次 \texttt{/exit}};
+  \draw[line] (init)--(tasks);
+  \draw[line] (tasks)--(route);
+  \draw[line] (route)--(update);
+  \draw[line] (update)--(closed);
+  \draw[line] (closed)--node[right]{是}(done);
+  \draw[line] (closed.west) to[out=180,in=180,looseness=1.25]
+    node[left]{否} (tasks.west);
+\end{tikzpicture}
+\caption{问题三、四共享的证据驱动在线控制主循环}
+\label{fig:q34_closed_loop}
+\end{figure}
+
+问题四沿用式~\eqref{eq:q4_route_problem}的联合路径求解，但必须改写证据更新与末端清除。下列伪代码中，
+$\operatorname{Update}_4$ 对 \texttt{direction} 执行示向锥裁剪、对 \texttt{near} 就地清除，
+却不以单次 \texttt{no\_signal} 排除任何位置；除“已发现 16 个异频源”的数量上界外，
+$\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应时才能认证该频道不存在。
+
+\begin{mdframed}[
+  nobreak=true,
+  linewidth=0.6pt,
+  innerleftmargin=7pt,
+  innerrightmargin=7pt,
+  innertopmargin=5pt,
+  innerbottommargin=2pt,
+  skipabove=6pt,
+  skipbelow=6pt
+]
+\textbf{算法 2\quad 问题四方向完备联合调度}
+\begin{tabbing}
+00\quad\=\quad\quad\=\quad\quad\=\quad\quad\=\kill
+1 \> 连续域认证 $P_4'$；若认证失败，则改用已证明方向完备的 25 点扫描集；\\
+2 \> 调用一次 \texttt{/enter}；初始化频道轨迹 $T_c$、未访问扫描站集 $U$、空清除计数 $b\leftarrow0$；\\
+3 \> \textbf{while} 存在未闭合频道 \textbf{do}\\
+4 \>\> $\operatorname{Certify}_4(T,U)$；构造扫描节点与服务节点的联合开放路径并取首节点 $a$；\\
+5 \>\> \textbf{if} $a$ 为扫描站 $S_i$ \textbf{then}\\
+6 \>\>\> 检测必测频道和有严格净收益的顺路频道，逐一执行 $\operatorname{Update}_4$；\\
+7 \>\>\> 对仍未知的频道，\texttt{no\_signal} 只更新该站已扫描标记，不收缩 $A_c$；\\
+8 \>\> \textbf{else}\quad 令 $c$ 为服务频道，在可见核或保守候选点中选择代价最小测站；\\
+9 \>\>\> 最多自适应检测 3 次；遇无信号或收缩不足 $10\%$ 时转入稳健分支；\\
+10\>\>\> 若 $\rho_c>300\,\mathrm m$，先执行粗测站包；进入 $300\,\mathrm m$ 内后至多执行 8 轮 12 点包；\\
+11\>\>\> 若 $\rho_c\le19.999\,\mathrm m$，则按顶点距离证书清除；\\
+12\>\>\> \textbf{else if} $19.5\,\mathrm m$ 覆盖单元所需空清除数不超过 $5-b$ \textbf{then}\\
+13\>\>\>\> 按最短顺序覆盖式清除，跳过已排除单元，并以最后单元覆盖证书封口；\\
+14\>\>\> \textbf{else} 缩小单元半径直至 12 点包误差界不超过 $19\,\mathrm m$，逐单元测向；\\
+15\>\> \textbf{end if}；若覆盖耗尽仍未闭合，则置为 \texttt{geometry\_fault} 并停止；\\
+16\> \textbf{end while}；核验 20 个频道证书、$b\le5$ 及清除数范围，仅调用一次 \texttt{/exit}。
+\end{tabbing}
+\end{mdframed}
 
 \subsection{模型求解与结果分析}
 
