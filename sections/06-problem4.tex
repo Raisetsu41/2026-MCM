@@ -160,12 +160,12 @@ P_4'=
 \{(0,0)\}
 \cup
 \left\{
-975d\left(\frac{2\pi i}{7}\right):
+975d\left(\frac{360i}{7}\right):
 i=0,\ldots,6
 \right\}
 \cup
 \left\{
-1850d\left(\frac{2\pi j}{14}\right):
+1850d\left(\frac{360j}{14}\right):
 j=0,\ldots,13
 \right\}.
 \label{eq:q4_compact_sites}
@@ -201,27 +201,27 @@ j=0,\ldots,13
 
 由于 22 点集合不是完整三角格，其方向完备性采用连续域递归证书，而不是随机采样验证。
 首先用目标圆域的外接正 72 边形覆盖 $\mathcal B_{1800}$，并划分为 72 个三角形。
-对任一三角形单元 $T$，定义可用扫描点集合
+对任一三角形单元 $\tau$，定义可用扫描点集合
 
 \begin{equation}
-E(T)=
+E(\tau)=
 \left\{
 P\in P_4':
-\max_{X\in\operatorname{vert}(T)}
+\max_{X\in\operatorname{vert}(\tau)}
 \lVert P-X\rVert_2\le994.99
 \right\}.
 \label{eq:q4_eligible_set}
 \end{equation}
 
-若 $T\subseteq\operatorname{conv}E(T)$，则该单元通过认证。事实上，三个顶点都在凸包内意味着整个三角形都在凸包内；又因欧氏范数是凸函数，距离在每个三角形上的最大值必在某个顶点取得，所以 $T$ 中任意点 $G$ 到任意 $P\in E(T)$ 的距离均不超过 $994.99\mathrm{m}<1000\mathrm{m}$，从而
+若 $\tau\subseteq\operatorname{conv}E(\tau)$，则该单元通过认证。事实上，三个顶点都在凸包内意味着整个三角形都在凸包内；又因欧氏范数是凸函数，距离在每个三角形上的最大值必在某个顶点取得，所以 $\tau$ 中任意点 $G$ 到任意 $P\in E(\tau)$ 的距离均不超过 $994.99\mathrm{m}<1000\mathrm{m}$，从而
 
 \begin{equation}
-0\in\operatorname{conv}\{P-G:P\in E(T)\}\subseteq\operatorname{conv}V_G.
+0\in\operatorname{conv}\{P-G:P\in E(\tau)\}\subseteq\operatorname{conv}V_G.
 \label{eq:q4_cell_certificate}
 \end{equation}
 
 若单元尚未通过，则沿最长边递归二分；程序设置最大深度 22 和最多 60000 个单元。
-程序核验表明，该集合在 7372 个单元内完成认证；一旦达到限制仍未完成，程序拒绝证书并回退到 25 点双环解析覆盖集，不在未证明的扫描集上继续执行。
+程序核验表明，该集合在 7372 个单元内完成认证；一旦达到限制仍未完成，程序拒绝该证书并转入带解析参数检查的 25 点双环工程回退分支，参数检查不通过时停止执行。该回退分支在本文 18 局完全提速版演练和三次正式测试中均未触发。
 
 \subsubsection{定向源的定位与正证据收缩}
 
@@ -355,6 +355,8 @@ L(\sigma)=
 \label{eq:q4_route_problem}
 \end{equation}
 
+与问题三相同，$L(\sigma)/5$ 只刻画当前节点集上的移动耗时；执行首节点后，观测结果可能改变非移动动作数和后续节点集，因而算法随证据更新重新规划，并以式~\eqref{eq:q4_total_time} 核算最终虚拟时间。
+
 节点数不超过 10 时，使用 Held--Karp 动态规划求精确开放路径；节点数超过 10 时，先以最小增量插入构造初始解，再使用最近邻起点、2-opt 逆交换和 Or-opt 邻域重定位进行改善。后一种情形只报告高质量可行路径，不宣称全局最优。扫描点集合在规划过程中保持不变，因此重排访问顺序不会改变方向完备发现证书。
 
 \subsubsection{算法流程}
@@ -363,6 +365,7 @@ L(\sigma)=
 $\operatorname{Update}_4$ 对 \texttt{direction} 执行示向锥裁剪、对 \texttt{near} 就地清除，
 却不以单次 \texttt{no\_signal} 排除任何位置；除“已发现 16 个异频源”的数量上界外，
 $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应时才能认证该频道不存在。
+粗测站包是在首次示向度局部坐标系中对当前外包围的外接矩形作间距不超过 $450\,\mathrm m$ 的有限测站网格，仅用于争取新增正示向度；无信号不收缩定向源外包围，未收敛时仍转入后续带证书的测站包或覆盖清除。
 
 \begin{mdframed}[
   nobreak=true,
@@ -377,7 +380,7 @@ $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应�
 \textbf{算法 2\quad 问题四方向完备联合调度}
 \begin{tabbing}
 00\quad\=\quad\quad\=\quad\quad\=\quad\quad\=\kill
-1 \> 连续域认证 $P_4'$；若认证失败，则改用已证明方向完备的 25 点扫描集；\\
+1 \> 连续域认证 $P_4'$；若认证失败，则进入 25 点双环工程回退分支并检查其解析参数；\\
 2 \> 调用一次 \texttt{/enter}；初始化频道轨迹 $T_c$、未访问扫描站集 $U$、空清除计数 $b\leftarrow0$；\\
 3 \> \textbf{while} 存在未闭合频道 \textbf{do}\\
 4 \>\> $\operatorname{Certify}_4(T,U)$；构造扫描节点与服务节点的联合开放路径并取首节点 $a$；\\
@@ -406,7 +409,7 @@ $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应�
 
 \subsubsection{正式测试结果}
 
-三次正式测试均正常退出，结果如表~\ref{tab:q4_formal}所示。表中平均定位清除时间为模拟器的定位清除总时间除以该局清除个数；程序运行时间为模拟器记录的实际运行时间。
+三次正式测试均正常退出，结果如表~\ref{tab:q4_formal}所示。平均定位清除时间和清除比例沿用问题三中 $\bar t_{\mathrm{clr}}$ 与 $\lambda_{\mathrm{clr}}$ 的定义；表中单局平均时间由该局定位清除总时间除以清除个数得到，程序运行时间为模拟器记录的实际运行时间。
 
 \begin{table}[htbp]
 \centering
@@ -419,19 +422,19 @@ $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应�
 测试序号 & 测试案例编码 & 清除干扰源个数 & 平均定位清除时间/s & 程序运行时间/ms \\
 \midrule
 1 & NGBV-4HQZ-7B7S-26HK & 11 & 519.99 & 2426 \\
-2 & JGN3-394M-SDZB-Y3N7 & 13 & 493.46 & 2364 \\
+2 & JGN3-394M-SDZB-Y3N7 & 13 & 493.46 & 2365 \\
 3 & 9U2N-ZBZQ-8AB2-VJYS & 15 & 374.53 & 1976 \\
 \midrule
-合计／均值 &  & 39 & 462.66 & 1976--2426 \\
+合计／总体平均／区间 &  & 39 & 455.20 & 1976--2426 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 
 
-表中 $462.66\mathrm{s}$ 为逐局平均时间的等权算术平均；若按源数合并，则 $17752.83/39=455.20\mathrm{s}/\text{个}$。正式结果表采用题面要求的逐局报告口径。
+按题面合并口径，每个被清除干扰源的平均定位清除时间为 $17752.83/39=455.20\mathrm{s}$，程序运行时间列给出三次取值区间。三次单局指标的等权算术平均为 $462.66\mathrm{s}$/源，仅作为案例间对照。
 三次合计空清除 2 次，均在 5 次预算内；每局 20 个频道最终都已清除或认证为空。
-由定理 1，认证为空的频道必无源，因此 39 个被清除频道均真实存在，清除比例均为 $\lambda_{\mathrm{clr}}=100\%$，题面要求的两个统计量均已给出。
+由定理 1，认证为空的频道必无源，因此三次测试均有 $N_{\mathrm{clr}}=N_J$，合并清除比例为 $\lambda_{\mathrm{clr}}=39/39=100\%$，题面要求的两个统计量均已给出。
 
 \subsubsection{时间构成与结果分析}
 

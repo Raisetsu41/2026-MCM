@@ -36,6 +36,7 @@
 \begin{itemize}[itemindent=2em]
   \item \textbf{约定 1（异常与退化）：}约束交集为空表示观测不相容而非零面积；退化为单点或线段时，直径分别按零或线段长度定义。
   \item \textbf{约定 2（数值余量）：}数学推导取题面界 $\delta=1^\circ$；在线程序用 $1.01^\circ$ 包围示向度，仅吸收表示与量化误差，不改变物理模型。
+  \item \textbf{约定 3（报告精度）：}认证区间与约束残差保留复核所需的原始精度，正文中的展示性位置、时间与距离通常保留两位小数。
 \end{itemize}
 
 \section{符号说明}
@@ -86,10 +87,10 @@ $V_t^{\mathrm{scan}},V_t^{\mathrm{service}}$ & 时刻 $t$ 尚待访问的扫描�
 $\sigma,L(\sigma)$ & 节点访问顺序及对应开放路径长度 & 排列；$\mathrm m$ & 问题三 \\
 $\boldsymbol o,V_G$ & 定向源发射方向及位置 $G$ 的可接收扫描点相对向量集 & 单位向量；集合 & 问题四 \\
 $P_4,P_4'$ & 31 点基准扫描集与 22 点连续域认证扫描集 & 集合 & 问题四 \\
-$E(T)$ & 三角形单元 $T$ 的一致可接收扫描点集合 & 集合 & 问题四 \\
+$E(\tau)$ & 三角形单元 $\tau$ 的一致可接收扫描点集合 & 集合 & 问题四 \\
 $\mathcal R_0,s_c,\rho_{\mathrm{cov}}$ & 首次正检测扇形、清除格边长及其数值覆盖半径 & 集合；$\mathrm m$；$\mathrm m$ & 问题四 \\
-$T$ & 一局的定位清除虚拟时间 & $\mathrm s$ & 问题四 \\
-$N_{\mathrm{measure}},N_{\mathrm{switch}},N_{\mathrm{clear}}^{\mathrm{success}},N_{\mathrm{clear}}^{\mathrm{miss}}$ & 检测、换频以及成功或未发现清除的动作次数 & 次 & 问题四 \\
+$T$ & 一局的定位清除虚拟时间 & $\mathrm s$ & 问题三 \\
+$N_{\mathrm{measure}},N_{\mathrm{switch}},N_{\mathrm{clear}}^{\mathrm{success}},N_{\mathrm{clear}}^{\mathrm{miss}}$ & 检测、换频以及成功或未发现清除的动作次数 & 次 & 问题三 \\
 \bottomrule
 \end{tabularx}
 \end{table}
