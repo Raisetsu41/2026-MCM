@@ -19,9 +19,9 @@ journal_dirs = [
 BEIJING = timezone(timedelta(hours=8))
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-  parser = argparse.ArgumentParser(description="汇总演练局成绩")
+  parser = argparse.ArgumentParser(description="summarize practice-run results")
   parser.add_argument("--problem", choices=["3", "4", "all"], default="3",
-                      help="看哪一问的演练局, 默认问题三")
+                      help="which problem's practice runs (default: 3)")
   return parser.parse_args(argv)
 
 def official() -> dict[str, dict]:
@@ -111,14 +111,14 @@ def collect(problem: str) -> list[dict]:
 def report(problem: str) -> None:
   runs = collect(problem)
   print("=" * 100)
-  print(f"问题{problem} 演练局汇总  (案例与真值来自模拟器行为日志, 指标优先取官方统计库)")
+  print(f"problem {problem} practice-run summary  (cases and truth from simulator behavior logs; metrics prefer the official queue)")
   print("=" * 100)
   if not runs:
-    print("  尚无记录")
+    print("  no records yet")
     return
-  print(f"{'北京时间':<15}{'案例编码':<22}{'真值':>5}{'全向':>5}{'定向':>5}"
-        f"{'清除':>5}{'空清':>5}{'检测':>6}{'总时间/s':>10}{'平均/s':>8}"
-        f"{'每源/s':>8}  判定")
+  print(f"{'Beijing time':<15}{'case code':<22}{'truth':>5}{'omni':>5}{'dir.':>5}"
+        f"{'cleared':>5}{'empty':>5}{'meas':>6}{'total/s':>10}{'mean/s':>8}"
+        f"{'per/src':>8}  verdict")
   total_ok = 0
   for run in runs:
     info = run["info"]
@@ -138,10 +138,10 @@ def report(problem: str) -> None:
     measures = local.get("measures")
     mean = f"{virtual / cleared:.1f}" if virtual and cleared else "-"
     per = f"{virtual / truth:.1f}" if virtual and truth else "-"
-    note = "官方库" if stat else ("本地日志" if local else "无明细")
+    note = "official queue" if stat else ("local logs" if local else "no details")
     if cleared is not None and truth is not None:
       if cleared != truth:
-        note += " 漏源"
+        note += " missing source"
       else:
         total_ok += 1
         note += " ok"
@@ -152,15 +152,15 @@ def report(problem: str) -> None:
           f"{(f'{virtual:.1f}' if virtual else '-'):>10}{mean:>8}{per:>8}  {note}")
 
   print("-" * 100)
-  print(f"  有效局 {total_ok}/{len(runs)} 满足 清除数 == 真值")
+  print(f"  valid runs {total_ok}/{len(runs)} with cleared == truth")
   gaps = [r for r in runs if r["stat"] is None]
   if gaps:
-    print(f"  提示: {len(gaps)} 局在官方统计库里没有记录, 指标来自本地指令日志")
+    print(f"  note: {len(gaps)} runs are missing from the official queue; metrics come from the local command logs")
 
 def main(argv: list[str] | None = None) -> int:
   args = parse_args(argv)
   if not logs.is_dir():
-    print(f"未找到日志目录: {logs}")
+    print(f"log directory not found: {logs}")
     return 1
   problems = ["3", "4"] if args.problem == "all" else [args.problem]
   for index, problem in enumerate(problems):

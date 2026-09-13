@@ -52,31 +52,31 @@ def attach_logging(client: ApiClient) -> None:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
   parser = argparse.ArgumentParser(
-    description="问题三/四 机器狗自动定位与清除")
+    description="Q3/Q4 robot-dog automatic localization and clearing")
   parser.add_argument(
     "--team", default=os.environ.get("CUMCM_TEAM_NO", ""),
-    help="参赛队号, 需与模拟器当前登录账号一致")
+    help="team number; must match the account logged in to the simulator")
   parser.add_argument("--base-url", default="http://127.0.0.1:2026",
-                      help="模拟器接口地址")
+                      help="simulator base URL")
   parser.add_argument("--problem", type=int, choices=(3, 4), default=3,
-                      help="运行问题三或问题四策略")
+                      help="solve problem 3 or problem 4")
   parser.add_argument("--schedule", choices=("batch", "immediate"),
-                      default="batch", help="批处理或发现后立即定位")
+                      default="batch", help="batch scheduling, or localize immediately after discovery")
   parser.add_argument("--wait-s", type=float, default=300.0,
-                      help="等待接口开放的最长秒数")
+                      help="maximum seconds to wait for the interface")
   parser.add_argument("--max-obs", type=int, default=8,
-                      help="单个频道的最大观测次数")
+                      help="maximum observations per channel")
   parser.add_argument("--err-deg", type=float, default=1.01,
-                      help="测向误差安全余量(度)")
+                      help="bearing-error safety margin in degrees")
   parser.add_argument("--log-dir", default=None,
-                      help="指令日志目录, 默认 code/outputs")
+                      help="command log directory (default: code/outputs)")
   return parser.parse_args(argv)
 
 def main(argv: list[str] | None = None) -> int:
   global log_path
   args = parse_args(argv)
   if not args.team:
-    print("缺少参赛队号, 请用 --team 指定或设置环境变量 CUMCM_TEAM_NO")
+    print("missing team number: pass --team or set CUMCM_TEAM_NO")
     return 2
 
   log_dir = Path(args.log_dir) if args.log_dir else root / "code" / "outputs"
@@ -90,12 +90,12 @@ def main(argv: list[str] | None = None) -> int:
   try:
     enter = client.enter_when_open(wait_s=args.wait_s)
   except ApiError as exc:
-    print(f"进入失败: {exc}")
-    print(f"本次指令日志: {log_path}")
+    print(f"enter failed: {exc}")
+    print(f"command log for this run: {log_path}")
     return 2
 
   remain = float(enter.get("remaining_real_duration_s", 0.0))
-  print(f"已进入, 本局可用现实时间 {remain:.0f} 秒")
+  print(f"entered; remaining real time {remain:.0f} s")
 
   agent_type = Q3Agent if args.problem == 3 else Q4Agent
   agent = agent_type(
@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
     result = agent.run(enter_body=enter)
   except Exception as exc:
     error = f"{type(exc).__name__}: {exc}"
-    print(f"运行中断: {error}")
+    print(f"run interrupted: {error}")
 
   elapsed = time.perf_counter() - started
   out: dict[str, object] = {

@@ -109,9 +109,9 @@ class ApiClient:
             extra = f", detail={detail}" if detail else ""
             hint = ""
             if path == "/enter" and status == 200:
-              hint = " (重复 /enter 会被拒绝, 每局只允许进入一次)"
+              hint = " (a duplicate /enter is rejected; each run allows one entry)"
             raise ApiError(
-              f"{path} 被拒绝: status={status}, "
+              f"{path} rejected: status={status}, "
               f"accepted={body.get('accepted')}{extra}{hint}", rejected=True)
         except (TimeoutError, ConnectionError, URLError,
                 json.JSONDecodeError):
@@ -122,10 +122,10 @@ class ApiClient:
         time.sleep(min(self.backoff_s * 2 ** attempt, 1.0))
       if saw_response:
         raise ApiError(
-          f"{path} 重试 {self.max_retry + 1} 次仍被拒绝: status={last_status}",
+          f"{path} still rejected after {self.max_retry + 1} attempts: status={last_status}",
           rejected=True)
       raise ApiError(
-        f"{path} 连接失败(共 {self.max_retry + 1} 次): 接口可能未开放或已结束")
+        f"{path} connection failed after {self.max_retry + 1} attempts): the interface may not be open yet, or the run has ended")
 
   def enter_payload(self, payload: Json) -> Json:
     body = self._post("/enter", payload)
@@ -153,12 +153,12 @@ class ApiClient:
         pass
       if time.monotonic() + delay >= end:
         raise ApiError(
-          f"接口在 {wait_s:.0f} 秒内未开放, 请确认已开始测试并等完 5 秒倒计时")
+          f"the interface did not open within {wait_s:.0f} s; start the test and wait for the 5 s countdown")
       time.sleep(delay)
       delay = min(delay * 1.5, 2.0)
     raise ApiError(
-      f"/enter 被拒绝: {rejected}. 请检查本局是否已被进入过, "
-      "以及是否还有另一个程序在运行")
+      f"/enter rejected: {rejected}. Check whether this run was already entered, "
+      "and whether another program is still running")
 
   def measure(self, x: float, y: float, channel: int) -> Json:
     payload = self._action(self._new_id("measure"), x, y, channel)

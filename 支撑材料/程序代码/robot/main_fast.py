@@ -100,10 +100,10 @@ def main(argv: list[str] | None = None) -> int:
   parser.add_argument("--empty-limit", type=int, choices=range(6), default=5)
   parser.add_argument("--no-opportunistic", action="store_true")
   parser.add_argument("--no-inline", action="store_true")
-  parser.add_argument("--log-dir", help="可选脱敏动作日志目录")
+  parser.add_argument("--log-dir", help="optional directory for redacted action logs")
   args = parser.parse_args(argv)
   if not args.team or not math.isfinite(args.wait_s) or args.wait_s <= 0:
-    print("请提供 --team 或 CUMCM_TEAM_NO, --wait-s 必须是有限正数")
+    print("provide --team or CUMCM_TEAM_NO; --wait-s must be a finite positive number")
     return 2
   file: TextIO | None = None
   try:
@@ -120,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
       file = (folder / f"q{args.problem}_fast_{time.time_ns()}.jsonl").open("x", encoding="utf-8")
       file.write(json.dumps({"variant": "fast", "source_sha256": hashes}) + "\n")
     stats = instrument(client, agent, file, args.team)
-    print(f"Q{args.problem} fast 已就绪, 扫描点 {len(agent.sites)}, 等待官方演练窗口")
+    print(f"Q{args.problem} fast ready, scan sites {len(agent.sites)}, waiting for the official test window")
     enter = client.enter_when_open(wait_s=args.wait_s)
     started = time.perf_counter()
     result = agent.run(enter_body=enter)
@@ -150,13 +150,13 @@ def main(argv: list[str] | None = None) -> int:
       try:
         file.write(json.dumps({"summary": redact(out, args.team)}, ensure_ascii=False) + "\n")
       except OSError:
-        print("任务已完成, 但日志汇总写入失败")
+        print("mission complete, but writing the log summary failed")
     return 0
   except KeyboardInterrupt:
-    print("程序已中断")
+    print("program interrupted")
     return 130
   except Exception as exc:
-    print(redact(f"运行失败: {type(exc).__name__}: {exc}", args.team))
+    print(redact(f"run failed: {type(exc).__name__}: {exc}", args.team))
     return 1
   finally:
     if file is not None:
