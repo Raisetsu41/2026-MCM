@@ -22,13 +22,25 @@
 \usepackage{url}
 \usepackage{subcaption}                      % 子图
 
-\captionsetup{
-    labelfont=bf,
+% 定义caption可用字体样式
+\DeclareCaptionFont{figfont}{\zihao{5}}
+\DeclareCaptionFont{tabfont}{\zihao{5}}
+
+% 图标题：五号宋体
+\captionsetup[figure]{
+    labelfont={bf,figfont},
+    textfont=figfont,
     labelsep=quad,
     format=hang
 }
-\renewcommand{\captionfont}{\songti\zihao{5}}
-\renewcommand{\captionlabelfont}{\bfseries\songti\zihao{5}}
+
+% 表标题：小五号宋体
+\captionsetup[table]{
+    labelfont={bf,tabfont},
+    textfont=tabfont,
+    labelsep=quad,
+    format=hang
+}
 
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
