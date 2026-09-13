@@ -1,5 +1,5 @@
 % 问题三
-\section{问题三的模型建立与求解}
+\section{问题三：全向多源的自主定位与清除}
 
 \subsection{模型准备}
 
@@ -210,7 +210,7 @@ $\Phi(r)$ 是开口向上的二次函数。若 $r\ge1000\mathrm{m}$，则由 $a>
 \qquad
 \Phi(1000)=1000^2+500^2-2000a<1000^2.
 \]
-因此 $\lVert G-S'\rVert_2<1000\mathrm{m}\le r^{\mathrm{recv}}$。综上，$S'$ 必能收到该源的有效响应。该构造只改变测量位置，不增加误差分布假设。
+因此 $\lVert G-S'\rVert_2<1000\mathrm{m}\le r^{\mathrm{recv}}$。由以上两种距离情形，$S'$ 必能收到该源的有效响应。该构造只改变测量位置，不增加误差分布假设。
 
 \subsubsection{定位区域更新与测站选择}
 
@@ -275,7 +275,7 @@ a_c+\rho_c=2.2\rho_c+8\le668\mathrm{m},
 
 覆盖细分只保留与当前外包围仍有交集的单元，而真实源始终属于当前外包围，因此真实源所在叶单元不会被丢弃。单元半径按全部顶点到覆盖圆心的最大距离保守计算；每次对当前较大投影跨度作二分，随着单元尺寸收缩，有限步内即可达到 $4.5\mathrm{m}$。该分支不依赖空清除；若数值退化导致单元覆盖无法推进，算法报告几何故障，而不是假定清除成功。
 
-综上，在本章假设下，每个实际存在的全向干扰源都能被发现并最终获得合法清除路径；每个未发现频道也都有实测 \texttt{no\_signal}、严格阴性推断或 16 源上界之一作为认证依据。因此，终止时不会出现未闭合频道。
+由发现覆盖、定位外包围和有限覆盖三项证书，在本章假设下，每个实际存在的全向干扰源都能被发现并最终获得合法清除路径；每个未发现频道也都有实测 \texttt{no\_signal}、严格阴性推断或 16 源上界之一作为认证依据。因此，终止时不会出现未闭合频道。
 
 \subsubsection{联合路径调度模型}
 
@@ -319,7 +319,7 @@ F_{\mathrm{path}}(\{j\},j)=d_{\mathrm{cur},j}.
 \label{eq:q3_held_karp}
 \end{equation}
 
-节点数超过 10 时，计算量显著上升，故先以最小增量插入构造初始解，并加入 3 个最近邻起点，再交替执行 2-opt 逆向交换和 Or-opt 邻域重定位直至无改善。此时只声称得到高质量可行路径，不声称是全局最优解。
+节点数超过 10 时，Held--Karp 状态数随 $2^{n_t}$ 增长，故先以最小增量插入构造初始解，并加入 3 个最近邻起点，再交替执行 2-opt 逆向交换和 Or-opt 邻域重定位直至无改善。此时只声称得到高质量可行路径，不声称是全局最优解。
 
 在每个扫描站内部，除必需的未知频道外，还可在联合调度预测成本较低的条件下，顺势补测已发现且尚未达到清除精度的频道。仅当预期定位半径明显下降，且预计节省的往返时间超过本次测量与换频成本时，才将该测量加入站内任务；否则留给后续必经站处理。该“顺路收获”不改变动作次数的下限，但可减少为同一频道多次往返。
 
@@ -327,20 +327,41 @@ F_{\mathrm{path}}(\{j\},j)=d_{\mathrm{cur},j}.
 
 \subsubsection{算法流程}
 
-问题三的在线求解过程如下：
+上述证书与动态调度合并为下面的在线闭环。伪代码只调用前文已经定义的几何算子；其中
+$\operatorname{Update}_3$ 按响应分别执行示向锥裁剪、阴性证据更新或近距清除，
+$\operatorname{Certify}_3$ 仅依据完整七点证书或已发现 16 个异频源关闭未知频道。
 
-\begin{enumerate}
-\item 调用 \texttt{/enter}，记录剩余现实时间并设置截止保护；
-\item 初始化七个扫描站和 20 个频道的状态；
-\item 利用阴性证据推理退役不可能收到信号的扫描站；若已发现 16 个源，则认证其余频道为空；
-\item 将未退役扫描站和待服务频道组成动态节点集，求联合开放路径；
-\item 若下一节点为扫描站，则测量尚未闭合的频道，并在有严格收益时执行站内顺路收获；
-\item 若下一节点为服务频道，则按保证信号测站、误差上界测站和十二点测站包的顺序继续定位；
-\item 当外包围覆盖半径不超过 $19.999\mathrm{m}$ 时，在满足距离证书的保守覆盖圆内选择清除点；若检测为 \texttt{near}，就地清除；
-\item 若正常定位分支停滞，或保证测站出现与证书矛盾的 \texttt{no\_signal}，则细分当前外包围至半径不超过 $4.5\mathrm{m}$，在叶单元中心检测；所测叶单元中心与真实源的距离不超过 $4.5\mathrm{m}$，必然触发 \texttt{near} 清除；
-\item 删去已清除与已认证为空的频道，重复路径规划和执行，直到 20 个频道均有确定状态；
-\item 调用一次 \texttt{/exit}，输出清除数、检测次数、换频次数、总虚拟时间和证书状态。
-\end{enumerate}
+\begin{mdframed}[
+  nobreak=true,
+  linewidth=0.6pt,
+  innerleftmargin=7pt,
+  innerrightmargin=7pt,
+  innertopmargin=5pt,
+  innerbottommargin=2pt,
+  skipabove=6pt,
+  skipbelow=6pt
+]
+\textbf{算法 1\quad 问题三证书驱动联合调度}
+\begin{tabbing}
+00\quad\=\quad\quad\=\quad\quad\=\kill
+1 \> 构造七点扫描集，调用一次 \texttt{/enter}；初始化频道轨迹 $T_c$、$U\leftarrow\mathcal S$、$P\leftarrow O$；\\
+2 \> \textbf{while} 存在未闭合频道 \textbf{do}\\
+3 \>\> $\operatorname{Certify}_3(T,U)$，并用阴性圆盘覆盖推断可安全退役的扫描站；\\
+4 \>\> $V\leftarrow V^{\rm scan}(U)\cup V^{\rm service}(T)$，$a\leftarrow\operatorname{First}(\operatorname{JointRoute}(P,V))$；\\
+5 \>\> \textbf{if} $a$ 不存在 \textbf{then break}；\\
+6 \>\> \textbf{if} $a$ 为扫描站 $S_i$ \textbf{then}\\
+7 \>\>\> $U\leftarrow U\setminus\{S_i\}$，按“必测频道 $\cup$ 有严格净收益频道”的顺序检测；\\
+8 \>\>\> 对每个响应 $y$ 执行 $\operatorname{Update}_3(T_c,S_i,y)$，随后重新认证频道；\\
+9 \>\> \textbf{else}\quad 令 $c$ 为服务频道，在保证接收的候选点中最小化移动与误差代价；\\
+10\>\>\> 最多自适应检测 10 次；若连续两次收缩不足或返回无信号，则停止该层；\\
+11\>\>\> 若 $\rho_c\le300\,\mathrm m$ 仍未闭合，则至多执行 8 轮 12 点测站包；\\
+12\>\>\> 若 $\rho_c\le19.999\,\mathrm m$，在通过顶点距离证书的位置调用 \texttt{/clear}；\\
+13\>\>\> 否则将 $A_c$ 细分为半径不超过 $4.5\,\mathrm m$ 的单元，逐中心检测至近距或半径证书清除；\\
+14\>\> \textbf{end if}；若兜底耗尽仍未闭合，则置为 \texttt{geometry\_fault} 并停止；\\
+15\> \textbf{end while}；核验 20 个频道均为 \texttt{cleared} 或 \texttt{absent\_certified}；\\
+16\> 核验清除数属于 $[10,16]$，仅调用一次 \texttt{/exit}。
+\end{tabbing}
+\end{mdframed}
 
 \subsection{模型求解与结果分析}
 
@@ -355,7 +376,7 @@ F_{\mathrm{path}}(\{j\},j)=d_{\mathrm{cur},j}.
 
 的余量。该余量保证了在最不利接收半径下，扫描骨架仍能产生阴性认证。所有几何判断均使用外包围和保守半径，因而数值误差不会使真实源被排除在可行区域之外。
 
-\subsubsection{演练效果}
+\subsubsection{演练结果}
 
 未提速基础版共完成 18 局演练，平均定位清除时间为 $507.91\mathrm{s}$/源，所有实际干扰源均被清除且清除失败为 0。
 完全提速策略定型后共完成 18 局演练，合计清除 $240/240$ 个实际干扰源，清除失败 0 次；逐局平均每源时间的等权均值为 $263.29\mathrm{s}$/源，中位数为 $258.34\mathrm{s}$/源，范围为 $197.43$--$325.96\mathrm{s}$/源，相对基础版平均值降低 $48.16\%$。
