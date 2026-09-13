@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 08:41
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 08:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1227,31 +1227,40 @@ LaTeX Font Info:    Redeclaring math symbol \Omega on input line 48.
 LaTeX Font Info:    Redeclaring math symbol \mathdollar on input line 48.
 LaTeX Font Info:    Redeclaring symbol font `operators' on input line 48.
 LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
-(Font)              `operators' in the     `operators' in the math version `normal' on input line 48.
+(Font)              `operators' in the math version `normal' on input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  OT1/cmr/m/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  OT1/cmr/m/n --> TU/TimesNewRoman(0)/m/n on input line 4
+8.
 LaTeX Font Info:    Encoding `OT1' has changed to `TU' for symbol font
 (Font)              `operators' in the math version `bold' on input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/m/n on input line 
+48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `normal'
-(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/m/n on input line 48.
+(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/m/n on 
+input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `normal'
-(Font)                  OT1/cmr/m/it --> TU/TimesNewRoman(0)/m/it on input line 48.
+(Font)                  OT1/cmr/m/it --> TU/TimesNewRoman(0)/m/it on input line
+ 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathbf' in version `normal'
-(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/b/n on input line 48.
+(Font)                  OT1/cmr/bx/n --> TU/TimesNewRoman(0)/b/n on input line 
+48.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `normal'
 (Font)                  OT1/cmss/m/n --> TU/Arial(0)/m/n on input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `normal'
-(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/m/n on input line 48.
+(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/m/n on 
+input line 48.
 LaTeX Font Info:    Overwriting symbol font `operators' in version `bold'
-(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/b/n on input line 48.
+(Font)                  TU/TimesNewRoman(0)/m/n --> TU/TimesNewRoman(0)/b/n on 
+input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathit' in version `bold'
-(Font)                  OT1/cmr/bx/it --> TU/TimesNewRoman(0)/b/it on input line 48.
+(Font)                  OT1/cmr/bx/it --> TU/TimesNewRoman(0)/b/it on input lin
+e 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathsf' in version `bold'
 (Font)                  OT1/cmss/bx/n --> TU/Arial(0)/b/n on input line 48.
 LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
-(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/b/n on input line 48.
+(Font)                  OT1/cmtt/m/n --> TU/YaHei.Consolas.1.11b.ttf(1)/b/n on 
+input line 48.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: xetex
@@ -1299,11 +1308,13 @@ Package hyperref Info: Link coloring ON on input line 48.
  (./sections/00-abstract.tex
 LaTeX Font Info:    Calculating math sizes for size <10.5> on input line 5.
 LaTeX Font Info:    Trying to load font information for U+msa on input line 5.
- (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
+
+(c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
 LaTeX Font Info:    Trying to load font information for U+msb on input line 5.
- (c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
+
+(c:/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 
@@ -1373,192 +1384,6 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 [25]
 
 [26]) (./sections/08-evaluation-and-improvement.tex
-
-[27])
-
-[28] (./main.bbl)
-
-[29
-
-] (./sections/09-appendix.tex (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2024/09/23 1.10c listings language file
-)
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 45.
- (./geometry_solver.py
-
-[30
-
-]
-
-[31]
-
-[32]
-
-[33]
-
-[34]
-
-[35]
-
-[36]
-
-[37]
-
-[38]
-
-[39]
-
-[40]
-
-[41]
-
-[42]
-
-[43]
-
-[44]
-
-[45]
-
-[46]
-
-[47]
-
-[48])
-
-LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
-(Font)              using `TU/YaHei.Consolas.1.11b.ttf(1)/m/n' instead on input line 49.
-
-(./robot/__init__.py) (./robot/client.py
-
-[49]
-
-[50]
-
-[51]
-
-[52]) (./robot/q3_agent.py
-
-[53]
-
-[54]
-
-[55]
-
-[56]
-
-[57]
-
-[58])
-
-[59] (./robot/q4_agent.py
-
-[60]
-
-[61]) (./robot/main.py
-
-[62]
-
-[63]
-
-[64]) (./robot/geometry_solver_fast.py
-
-[65]
-
-[66]
-
-[67]
-
-[68]
-
-[69]
-
-[70]
-
-[71]
-
-[72]
-
-[73]
-
-[74]) (./robot/q3_agent_fast.py
-
-[75]
-
-[76]
-
-[77]
-
-[78]
-
-[79]
-
-[80]
-
-[81]
-
-[82]
-
-[83]
-
-[84]
-
-[85]
-
-[86]
-
-[87]
-
-[88]
-
-[89]
-
-[90]) (./robot/q4_agent_fast.py
-
-[91]
-
-[92]
-
-[93]
-
-[94]
-
-[95]) (./robot/main_fast.py
-
-[96]
-
-[97]
-
-[98]
-
-[99]))
-
-[100] (./main.aux)
- ***********
-LaTeX2e <2024-11-01> patch level 2
-L3 programming layer <2022/08/05>
- ***********
-
-
-LaTeX Font Warning: Some font shapes were not available, defaults substituted.
-
-Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 1FAD4F982791669541C56BEBC98FD294;11557.
- ) 
-Here is how much of TeX's memory you used:
- 36880 strings out of 473832
- 786800 string characters out of 5733158
- 1967704 words of memory out of 5000000
- 59189 multiletter control sequences out of 15000+600000
- 578114 words of font info for 198 fonts, out of 8000000 for 9000
- 1348 hyphenation exceptions out of 8191
- 108i,13n,125p,687b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
-
-Output written on main.pdf (100 pages).
- on page 27 undefined on input li
-ne 94.
-
-) (./sections/08-evaluation-and-improvement.tex
 
 [27])
 
@@ -1723,16 +1548,7 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [99]))
 
-Package natbib Warning: There were undefined citations.
-
-
-
-[100] (./main.aux
-
-Package natbib Warning: Citation(s) may have changed.
-(natbib)                Rerun to get citations correct.
-
-)
+[100] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1741,28 +1557,16 @@ L3 programming layer <2022/08/05>
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: D41D8CD98F00B204E9800998ECF8427E;0
-(rerunfilecheck)             After:  1FAD4F982791669541C56BEBC98FD294;11557.
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 1FAD4F982791669541C56BEBC98FD294;11557.
  ) 
 Here is how much of TeX's memory you used:
- 36859 strings out of 473832
- 786509 string characters out of 5733158
- 1962397 words of memory out of 5000000
- 59169 multiletter control sequences out of 15000+600000
+ 36879 strings out of 473832
+ 786769 string characters out of 5733158
+ 1967704 words of memory out of 5000000
+ 59189 multiletter control sequences out of 15000+600000
  578114 words of font info for 198 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  108i,13n,125p,680b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.xdv (100 pages, 4056632 bytes).
+Output written on main.pdf (100 pages).
