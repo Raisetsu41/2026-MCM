@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 08:43
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 09:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1396,7 +1396,7 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 File: lstlang1.sty 2024/09/23 1.10c listings language file
 )
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 45.
+nput line 43.
 
 (./geometry_solver.py
 
@@ -1442,7 +1442,7 @@ nput line 45.
 
 LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 (Font)              using `TU/YaHei.Consolas.1.11b.ttf(1)/m/n' instead on input
- line 49.
+ line 47.
 
 (./robot/__init__.py) (./robot/client.py
 
@@ -1563,7 +1563,7 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 Here is how much of TeX's memory you used:
  36879 strings out of 473832
  786769 string characters out of 5733158
- 1967704 words of memory out of 5000000
+ 1967708 words of memory out of 5000000
  59189 multiletter control sequences out of 15000+600000
  578114 words of font info for 198 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
