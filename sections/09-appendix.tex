@@ -6,10 +6,11 @@
 
 \section{支撑材料文件清单}
 
-支撑材料与本文的模型、结果和正式测试一一对应，文件清单如下。
+支撑材料与本文的模型、结果和正式测试一一对应，目录构成与文件清单如下。
 
 \begin{enumerate}
-  \item \textbf{行为日志：}问题三与问题四各三份正式测试原始日志，共 6 份，文件名保持模拟器导出形式不变：
+  \item \textbf{支撑材料说明：}\path{说明.pdf}，给出各文件的用途、运行环境与运行方式。
+  \item \textbf{行为日志（必交）：}问题三与问题四各三份正式测试原始日志，共 6 份，文件名保持模拟器导出形式不变：
   \begin{itemize}
     \item \path{formal-p3-1-T5JT-TE93-CQUC-FDAD.jlog}；
     \item \path{formal-p3-2-FX3P-PUBX-QE4N-783K.jlog}；
@@ -26,8 +27,9 @@
     \item \path{robot/geometry_solver_fast.py}、\path{robot/q3_agent_fast.py}；
     \item \path{robot/q4_agent_fast.py}、\path{robot/main_fast.py}，以及运行说明 \path{robot/README.md}。
   \end{itemize}
-  \item \textbf{结果数据：}包括 6 份正式测试与算法定型后的 36 份完全提速版演练脱敏动作日志。后者跨越两个冻结构建，正文按同一算法阶段统一统计；其余数据包括问题一定位多边形与角误差敏感性数据、问题二 Pareto 候选点与候选区敏感性数据、问题三调度对照数据及几何结果汇总。
-  \item \textbf{AI 工具使用说明：}文件 \path{AI 工具使用详情.pdf} 记录所用工具、具体用途、主要提示方式以及人工核验过程，与正文声明一致。
+  \item \textbf{数值结果：}\path{结果数据/geometry_summary.json}（问题一、二的关键几何量），以及 \path{结果数据/q1_定位多边形.csv}、\path{结果数据/q1_角误差敏感性.csv}、\path{结果数据/q2_Pareto候选点.csv}、\path{结果数据/q2_候选区敏感性.csv} 与 \path{结果数据/q3_schedule_speedup.csv}（问题三调度对照），共 6 个文件。
+  \item \textbf{脱敏动作日志：}共 42 份，命名形式为 \path{<问题号>_<版本>_<时间戳>.jsonl}。\path{结果数据/正式动作日志/} 收录三次正式测试各一份、共 6 份；\path{结果数据/演练动作日志/} 收录算法定型后的演练日志 36 份（问题三 18 局、问题四 18 局）。每行记录一个动作的位置、频道、响应与阶段标记，用于复核正文的频道闭合、时间账与逐动作回放结论；身份字段已在写盘时脱敏。
+  \item \textbf{AI 工具使用说明：}\path{AI 工具使用详情.pdf} 记录所用工具、具体用途、主要提示方式以及人工核验过程，与正文声明一致。
 \end{enumerate}
 
 其中，正式测试原始日志用于满足题目规定的测试记录要求；脱敏动作日志用于复核频道、坐标、动作结果和虚拟时间；完整程序与下节打印的源码一致。
