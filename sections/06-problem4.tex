@@ -1,5 +1,5 @@
 % 问题四
-\section{问题四的模型建立与求解}
+\section{问题四：混合干扰源的完备发现与清除}
 
 \subsection{模型准备}
 
@@ -357,34 +357,7 @@ L(\sigma)=
 
 节点数不超过 10 时，使用 Held--Karp 动态规划求精确开放路径；节点数超过 10 时，先以最小增量插入构造初始解，再使用最近邻起点、2-opt 逆交换和 Or-opt 邻域重定位进行改善。后一种情形只报告高质量可行路径，不宣称全局最优。扫描点集合在规划过程中保持不变，因此重排访问顺序不会改变方向完备发现证书。
 
-\subsubsection{统一闭环与求解算法}
-
-问题三与问题四共享“认证状态---生成任务---联合选路---执行首节点---更新证据”的控制闭环，见图~\ref{fig:q34_closed_loop}。该图只表达不会随具体几何策略改变的控制骨架；两问对 \texttt{no\_signal} 的不同解释及各自兜底过程由后续伪代码给出。
-
-\begin{figure}[htbp]
-\centering
-\begin{tikzpicture}[
-  box/.style={rectangle,rounded corners,draw=black,align=center,minimum height=8mm,text width=9.6cm,font=\normalsize},
-  check/.style={rectangle,rounded corners,draw=black,fill=black!5,align=center,minimum height=8mm,text width=5.6cm,font=\normalsize},
-  line/.style={-Latex,thick}
-]
-  \node[box] (init) at (0,0) {验证扫描集证书，初始化 20 个频道状态与观测集};
-  \node[box] (tasks) at (0,-1.10) {认证已有状态，生成未完成扫描站与频道服务点};
-  \node[box] (route) at (0,-2.20) {求联合开放路径，仅执行当前首节点};
-  \node[box] (update) at (0,-3.30) {吸收动作响应，更新可行域、频道证书与当前位置};
-  \node[check] (closed) at (0,-4.40) {20 个频道是否全部闭合？};
-  \node[check] (done) at (0,-5.50) {一致性核验通过，调用一次 \texttt{/exit}};
-  \draw[line] (init)--(tasks);
-  \draw[line] (tasks)--(route);
-  \draw[line] (route)--(update);
-  \draw[line] (update)--(closed);
-  \draw[line] (closed)--node[right]{是}(done);
-  \draw[line] (closed.west) to[out=180,in=180,looseness=1.25]
-    node[left]{否} (tasks.west);
-\end{tikzpicture}
-\caption{问题三、四共享的证据驱动在线控制主循环}
-\label{fig:q34_closed_loop}
-\end{figure}
+\subsubsection{算法流程}
 
 问题四沿用式~\eqref{eq:q4_route_problem}的联合路径求解，但必须改写证据更新与末端清除。下列伪代码中，
 $\operatorname{Update}_4$ 对 \texttt{direction} 执行示向锥裁剪、对 \texttt{near} 就地清除，
@@ -425,7 +398,7 @@ $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应�
 
 \subsection{模型求解与结果分析}
 
-\subsubsection{证书与演练校验}
+\subsubsection{证书与演练结果}
 
 未提速基础版共完成 6 局演练，平均定位清除时间为 $845.8\mathrm{s}$/源，最好与最坏分别为 $660.7\mathrm{s}$/源和 $1096.9\mathrm{s}$/源，所有实际干扰源均被清除。
 完全提速策略定型后共完成 18 局演练，合计清除 $240/240$ 个实际干扰源；逐局平均每源时间的等权均值为 $495.54\mathrm{s}$/源，中位数为 $496.03\mathrm{s}$/源，范围为 $351.95$--$619.72\mathrm{s}$/源，相对基础版平均值降低 $41.41\%$。18 局共发生 12 次空清除，平均每局 $0.67$ 次、单局最多 5 次，均未突破工程预算。
@@ -490,4 +463,4 @@ $\operatorname{Certify}_4$ 只有在全部方向完备扫描站均无正响应�
 日志复核显示，时间项之和与虚拟时间的最大残差不超过 $2\times10^{-6}\mathrm{s}$；扫描证书、频道状态和动作序列逐项一致，未出现非接受记录或重复站位。
 
 该策略仅使用在线可得的频道号、位置、示向度和清除结果，不使用干扰源、朝向或接收半径真值；发现、定位和盲区清除分别由方向完备证书、外包围和与朝向无关的覆盖保证。
-结果支持其在题设和测试样本内有效；22 点数和覆盖参数属于工程实现选择，不据此声称对所有随机案例平均最优。
+这些结果只说明该策略在题设及六个正式案例中完成了证书闭合；22 点数和覆盖参数属于工程实现选择，不据此声称对所有随机案例平均最优。

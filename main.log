@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 10:32
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2026.1.30)  13 SEP 2026 10:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1329,31 +1329,31 @@ LaTeX Font Warning: Font shape `TU/SimSun(1)/b/n' undefined
 
 [2]) (./sections/02-assumptions-and-notation.tex
 
-[3]
+[3]) (./sections/03-problem1.tex
 
-[4]) (./sections/03-problem1.tex
+[4]
 
 [5]
 
 [6]
-
-[7]
 File: figures/q1_定位区域与直径.pdf Graphic file (type pdf)
 <use figures/q1_定位区域与直径.pdf>
 File: figures/q1_荣格定理反例.pdf Graphic file (type pdf)
 <use figures/q1_荣格定理反例.pdf>
 ) (./sections/04-problem2.tex
 
+[7]
+
 [8]
 
 [9]
 
 [10]
-
-[11]
 File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 <use figures/q2_候选区域与Pareto前沿.pdf>
 ) (./sections/05-problem3.tex
+
+[11]
 
 [12]
 
@@ -1365,9 +1365,9 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 
 [16]
 
-[17]
+[17]) (./sections/06-problem4.tex
 
-[18]) (./sections/06-problem4.tex
+[18]
 
 [19]
 
@@ -1379,19 +1379,17 @@ File: figures/q2_候选区域与Pareto前沿.pdf Graphic file (type pdf)
 
 [23]
 
-[24]
+[24]) (./sections/07-validation-and-sensitivity.tex
 
-[25]) (./sections/07-validation-and-sensitivity.tex
+[25]
 
-[26]
+[26]) (./sections/08-evaluation-and-improvement.tex
 
-[27]) (./sections/08-evaluation-and-improvement.tex
+[27])
 
-[28])
+[28] (./main.bbl)
 
-[29] (./main.bbl)
-
-[30
+[29
 
 ] (./sections/09-appendix.tex
 (c:/texlive/2025/texmf-dist/tex/latex/listings/lstlang1.sty
@@ -1402,9 +1400,11 @@ nput line 43.
 
 (./geometry_solver.py
 
-[31
+[30
 
 ]
+
+[31]
 
 [32]
 
@@ -1438,9 +1438,7 @@ nput line 43.
 
 [47]
 
-[48]
-
-[49])
+[48])
 
 LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 (Font)              using `TU/YaHei.Consolas.1.11b.ttf(1)/m/n' instead on input
@@ -1448,13 +1446,15 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 (./robot/__init__.py) (./robot/client.py
 
+[49]
+
 [50]
 
 [51]
 
-[52]
+[52]) (./robot/q3_agent.py
 
-[53]) (./robot/q3_agent.py
+[53]
 
 [54]
 
@@ -1464,21 +1464,21 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [57]
 
-[58]
+[58])
 
-[59])
+[59] (./robot/q4_agent.py
 
-[60] (./robot/q4_agent.py
+[60]
 
-[61]
+[61]) (./robot/main.py
 
-[62]) (./robot/main.py
+[62]
 
 [63]
 
-[64]
+[64]) (./robot/geometry_solver_fast.py
 
-[65]) (./robot/geometry_solver_fast.py
+[65]
 
 [66]
 
@@ -1496,9 +1496,9 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [73]
 
-[74]
+[74]) (./robot/q3_agent_fast.py
 
-[75]) (./robot/q3_agent_fast.py
+[75]
 
 [76]
 
@@ -1528,9 +1528,9 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [89]
 
-[90]
+[90]) (./robot/q4_agent_fast.py
 
-[91]) (./robot/q4_agent_fast.py
+[91]
 
 [92]
 
@@ -1538,19 +1538,17 @@ LaTeX Font Warning: Font shape `TU/YaHei.Consolas.1.11b.ttf(1)/b/n' undefined
 
 [94]
 
-[95]
+[95]) (./robot/main_fast.py
 
-[96]) (./robot/main_fast.py
+[96]
 
 [97]
 
 [98]
 
-[99]
+[99]))
 
-[100]))
-
-[101] (./main.aux)
+[100] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1560,15 +1558,15 @@ L3 programming layer <2022/08/05>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 981BE51EDDC1B472CB9744B69EB92AF3;11597.
+(rerunfilecheck)             Checksum: 164C578076032B28BAE48EB6BDCAAB07;11645.
  ) 
 Here is how much of TeX's memory you used:
- 37065 strings out of 473832
- 791789 string characters out of 5733158
- 1970743 words of memory out of 5000000
- 59375 multiletter control sequences out of 15000+600000
+ 36969 strings out of 473832
+ 789111 string characters out of 5733158
+ 1968093 words of memory out of 5000000
+ 59279 multiletter control sequences out of 15000+600000
  578114 words of font info for 198 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 108i,13n,125p,676b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,13n,125p,514b,3750s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on main.pdf (101 pages).
+Output written on main.pdf (100 pages).
