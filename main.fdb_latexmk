@@ -1,18 +1,18 @@
 # Fdb version 4
-["bibtex main"] 1789259747.56591 "main.aux" "main.bbl" "main" 1789259755.52374 0
+["bibtex main"] 1789259747.56591 "main.aux" "main.bbl" "main" 1789260118.3265 0
   "./gbt7714-numerical.bst" 1789086921 38964 b468873a0d715b19033dd98fde01e8f1 ""
   "./ref.bib" 1789230407 2477 8485f01892d251e740c202d9ae654329 ""
-  "main.aux" 1789259753 25638 dfc860722908e77e24490946ea661d5e "xelatex"
+  "main.aux" 1789260117 25638 dfc860722908e77e24490946ea661d5e "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1789259754.43327 "main.xdv" "main.pdf" "main" 1789259755.53541 0
-  "main.xdv" 1789259753 4071384 be6288153c8c8880ab27360b40abdebd "xelatex"
+["xdvipdfmx"] 1789260117.2358 "main.xdv" "main.pdf" "main" 1789260118.33869 0
+  "main.xdv" 1789260116 4056632 bbed8186ebc0af88634204a253a1792d "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1789259747.96429 "main.tex" "main.xdv" "main" 1789259755.52398 0
+["xelatex"] 1789260110.66798 "main.tex" "main.xdv" "main" 1789260118.32745 0
   "c:/Windows/Fonts/msyh.ttc" 1749310389 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1769737791 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2025/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1769739159 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
@@ -247,10 +247,10 @@
   "figures/q1_荣格定理反例.pdf" 1789147828 17469 dbf4e6541af48568ff5367f32cb1d991 ""
   "figures/q2_候选区域与Pareto前沿.pdf" 1789147828 181560 31480eb5284d97f395015916143ccb57 ""
   "geometry_solver.py" 1789224841 34026 0ac17a493f6dec2cb08b9adaa01236f3 ""
-  "main.aux" 1789259753 25638 dfc860722908e77e24490946ea661d5e "xelatex"
+  "main.aux" 1789260117 25638 dfc860722908e77e24490946ea661d5e "xelatex"
   "main.bbl" 1789259747 1787 6fad7fc9b4a8b18fd42dfe62db1a98af "bibtex main"
-  "main.out" 1789259753 11557 1fad4f982791669541c56bebc98fd294 "xelatex"
-  "main.tex" 1789234358 3657 ec35d23dac94dbc5ea600d4fc084f5d6 ""
+  "main.out" 1789260117 11557 1fad4f982791669541c56bebc98fd294 "xelatex"
+  "main.tex" 1789260110 3726 32925ca8b6cd34248f357662d2bbe727 ""
   "robot/__init__.py" 1789226354 211 11613b4cc415eef374fbd851f870f94b ""
   "robot/client.py" 1789259677 6512 3a48a6c5dcfbacfcca565e092e78b69f ""
   "robot/geometry_solver_fast.py" 1789224841 15247 d1484159e3d4c14bab43090d48d95d9d ""
