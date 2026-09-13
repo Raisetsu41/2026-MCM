@@ -77,7 +77,7 @@ L(a,b;\rho,\eta)-1000=0.                                  \tag{3}
 \[
 a\sin\eta-b\cos\eta=0
 \]
-的区间内驻点。故式（2）、（3）都是有限支函数的上包络，可非采样地判断边界内外。一般圆域截断时，式（2）仍是完整核心区；程序对 $\mathcal C_{\det}$ 使用未截断楔形得到安全内近似，不把它声称为完整边界。下文算例满足 $S_1=(0,0)$ 且 $1500<R_0$，不存在截断，故式（3）给出的条件保证区是精确的。
+的区间内驻点。故式（2）、（3）都是有限支函数的上包络，可非采样地判断边界内外。一般圆域截断时，式（2）仍是完整核心区；程序对 $\mathcal C_{\det}$ 使用未截断楔形得到安全内近似，不将其声称为完整边界。下文算例满足 $S_1=(0,0)$ 且 $1500<R_0$，不存在截断，故式（3）给出的条件保证区是精确的。
 
 \subsection{精度—耗时 Pareto 模型}
 
@@ -86,7 +86,7 @@ a\sin\eta-b\cos\eta=0
 \[
 f_2(X)=\frac{\lVert X-S_1\rVert_2}{5}+5+\mathbf 1_{\rm switch}.
 \]
-连续测同一频道时末项为零；若中间插入其他频道动作则为 1。设局部预算为 $T_{\max}$，以 $\mathcal C_{\det}(T_{\max})=\{X\in\mathcal C_{\det}:f_2(X)\le T_{\max}\}$ 作为主可行区。$T_{\max}$ 是可调决策参数，不是题面常量。
+其中连续测同一频道时末项为零；若中间插入其他频道动作则为 1。设局部预算为 $T_{\max}$，以 $\mathcal C_{\det}(T_{\max})=\{X\in\mathcal C_{\det}:f_2(X)\le T_{\max}\}$ 作为主可行区。$T_{\max}$ 是可调决策参数，非题面常量。
 
 \subsubsection{误差传播与 GDOP}
 设 $G=(x,y)^{\mathsf T}$，第 $i$ 个检测点为 $(x_i,y_i)$，$r_i=\lVert G-S_i\rVert_2$。弧度制测向函数的 Jacobian 行向量为
@@ -110,7 +110,7 @@ A_{\rm loc}=\frac{4\tilde\delta^2r_1r_2}{|\sin\gamma|}
 \mathrm{GDOP}=\sqrt{\operatorname{tr}[(J^{\mathsf T}J)^{-1}]}
 =\frac{\sqrt{r_1^2+r_2^2}}{|\sin\gamma|}\quad(\mathrm{m/rad}),
 \]
-它揭示“距离短、交角近正交”共同改善精度，而不引入误差分布\cite{bishop2010}。
+其揭示了“距离短、交角近正交”共同改善精度，而不引入误差分布\cite{bishop2010}。
 
 \subsubsection{双目标决策}
 连续先验在计算中离散为 $U_{1,N}$，记 $\widehat F_{1,N}=\max_{G\in U_{1,N}}f_{1,\rm loc}(G;X)$。在保证接收、非近距和非共线条件下求
@@ -129,7 +129,7 @@ P_{\rm exact}^{(2)}=\left\{G:\lVert G\rVert\le R_0,
 \ G\in W_1\cap W_2,
 \ 5<\lVert G-S_i\rVert\le1500\ (i=1,2)\right\}.
 \]
-其闭凸外包由目标圆、两个测向锥和两个 $1500\,\mathrm m$ 圆盘相交得到，再显式删除两个 $5\,\mathrm m$ 近距盘；直径按上确界、最小覆盖圆按闭包计算。存在同一清除点覆盖所有可能位置的充要条件为
+其闭凸外包由目标圆、两个测向锥和两个 $1500\,\mathrm m$ 圆盘相交得到，再显式删除两个 $5\,\mathrm m$ 近距盘；直径按上确界，最小覆盖圆按闭包计算。存在同一清除点覆盖所有可能位置的充要条件为
 \[
 R_{\rm MEC}\!\left(\overline{P_{\rm exact}^{(2)}}\right)\le20\,\mathrm m. \tag{6}
 \]
@@ -142,7 +142,7 @@ S_2=(993.738585,-143.469943)\,\mathrm m
 =S_1+840d_\parallel-550d_\perp.
 \]
 
-\begin{table}[htbp]
+\begin{table}[H]
 \centering
 \small
 \caption{问题二参考站址的数值结果}
@@ -172,11 +172,11 @@ S_2=(993.738585,-143.469943)\,\mathrm m
 \]
 从而表~\ref{tab:q2_results}中的非退化下界也建立在连续先验上，而非有限源点样本上。
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.72\textwidth]{figures/q2_候选区域与Pareto前沿.pdf}
 \caption{第二检测点条件保证候选区、Pareto 前沿与参考站址（程序图中的“解析候选区”“折中点”分别对应本文的条件保证区与参考站址）}
 \label{fig:q2_pareto}
 \end{figure}
 
-参考点同时属于 $\mathcal C_{1000}$，但距 $1000\,\mathrm m$ 边界仅约 $0.09\,\mathrm m$，部署时须保留额外模型余量。这里的“最优”只指给定搜索网格和字典序规则下的候选最优；区间算法认证的是该站址的连续先验最坏误差，而非连续站址域的全局最优。又因 $F_1\approx60.88\,\mathrm m$ 与实际区域的 MEC 半径不是同一量，是否能够清除仍必须等待第二次示向度并检验式（6）。
+参考点同时属于 $\mathcal C_{1000}$，但距 $1000\,\mathrm m$ 边界仅约 $0.09\,\mathrm m$，部署时须保留额外模型余量。这里的“最优”只指给定搜索网格和字典序规则下的候选最优；区间算法认证的是该站址的连续先验最坏误差，而非连续站址域的全局最优。又因 $F_1\approx60.88\,\mathrm m$ 与实际区域的 MEC 半径不是同一量，是否能够清除仍必须等待第二次示向度并检验，详见式（6）。

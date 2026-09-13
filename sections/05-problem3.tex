@@ -72,7 +72,7 @@ K_c\subseteq A_c.
 
 \subsubsection{七点扫描覆盖与发现证书}
 
-取
+取如下七点集合记为 $\mathcal S$。
 
 \begin{equation}
 P_0=(0,0),
@@ -82,7 +82,7 @@ P_k=1200\left(\cos\frac{k\pi}{3},\ \sin\frac{k\pi}{3}\right),
 \label{eq:q3_scan_sites}
 \end{equation}
 
-七点集合记为 $\mathcal S$。将目标圆域按六个 $60^\circ$ 扇区划分，第 $k$ 个扇区以 $P_k$ 为中心方向。对扇区内任一点 $G$，记 $r=\lVert G\rVert_2$，其相对 $P_k$ 的夹角为 $\varphi\in[-30^\circ,30^\circ]$。由于构型关于每个扇区的中线对称，只需分析 $0\le\varphi\le30^\circ$；六个扇区除旋转外完全相同。
+并将目标圆域按六个 $60^\circ$ 扇区划分，第 $k$ 个扇区以 $P_k$ 为中心方向。对扇区内任一点 $G$，记 $r=\lVert G\rVert_2$，其相对 $P_k$ 的夹角为 $\varphi\in[-30^\circ,30^\circ]$。由于构型关于每个扇区的中线对称，只需分析 $0\le\varphi\le30^\circ$；六个扇区除旋转外完全相同。
 
 原点与 $P_k$ 到 $G$ 的距离相等当且仅当
 
@@ -145,7 +145,7 @@ d_{\max}
 
 \textbf{命题 1（发现完备性）}　若 $1000\mathrm{m}\le r_j^{\mathrm{recv}}\le1500\mathrm{m}$，则每个干扰源在七个扫描点中至少一个点上会被检测到；若某频道在七个扫描点上均返回 \texttt{no\_signal}，则该频道必不存在干扰源。
 
-证明：由 $d_{\max}<1000\mathrm{m}$，任一干扰源到最近扫描点的距离不超过 $968.9016\mathrm{m}$，位于其有效接收范围内。由于问题三中的干扰源为全向源，该点不会出现方向盲区，因此测量结果只能是 \texttt{direction} 或 \texttt{near}。反之，若七个点均无信号，则与上述必然有信号矛盾。证毕。
+证明：由 $d_{\max}<1000\mathrm{m}$，任一干扰源到最近扫描点的距离不超过 $968.9016\mathrm{m}$，位于其有效接收范围内。由于问题三中的干扰源为全向源，该点不会出现方向盲区，因此测量结果只能是 \texttt{direction} 或 \texttt{near}。反之，若七个点均无信号，则与上述必然有信号矛盾。证毕。\par\vspace{1em}
 
 七个扫描点构成发现证书，其正确性只依赖扫描点的集合，与访问顺序无关。因此，后续为缩短路径而重排扫描站不会削弱该证书。
 
